@@ -1,0 +1,19 @@
+package models
+
+case class ReactiveTestUser(
+  age: Option[Int],
+  firstName: String,
+  lastName: String,
+  feeds: List[Feed])
+
+case class Feed(
+  name: String,
+  url: String)
+
+object JsonFormats {
+  import play.api.libs.json.Json
+
+  // Generates Writes and Reads for Feed and ReactiveTestUser thanks to Json Macros
+  implicit val feedFormat = Json.format[Feed]
+  implicit val userFormat = Json.format[ReactiveTestUser]
+}

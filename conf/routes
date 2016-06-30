@@ -1,0 +1,46 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+GET     /                                		controllers.ApplicationController.index
+
+# An example controller showing a sample home page
+GET     /home                           		controllers.HomeController.index
+# An example controller showing how to use dependency injection
+GET     /count                      			controllers.CountController.count
+# An example controller showing how to write asynchronous code
+GET     /message                    			controllers.AsyncController.message
+
+# Example form Reactive Mongo web-page
+GET		/rmongo/create							controllers.ReactiveMongoController.create
+GET		/rmongo/createFromJson	    			controllers.ReactiveMongoController.createFromJson
+GET		/rmongo/findByName/:lastName	    	controllers.ReactiveMongoController.findByName(lastName: String)
+GET		/rmongo/listAll					    	controllers.ReactiveMongoController.listAll
+
+# Articles, example from the web
+
+GET     /articles                   			controllers.ArticlesController.index
+GET     /articles/new               			controllers.ArticlesController.showCreationForm
+POST    /articles/new               			controllers.ArticlesController.create
+GET     /articles/:id               			controllers.ArticlesController.showEditForm(id)
+POST    /articles/:id               			controllers.ArticlesController.edit(id)
+DELETE  /articles/:id               			controllers.ArticlesController.delete(id)
+POST    /articles/:id/attachments   			controllers.ArticlesController.saveAttachment(id)
+GET     /attachments/:id            			controllers.ArticlesController.getAttachment(id)
+DELETE  /attachments/:id            			controllers.ArticlesController.removeAttachment(id)
+
+# From sihuette test
+# Home page
+GET         /signOut                         controllers.ApplicationController.signOut
+GET         /authenticate/:provider          controllers.SocialAuthController.authenticate(provider)
+
+GET         /signUp                          controllers.SignUpController.view
+POST        /signUp                          controllers.SignUpController.submit
+
+GET         /signIn                          controllers.SignInController.view
+POST        /signIn                          controllers.SignInController.submit
+
+# Map static resources from the /public folder to the /assets URL path
+#GET     /assets/*file               		controllers.Assets.versioned(path="/public", file: Asset)
+GET     /assets/*file                   	controllers.Assets.at(path="/public", file)
+GET     /webjars/*file                   	controllers.WebJarAssets.at(file)
