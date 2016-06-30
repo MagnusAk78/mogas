@@ -11,12 +11,6 @@ GET     /count                      			controllers.CountController.count
 # An example controller showing how to write asynchronous code
 GET     /message                    			controllers.AsyncController.message
 
-# Example form Reactive Mongo web-page
-GET		/rmongo/create							controllers.ReactiveMongoController.create
-GET		/rmongo/createFromJson	    			controllers.ReactiveMongoController.createFromJson
-GET		/rmongo/findByName/:lastName	    	controllers.ReactiveMongoController.findByName(lastName: String)
-GET		/rmongo/listAll					    	controllers.ReactiveMongoController.listAll
-
 # Articles, example from the web
 
 GET     /articles                   			controllers.ArticlesController.index

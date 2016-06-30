@@ -34,6 +34,7 @@ import play.modules.reactivemongo.ReactiveMongoApi
 import play.api.libs.json.Json
 import models.daos.MyAuthInfoDAO
 import javax.inject._
+import com.mohiva.play.silhouette.persistence.daos.MongoAuthInfoDAO
 
 //import com.mohiva.play.silhouette.persistence.daos.MongoAuthInfoDAO
 
@@ -77,25 +78,25 @@ class SilhouetteModule extends AbstractModule with ScalaModule {
   @Provides @Singleton
   def provideOAuth1InfoDAO(reactiveMongoApi: ReactiveMongoApi, config: Configuration): DelegableAuthInfoDAO[OAuth1Info] = {
     implicit lazy val format = Json.format[OAuth1Info]
-    new MyAuthInfoDAO[OAuth1Info](reactiveMongoApi, config)
+    new MongoAuthInfoDAO[OAuth1Info](reactiveMongoApi, config)
   }  
   
   @Provides @Singleton
   def providePasswordInfoDAO(reactiveMongoApi: ReactiveMongoApi, config: Configuration): DelegableAuthInfoDAO[PasswordInfo] = {
     implicit lazy val format = Json.format[PasswordInfo]
-    new MyAuthInfoDAO[PasswordInfo](reactiveMongoApi, config)
+    new MongoAuthInfoDAO[PasswordInfo](reactiveMongoApi, config)
   }  
   
   @Provides @Singleton
   def provideOAuth2InfoDAO(reactiveMongoApi: ReactiveMongoApi, config: Configuration): DelegableAuthInfoDAO[OAuth2Info] = {
     implicit lazy val format = Json.format[OAuth2Info]
-    new MyAuthInfoDAO[OAuth2Info](reactiveMongoApi, config)
+    new MongoAuthInfoDAO[OAuth2Info](reactiveMongoApi, config)
   }  
   
   @Provides @Singleton
   def provideOpenIDInfoDAO(reactiveMongoApi: ReactiveMongoApi, config: Configuration): DelegableAuthInfoDAO[OpenIDInfo] = {
     implicit lazy val format = Json.format[OpenIDInfo]
-    new MyAuthInfoDAO[OpenIDInfo](reactiveMongoApi, config)
+    new MongoAuthInfoDAO[OpenIDInfo](reactiveMongoApi, config)
   }  
 
   /**

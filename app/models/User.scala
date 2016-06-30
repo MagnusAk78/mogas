@@ -4,16 +4,6 @@ import com.mohiva.play.silhouette.api.{ Identity, LoginInfo }
 
 import scala.collection.mutable.Map
 
-object UserKeys extends Enumeration {
-   val id = Value("_id")
-   val loginInfo = Value("loginInfo")
-   val firstName = Value("firstName")
-   val lastName = Value("lastName")
-   val fullName = Value("fullName")
-   val email = Value("email")
-   val avatarURL = Value("avatarURL")
-} 
-
 case class User(
     id: Option[String] = None,
     loginInfo: Option[LoginInfo] = None,
@@ -21,23 +11,34 @@ case class User(
     lastName: Option[String] = None,
     fullName: Option[String] = None,
     email: Option[String] = None,
-    avatarURL: Option[String] = None) extends Identity
+    avatarURL: Option[String] = None,
+    activeOrganisation: Option[String] = None) extends BaseModel with Identity
     
 object User {
   import play.api.libs.json._
   
-  type JsField = (String, JsValue)
+  object Keys {
+    case object Id extends ModelKey("_id")
+    case object LoginInfo extends ModelKey("loginInfo")
+    case object FirstName extends ModelKey("firstName")
+    case object LastName extends ModelKey("lastName")
+    case object FullName extends ModelKey("fullName")
+    case object Email extends ModelKey("email")
+    case object AvatarURL extends ModelKey("avatarURL")
+    case object ActiveOrganisation extends ModelKey("activeOrganisation")
+  }
 
   implicit object UserWrites extends OWrites[User] {
       def writes(user: User): JsObject = {
         val sequence = Seq[JsField]() ++
-          user.id.map(id => UserKeys.id.toString -> JsString(id)) ++
-          user.loginInfo.map(li => UserKeys.loginInfo.toString -> Json.toJson(li)) ++
-          user.firstName.map(fn => UserKeys.firstName.toString -> JsString(fn)) ++
-          user.lastName.map(ln => UserKeys.lastName.toString -> JsString(ln)) ++
-          user.fullName.map(fn => UserKeys.fullName.toString -> JsString(fn)) ++
-          user.email.map(email => UserKeys.email.toString -> JsString(email)) ++
-          user.avatarURL.map(url => UserKeys.avatarURL.toString -> JsString(url))
+          user.id.map(Keys.Id.value -> JsString(_)) ++
+          user.loginInfo.map(Keys.LoginInfo.value -> Json.toJson(_)) ++
+          user.firstName.map(Keys.FirstName.value -> JsString(_)) ++
+          user.lastName.map(Keys.LastName.value -> JsString(_)) ++
+          user.fullName.map(Keys.FullName.value -> JsString(_)) ++
+          user.email.map(Keys.Email.value -> JsString(_)) ++
+          user.avatarURL.map(Keys.AvatarURL.value -> JsString(_)) ++
+          user.activeOrganisation.map(Keys.ActiveOrganisation.value -> JsString(_))
           
         JsObject(sequence)
       }
@@ -46,13 +47,14 @@ object User {
   implicit object UserReads extends Reads[User] {
     def reads(json: JsValue): JsResult[User] = json match {
       case obj: JsObject => try {
-        val id = (obj \ UserKeys.id.toString).asOpt[String]
-        val loginInfo = (obj \ UserKeys.loginInfo.toString).asOpt[LoginInfo]
-        val firstName = (obj \ UserKeys.firstName.toString).asOpt[String]
-        val lastName = (obj \ UserKeys.lastName.toString).asOpt[String]
-        val fullName = (obj \ UserKeys.fullName.toString).asOpt[String]
-        val email = (obj \ UserKeys.email.toString).asOpt[String]
-        val avatarURL = (obj \ UserKeys.avatarURL.toString).asOpt[String]
+        val id = (obj \ Keys.Id.value).asOpt[String]
+        val loginInfo = (obj \ Keys.LoginInfo.value).asOpt[LoginInfo]
+        val firstName = (obj \ Keys.FirstName.value).asOpt[String]
+        val lastName = (obj \ Keys.LastName.value).asOpt[String]
+        val fullName = (obj \ Keys.FullName.value).asOpt[String]
+        val email = (obj \ Keys.Email.value).asOpt[String]
+        val avatarURL = (obj \ Keys.AvatarURL.value).asOpt[String]
+        val activeOrganisation = (obj \ Keys.ActiveOrganisation.value).asOpt[String]
 
         JsSuccess(User(id, loginInfo, firstName, lastName, fullName, email, avatarURL))
         

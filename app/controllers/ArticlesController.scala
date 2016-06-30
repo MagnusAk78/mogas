@@ -27,10 +27,10 @@ import play.api.i18n.I18nSupport
 import play.api.i18n.MessagesApi
 import scala.concurrent.ExecutionContext
 import models.services.ArticleService
-import models.ArticleKeys
 import com.mohiva.play.silhouette.api.Silhouette
 import utils.auth.DefaultEnv
 import com.mohiva.play.silhouette.impl.providers.SocialProviderRegistry
+import models.ModelKey
 
 @Singleton
 class ArticlesController @Inject()(
@@ -216,7 +216,7 @@ class ArticlesController @Inject()(
       recover { case _ => InternalServerError })
   }
 
-  private def getSort(request: Request[_]): Option[(ArticleKeys.Value, Boolean)] =
+  private def getSort(request: Request[_]): Option[(ModelKey, Boolean)] =
     request.queryString.get("sort").map { fields =>
       val sortBy = for {
         order <- fields.map { field =>
@@ -233,12 +233,12 @@ class ArticlesController @Inject()(
       sortBy.head
     }
   
-  private def keyToArticleKey(key: String): ArticleKeys.Value = key match {
-    case "title" => ArticleKeys.title
-    case "publisher" => ArticleKeys.publisher
-    case "creationDate" => ArticleKeys.creationDate
-    case "updateDate" => ArticleKeys.updateDate
-    case default => ArticleKeys.title
+  private def keyToArticleKey(key: String): ModelKey = key match {
+    case "title" => Article.Keys.Title
+    case "publisher" => Article.Keys.Publisher
+    case "creationDate" => Article.Keys.CreationDate
+    case "updateDate" => Article.Keys.UpdateDate
+    case default => Article.Keys.Title
   }
 
 }

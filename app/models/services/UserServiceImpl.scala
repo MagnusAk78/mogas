@@ -16,23 +16,16 @@ import scala.concurrent.Future
  *
  * @param userDAO The user DAO implementation.
  */
-class UserServiceImpl @Inject() (userDAO: UserDAO) extends UserService {
-
+class UserServiceImpl @Inject() (override val dao: UserDAO) extends UserService {
+ 
   /**
    * Retrieves a user that matches the specified login info.
    *
    * @param loginInfo The login info to retrieve a user.
    * @return The retrieved user or None if no user could be retrieved for the given login info.
    */
-  override def retrieve(loginInfo: LoginInfo): Future[Option[User]] = userDAO.find(User(loginInfo = Some(loginInfo))).map { _.headOption }
+  override def retrieve(loginInfo: LoginInfo): Future[Option[User]] = dao.find(User(loginInfo = Some(loginInfo))).map { _.headOption }
 
-  /**
-   * Saves a user.
-   *
-   * @param user The user to save.
-   * @return The saved user.
-   */
-  override def save(user: User): Future[Option[User]] = userDAO.save(user)
 
   /**
    * Saves the social profile for a user.
@@ -54,7 +47,7 @@ class UserServiceImpl @Inject() (userDAO: UserDAO) extends UserService {
             fullName = profile.fullName,
             email = profile.email,
             avatarURL = profile.avatarURL)
-          userDAO.save(newUser)
+          dao.save(newUser)
         }
         case None => { // Insert a new user
           val newUser = User(
@@ -65,7 +58,7 @@ class UserServiceImpl @Inject() (userDAO: UserDAO) extends UserService {
             fullName = profile.fullName,
             email = profile.email,
             avatarURL = profile.avatarURL)
-          userDAO.save(newUser)
+          dao.save(newUser)
         }
       }
     }

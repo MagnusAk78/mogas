@@ -5,14 +5,14 @@ import scala.concurrent.Future
 
 import javax.inject.Inject
 import models.Article
-import models.ArticleKeys
 import play.modules.reactivemongo.ReactiveMongoApi
 import reactivemongo.play.json.collection.JSONCollection
 import reactivemongo.play.json.collection.JSONCollectionProducer
+import models.ModelKey
 
 class ArticleDAOImpl @Inject() (val reactiveMongoApi: ReactiveMongoApi)(implicit exec: ExecutionContext) extends ArticleDAO {
 
-  private def collection = reactiveMongoApi.database.map(_.collection[JSONCollection]("articles"))
+  protected override def collection = reactiveMongoApi.database.map(_.collection[JSONCollection]("articles"))
   
   override def save(article: Article): Future[Option[Article]] = article.id match {
     case Some(id) => {
@@ -42,6 +42,6 @@ class ArticleDAOImpl @Inject() (val reactiveMongoApi: ReactiveMongoApi)(implicit
   override def find(article: Article, maxDocs: Int = 0): Future[List[Article]] =
     collection.flatMap(_.find(article).cursor[Article]().collect[List](maxDocs))
 
-  override def findAndSort(article: Article, sortBy: ArticleKeys.Value, ascending: Boolean, maxDocs: Int = 0): Future[List[Article]] =
+  override def findAndSort(article: Article, sortBy: ModelKey, ascending: Boolean, maxDocs: Int = 0): Future[List[Article]] =
     collection.flatMap(_.find(article).sort(DaoHelper.getSortByJsObject(sortBy.toString, ascending)).cursor[Article]().collect[List](maxDocs))
 }

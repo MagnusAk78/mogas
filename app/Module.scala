@@ -7,6 +7,8 @@ import services.RandomNameService
 import models.daos._
 import models.services.ArticleService
 import models.services.ArticleServiceImpl
+import models.services.OrganisationServiceImpl
+import models.services.OrganisationService
 
 /**
  * This class is a Guice module that tells Guice how to bind several
@@ -42,10 +44,14 @@ class Module extends AbstractModule {
     
     //DAOs
     bind(classOf[UserDAO]).to(classOf[UserDAOImpl]).asEagerSingleton()
+    bind(classOf[OrganisationDAO]).to(classOf[OrganisationDAOImpl]).asEagerSingleton()
+    
+    //Test DAO
     bind(classOf[ArticleDAO]).to(classOf[ArticleDAOImpl]).asEagerSingleton()
     
-    //Services, User service is in Silhuette module
+    //Services, User service is in Silhouette module
     bind(classOf[ArticleService]).to(classOf[ArticleServiceImpl])
+    bind(classOf[OrganisationService]).to(classOf[OrganisationServiceImpl])
   }
 
 }

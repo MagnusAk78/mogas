@@ -10,7 +10,7 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 import reactivemongo.play.json._
 import reactivemongo.play.json.collection._
-import models.UserKeys
+import models.ModelKey
 
 
 /**
@@ -18,7 +18,7 @@ import models.UserKeys
  */
 class UserDAOImpl @Inject() (val reactiveMongoApi: ReactiveMongoApi)(implicit exec: ExecutionContext) extends UserDAO {
 
-  private def collection = reactiveMongoApi.database.map(_.collection[JSONCollection]("users"))
+  protected override def collection: Future[JSONCollection] = reactiveMongoApi.database.map(_.collection[JSONCollection]("users"))
 
   override def save(user: User): Future[Option[User]] = user.id match {
     case Some(id) => {
@@ -48,6 +48,6 @@ class UserDAOImpl @Inject() (val reactiveMongoApi: ReactiveMongoApi)(implicit ex
   override def find(user: User, maxDocs: Int = 0): Future[List[User]] =
     collection.flatMap(_.find(user).cursor[User]().collect[List](maxDocs))
 
-  override def findAndSort(user: User, sortBy: UserKeys.Value, ascending: Boolean, maxDocs: Int = 0): Future[List[User]] =
-    collection.flatMap(_.find(user).sort(DaoHelper.getSortByJsObject(sortBy.toString, ascending)).cursor[User]().collect[List](maxDocs))
+  override def findAndSort(user: User, sortBy: ModelKey, ascending: Boolean, maxDocs: Int = 0): Future[List[User]] =
+    collection.flatMap(_.find(user).sort(DaoHelper.getSortByJsObject(sortBy.value, ascending)).cursor[User]().collect[List](maxDocs))
 }

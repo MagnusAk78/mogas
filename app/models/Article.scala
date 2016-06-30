@@ -10,27 +10,27 @@ import reactivemongo.bson.{
   BSONDateTime, BSONDocument, BSONObjectID
 }
 
-object ArticleKeys extends Enumeration {
-   val id = Value("_id")
-   val title = Value("title")
-   val content = Value("content")
-   val publisher = Value("publisher")
-   val creationDate = Value("creationDate")
-   val updateDate = Value("updateDate")
-} 
-
 case class Article(
   id: Option[String] = None,
   title: Option[String] = None,
   content: Option[String] = None,
   publisher: Option[String] = None,
   creationDate: Option[DateTime] = None,
-  updateDate: Option[DateTime] = None)
+  updateDate: Option[DateTime] = None) extends BaseModel
 
 // Turn off your mind, relax, and float downstream
 // It is not dying...
 object Article {
   import play.api.libs.json._
+  
+  object Keys {
+    case object Id extends ModelKey("_id")
+    case object Title extends ModelKey("title")
+    case object Content extends ModelKey("content")
+    case object Publisher extends ModelKey("publisher")
+    case object CreationDate extends ModelKey("creationDate")
+    case object UpdateDate extends ModelKey("updateDate")
+  }
 
   implicit object ArticleWrites extends OWrites[Article] {
     
@@ -38,12 +38,12 @@ object Article {
     
       def writes(article: Article): JsObject = {
         val sequence = Seq[JsField]() ++
-          article.id.map(ArticleKeys.id.toString -> JsString(_)) ++
-          article.title.map(ArticleKeys.title.toString -> Json.toJson(_)) ++
-          article.content.map(ArticleKeys.content.toString -> JsString(_)) ++
-          article.publisher.map(ArticleKeys.publisher.toString -> JsString(_)) ++
-          article.creationDate.map(ArticleKeys.creationDate.toString -> Json.toJson(_)) ++
-          article.updateDate.map(ArticleKeys.updateDate.toString -> Json.toJson(_))
+          article.id.map(Keys.Id.value -> JsString(_)) ++
+          article.title.map(Keys.Title.value -> Json.toJson(_)) ++
+          article.content.map(Keys.Content.value -> JsString(_)) ++
+          article.publisher.map(Keys.Publisher.value -> JsString(_)) ++
+          article.creationDate.map(Keys.CreationDate.value -> Json.toJson(_)) ++
+          article.updateDate.map(Keys.UpdateDate.value -> Json.toJson(_))
           
         JsObject(sequence)
       }    
@@ -52,12 +52,12 @@ object Article {
   implicit object ArticleReads extends Reads[Article] {
     def reads(json: JsValue): JsResult[Article] = json match {
       case obj: JsObject => try {
-        val id = (obj \ ArticleKeys.id.toString).asOpt[String]
-        val title = (obj \ ArticleKeys.title.toString).asOpt[String]
-        val content = (obj \ ArticleKeys.content.toString).asOpt[String]
-        val publisher = (obj \ ArticleKeys.publisher.toString).asOpt[String]
-        val creationDate = (obj \ ArticleKeys.creationDate.toString).asOpt[Long]
-        val updateDate = (obj \ ArticleKeys.updateDate.toString).asOpt[Long]
+        val id = (obj \ Keys.Id.value).asOpt[String]
+        val title = (obj \ Keys.Title.value).asOpt[String]
+        val content = (obj \ Keys.Content.value).asOpt[String]
+        val publisher = (obj \ Keys.Publisher.value).asOpt[String]
+        val creationDate = (obj \ Keys.CreationDate.value).asOpt[Long]
+        val updateDate = (obj \ Keys.UpdateDate.value).asOpt[Long]
 
         JsSuccess(Article(id, title, content, publisher,
           creationDate.map(new DateTime(_)),
