@@ -1,0 +1,26 @@
+@(mediaList: List[Call], linkList: List[Call], headingList: List[String], textList: List[String],
+    activatedList: List[Boolean])(implicit flash: Flash, messages: Messages)
+
+<div class="list-group">
+    @for(i <- 0 to (mediaList.size-1)) {
+        @if(activatedList(i)) {
+            <a href="@linkList(i)" class="list-group-item active">
+        } else {
+            <a href="@linkList(i)" class="list-group-item">
+        }
+            <div class="media">
+                <div class="media-left">
+                    <img height="72" class="media-object" src="@mediaList(i)" alt="@headingList(i)">
+                </div>
+                <div class="media-body">
+                    <h4 class="list-group-item-heading">
+                        @headingList(i)
+                    </h4>
+                    <p class="list-group-item-text">
+                        @textList(i)
+                    </p>
+                </div>
+            </div>
+        </a>
+    }
+</div>

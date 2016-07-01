@@ -46,11 +46,8 @@ class Module extends AbstractModule {
     bind(classOf[UserDAO]).to(classOf[UserDAOImpl]).asEagerSingleton()
     bind(classOf[OrganisationDAO]).to(classOf[OrganisationDAOImpl]).asEagerSingleton()
     
-    //Test DAO
-    bind(classOf[ArticleDAO]).to(classOf[ArticleDAOImpl]).asEagerSingleton()
     
     //Services, User service is in Silhouette module
-    bind(classOf[ArticleService]).to(classOf[ArticleServiceImpl])
     bind(classOf[OrganisationService]).to(classOf[OrganisationServiceImpl])
   }
 

@@ -1,0 +1,8 @@
+@(link: play.api.mvc.Call, text: String, btnType: String = "btn-default", glyphicon: Option[String] = Option.empty[String])(implicit flash: Flash, messages: Messages)
+
+<a href="@link" class="btn @btnType">
+    @if(glyphicon.isDefined) {
+        <span class="glyphicon @glyphicon.get" aria-hidden="true"></span>
+    }
+    @text
+</a>

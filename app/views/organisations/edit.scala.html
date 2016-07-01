@@ -1,0 +1,37 @@
+@(organisationForm: Form[forms.OrganisationForm.Data], update: Boolean, loggedInUser: Option[models.User], activeOrg: Option[models.Organisation])(implicit flash: Flash,
+    request: RequestHeader, messages: Messages, lang: Lang)
+
+@import b3.vertical.fieldConstructor
+@import templates._
+
+@updateNewText(update: Boolean) = @{
+    if (update) Messages("command.update") else Messages("command.add")
+}
+
+@main(Messages("organisations"), loggedInUser, activeOrg) {
+    @rowMainSecondary() {
+        @if(update) {
+            @title(Messages("organisations"), Some(Messages("function.edit")))
+        } else {
+            @title(Messages("organisations"), Some(Messages("function.create")))
+        }
+    }{
+        @backButton(controllers.routes.OrganisationController.list(1))
+    }
+    <hr>
+    @formMultipartColumn(updateNewText(update), routes.OrganisationController.save, updateNewText(update)) {
+        @b3.hidden(organisationForm("id").name, organisationForm("id").value)
+        @b3.hidden(organisationForm("usersCount").name, organisationForm("usersCount").value)
+        @b3.hidden(organisationForm("usersPage").name, organisationForm("usersPage").value)
+        @b3.hidden(organisationForm("usersPageLenght").name, organisationForm("usersPageLenght").value)
+        @b3.text(organisationForm("name"), '_label -> Messages("organisation.name"))
+        @* b3.file(organisationForm(models.imageFileKeyString), '_label -> Messages("image.file")) *@
+    }{
+        @if(update) {
+            @editButton(controllers.routes.OrganisationController.editAllowedUsers(
+                organisationForm("id").value.get, 1), Some(Messages("organisation.changeAllowedUsers")))
+            <hr>
+            @deleteButton(controllers.routes.OrganisationController.delete(organisationForm("id").value.get))
+        }
+    }
+}

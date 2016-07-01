@@ -1,0 +1,18 @@
+@(signInForm: Form[models.Authentication.SignInData])(implicit flash: Flash, request: RequestHeader, messages: Messages)
+
+@import b3.vertical.fieldConstructor
+@import templates._
+
+@main(Messages("user.signIn"), None) {
+    @formColumn(Messages("user.signIn"), routes.AuthenticationController.authenticate, Messages("user.signIn")) {
+        @b3.text(signInForm("username"), '_hiddenLabel -> Messages("user.username"), 'placeholder -> Messages("user.username"), 'class -> "form-control")
+        @b3.password(signInForm("password"), '_hiddenLabel -> Messages("user.password"), 'placeholder -> Messages("user.password"), 'class -> "form-control")
+    }{
+        <p class="extra-form-info">
+            @Messages("user.question.notMember")
+            @link(routes.ApplicationController.signUp) {
+                @Messages("user.signUp")
+            }
+        </p>
+    }
+}

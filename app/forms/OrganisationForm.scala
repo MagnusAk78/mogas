@@ -5,8 +5,8 @@ import play.api.data.Forms._
 import models.Organisation
 
 object OrganisationForm {
-  
-  val form = Form(
+    
+  val form = Form[Data](
     mapping(
       "id" -> optional(nonEmptyText),
       "name" -> optional(nonEmptyText)

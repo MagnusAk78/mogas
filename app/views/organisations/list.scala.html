@@ -1,0 +1,45 @@
+@(organisations: List[Organisation], count: Int, page: Int, pageLength: Int, loggedInUser: Option[User])(implicit
+    flash: Flash, request: RequestHeader, messages: Messages)
+
+@import templates._
+@import org.bson.types.ObjectId
+
+@main(Messages("organisations"), loggedInUser) {
+    @rowColumnCenter() {
+        @title(Messages("organisations"), Some(Messages("function.list")))
+    }
+    <hr>
+    @rowColumnCenter() {
+        @paginate(page, pageLength, count, controllers.routes.OrganisationController.list(_))
+        @{
+            val mediaList = organisations.map((organisation: Organisation) =>
+                if(organisation.imageFileRep.isDefined) {
+                    routes.OrganisationController.thumbnail(organisation._id.toString)
+                } else {
+                    routes.Assets.versioned("images/organisation-default.png")
+                }
+            )
+
+            val linkList = organisations.map((organisation: Organisation) => controllers.routes.OrganisationController.edit(organisation._id.toString))
+            val headingList = organisations.map(_.name)
+            val textList = organisations.map(_.name)
+            val activatedList = if(loggedInUser.get.activeOrganisation.isDefined) {
+                organisations.map((organisation: Organisation) =>
+                    (organisation._id == loggedInUser.get.activeOrganisation.get))
+            } else {
+                List()
+            }
+
+            mediaListWithOneLink(mediaList, linkList, headingList, textList, activatedList)
+        }
+    }
+    <hr>
+    @rowColumnCenter() {
+        @editButton(controllers.routes.OrganisationController.editActiveOrganisation(1),
+            Some(Messages("organisations.select.active")))
+    }
+    <hr>
+    @rowColumnCenter() {
+        @createButton(controllers.routes.OrganisationController.edit((new ObjectId()).toString))
+    }
+}

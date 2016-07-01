@@ -1,0 +1,33 @@
+@(organisation: Organisation, users: List[User], usersCount: Int, usersPage: Int, usersPageLength: Int,
+    loggedInUser: Option[User])(implicit flash: Flash, request: RequestHeader, messages: Messages)
+
+@import b3.vertical.fieldConstructor  // Declares a vertical field constructor as default
+@import templates._
+
+@main(Messages("organisations"), loggedInUser) {
+    @rowMainSecondary() {
+        @title(organisation.name, Some(Messages("organisation.changeAllowedUsers")))
+    }{
+        @backButton(controllers.routes.OrganisationController.edit(organisation._id.toString))
+    }
+    <hr>
+    @rowColumnCenter() {
+        @paginate(usersPage, usersPageLength, usersCount, controllers.routes.OrganisationController.editAllowedUsers(organisation._id.toString, _))
+
+        @{
+            val mediaList = users.map((user: User) =>
+                                        if(user.imageFileRep.isDefined) {
+                    routes.UserController.image(user._id.toString)
+                } else {
+                    routes.Assets.versioned("images/user-default.png")
+                }
+            )
+            val linkList = users.map((user: User) => controllers.routes.OrganisationController.changeAllowedUser(organisation._id.toString, user._id.toString, usersPage))
+            val headingList = users.map(_.username)
+            val textList = users.map(_.email)
+            val activatedList = users.map((user: User) => organisation.allowedUsers.contains(user._id))
+
+            mediaListToggle(mediaList, linkList, headingList, textList, activatedList)
+        }
+    }
+}

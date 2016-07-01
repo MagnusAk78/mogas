@@ -14,7 +14,9 @@ trait BaseModelDAO[M <: BaseModel] {
   
   def remove(model: M): Future[Boolean]
   
-  def find(model: M, maxDocs: Int = 0): Future[List[M]]
+  def count(model: M): Future[Int]
   
-  def findAndSort(model: M, sortBy: ModelKey, ascending: Boolean, maxDocs: Int = 0): Future[List[M]]
+  def find(model: M, pageNumber: Int = 1, numberPerPage: Int = 20, maxDocs: Int = 0): Future[List[M]]
+  
+  def findAndSort(model: M, sortBy: ModelKey, ascending: Boolean, pageNumber: Int = 1, numberPerPage: Int = 20, maxDocs: Int = 0): Future[List[M]]
 }

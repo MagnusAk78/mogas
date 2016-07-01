@@ -11,6 +11,7 @@ import scala.concurrent.ExecutionContext
 import reactivemongo.play.json._
 import reactivemongo.play.json.collection._
 import models.ModelKey
+import reactivemongo.api.QueryOpts
 
 
 /**
@@ -44,10 +45,15 @@ class UserDAOImpl @Inject() (val reactiveMongoApi: ReactiveMongoApi)(implicit ex
   }
 
   override def remove(user: User): Future[Boolean] = collection.flatMap(_.remove(user).map { wr => wr.ok })
+  
+  import models.User.UserWrites
+  
+  override def count(user: User): Future[Int] = collection.flatMap(_.count(Some(User.UserWrites.writes(user))))
 
-  override def find(user: User, maxDocs: Int = 0): Future[List[User]] =
-    collection.flatMap(_.find(user).cursor[User]().collect[List](maxDocs))
+  override def find(user: User, pageNumber: Int = 1, numberPerPage: Int = 20, maxDocs: Int = 0): Future[List[User]] =
+    collection.flatMap(_.find(user).options(QueryOpts((pageNumber - 1)*numberPerPage, numberPerPage)).cursor[User]().collect[List](maxDocs))
 
-  override def findAndSort(user: User, sortBy: ModelKey, ascending: Boolean, maxDocs: Int = 0): Future[List[User]] =
-    collection.flatMap(_.find(user).sort(DaoHelper.getSortByJsObject(sortBy.value, ascending)).cursor[User]().collect[List](maxDocs))
+  override def findAndSort(user: User, sortBy: ModelKey, ascending: Boolean, pageNumber: Int = 1, numberPerPage: Int = 20, maxDocs: Int = 0): Future[List[User]] =
+    collection.flatMap(_.find(user).sort(DaoHelper.getSortByJsObject(sortBy.value, ascending)).options(QueryOpts((pageNumber - 1)*numberPerPage, numberPerPage)).cursor[User]().collect[List](maxDocs))
+       
 }

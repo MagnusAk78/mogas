@@ -1,0 +1,41 @@
+@(organisations: List[Organisation], count: Int, page: Int, pageLength: Int, loggedInUser: Option[User])(implicit
+    flash: Flash, request: RequestHeader, messages: Messages)
+
+@import templates._
+@import org.bson.types.ObjectId
+
+@main(Messages("organisations"), loggedInUser) {
+    @rowMainSecondary() {
+        @title(Messages("organisations.select.active"))
+    }{
+        @backButton(controllers.routes.OrganisationController.list(1))
+    }
+    <hr>
+    @rowColumnCenter() {
+        @paginate(page, pageLength, count, controllers.routes.OrganisationController.editActiveOrganisation(_))
+
+        @{
+            val mediaList = organisations.map((organisation: Organisation) =>
+                if(organisation.imageFileRep.isDefined) {
+                    routes.OrganisationController.image(organisation._id.toString)
+                } else {
+                    routes.Assets.versioned("images/organisation-default.png")
+                }
+            )
+            val linkList = organisations.map((organisation: Organisation) =>
+                controllers.routes.OrganisationController.setActiveOrganisation(organisation._id.toString,
+                page))
+            val headingList = organisations.map(_.name)
+            val textList = organisations.map(_.name)
+            val activatedList = organisations.map((organisation: Organisation) =>
+                if(loggedInUser.isDefined && loggedInUser.get.activeOrganisation.isDefined) {
+                    (organisation._id == loggedInUser.get.activeOrganisation.get)
+                } else {
+                    false
+                }
+            )
+
+            mediaListToggle(mediaList, linkList, headingList, textList, activatedList)
+        }
+    }
+}

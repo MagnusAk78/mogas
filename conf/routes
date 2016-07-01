@@ -2,37 +2,45 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-GET     /                                		controllers.ApplicationController.index
+GET     /                                					controllers.ApplicationController.index
 
-# An example controller showing a sample home page
-GET     /home                           		controllers.HomeController.index
-# An example controller showing how to use dependency injection
-GET     /count                      			controllers.CountController.count
-# An example controller showing how to write asynchronous code
-GET     /message                    			controllers.AsyncController.message
+# Language actions
+GET     /language/:languageString                   		controllers.ApplicationController.changeLanguage(languageString: String)
 
-# Articles, example from the web
 
-GET     /articles                   			controllers.ArticlesController.index
-GET     /articles/new               			controllers.ArticlesController.showCreationForm
-POST    /articles/new               			controllers.ArticlesController.create
-GET     /articles/:id               			controllers.ArticlesController.showEditForm(id)
-POST    /articles/:id               			controllers.ArticlesController.edit(id)
-DELETE  /articles/:id               			controllers.ArticlesController.delete(id)
-POST    /articles/:id/attachments   			controllers.ArticlesController.saveAttachment(id)
-GET     /attachments/:id            			controllers.ArticlesController.getAttachment(id)
-DELETE  /attachments/:id            			controllers.ArticlesController.removeAttachment(id)
+# Authentication actions
+POST    /authentication/authenticate/:provider              controllers.SocialAuthController.authenticate(provider)
+POST    /authentication/signUp                              controllers.SignUpController.submit
+POST    /authentication/signIn								controllers.SignInController.submit
+GET     /authentication/signIn                              controllers.SignInController.view
+GET     /authentication/signUp                              controllers.SignUpController.view
+GET     /authentication/signOut                             controllers.ApplicationController.signOut
 
-# From sihuette test
-# Home page
-GET         /signOut                         controllers.ApplicationController.signOut
-GET         /authenticate/:provider          controllers.SocialAuthController.authenticate(provider)
+# Organisation actions
+POST    /organisation/save                                              controllers.OrganisationController.save
+GET     /organisation/:id/edit                                          controllers.OrganisationController.edit(id: String)
+GET     /organisation/:id/changeAllowedUser/:userIdString/:usersPage    controllers.OrganisationController.changeAllowedUser(id: String, userIdString: String, usersPage: Int)
+GET     /organisation/:id/editAllowedUsers                              controllers.OrganisationController.editAllowedUsers(id: String, usersPage: Int=1)
+GET     /organisation/:id/editAllowedUsers/:usersPage                   controllers.OrganisationController.editAllowedUsers(id: String, usersPage: Int)
+GET     /organisation/:id/delete                                        controllers.OrganisationController.delete(id: String)
+GET     /organisations/list                                             controllers.OrganisationController.list(organisationsPage: Int=1)
+GET     /organisations/list/:organisationsPage                          controllers.OrganisationController.list(organisationsPage: Int)
+GET     /organisations/editActivateOrganisation                         controllers.OrganisationController.editActiveOrganisation(page:Int=1)
+GET     /organisations/editActivateOrganisation/:page                   controllers.OrganisationController.editActiveOrganisation(page:Int)
+GET     /organisations/setActivateOrganisation/:id                      controllers.OrganisationController.setActiveOrganisation(id: String, page:Int=1)
+GET     /organisations/setActivateOrganisation/:id/:page                controllers.OrganisationController.setActiveOrganisation(id: String, page:Int)
+GET     /organisation/:id/image                                         controllers.OrganisationController.image(id: String)
+GET     /organisation/:id/thumbnail                                     controllers.OrganisationController.thumbnail(id: String)
 
-GET         /signUp                          controllers.SignUpController.view
-POST        /signUp                          controllers.SignUpController.submit
-
-GET         /signIn                          controllers.SignInController.view
-POST        /signIn                          controllers.SignInController.submit
+# User actions
+POST    /user/edit                                  controllers.AuthenticationController.editUser
+GET     /user/edit                                  controllers.ApplicationController.editUser
+GET     /user/:id/show                              controllers.UserController.show(id: String, page: Int=1)
+GET     /user/:id/show/:page                        controllers.UserController.show(id: String, page: Int)
+GET     /users/list                                 controllers.UserController.list(page: Int=1)
+GET     /users/list/:page                           controllers.UserController.list(page: Int)
+GET     /user/:id/image                             controllers.UserController.image(id: String)
+GET     /user/:id/thumbnail                         controllers.UserController.thumbnail(id: String)
 
 # Map static resources from the /public folder to the /assets URL path
 #GET     /assets/*file               		controllers.Assets.versioned(path="/public", file: Asset)

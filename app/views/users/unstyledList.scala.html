@@ -1,0 +1,9 @@
+@(listItems: List[String])(implicit flash: Flash, messages: Messages)
+
+<ul class="list-unstyled">
+    @for(listItem <- listItems) {
+    <li>
+        @listItem
+    </li>
+    }
+</ul>

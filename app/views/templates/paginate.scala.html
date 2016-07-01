@@ -1,0 +1,72 @@
+@(page:Int, pageLength:Int, collectionLength:Int, route:Int => Call, bound:Int = models.defaultPaginationLength)(implicit flash: Flash, messages: Messages)
+
+@lowbound() = @{
+    ((page.toDouble / bound).floor * bound).toInt
+}
+
+@highbound() = @{
+    if ((lowbound() + bound) * pageLength >= collectionLength)
+        if((collectionLength % pageLength) > 0) {
+            collectionLength / pageLength + 1
+        } else {
+            collectionLength / pageLength
+        }
+    else
+        lowbound() + bound
+}
+
+@if(collectionLength > pageLength) {
+    <nav>
+        <ul class="pagination">
+            @if(page == 1){
+                <li class="disabled">
+                    <a href="#" aria-label="Previous">
+                        <span aria-hidden="true">@Messages("command.previous")</span>
+                    </a>
+                </li>
+            } else {
+                <li>
+                    <a href="@route(page-1)" aria-label="Previous">
+                        <span aria-hidden="true">@Messages("command.previous")</span>
+                    </a>
+                </li>
+            }
+
+            @if(page < bound) {
+                <li class="disabled"><a href="#"><span aria-hidden="true">&laquo;</span></a></li>
+            } else {
+                @if(lowbound()-bound <= 0) {
+                    <li><a href="@route(1)"><span aria-hidden="true">&laquo;</span></a></li>
+                } else {
+                    <li><a href="@route(lowbound()-bound)"><span aria-hidden="true">&laquo;</span></a></li>
+                }
+            }
+
+            @for(i <- lowbound().max(1) until page) {
+                <li><a href="@route(i)">@i</a></li>
+            }
+
+            <li class="active"><a href="#">@page</a></li>
+
+            @for(i <- page+1 to highbound()) {
+                <li><a href="@route(i)">@i</a></li>
+            }
+
+            @if(highbound() * pageLength <= collectionLength && highbound() > page && page * pageLength != collectionLength) {
+                <li><a href="@route(highbound())"><span aria-hidden="true">&raquo;</span></a></li>
+            } else {
+                <li class="disabled"><a href="#"><span aria-hidden="true">&raquo;</span></a></li>
+            }
+
+            @if(page < highbound()) {
+                <li><a href="@route(page+1)" aria-label="Next">
+                    <span aria-hidden="true">@Messages("command.next")</span>
+                </a></li>
+            } else {
+                <li class="disabled"><a href="#" aria-label="Next">
+                    <span aria-hidden="true">@Messages("command.next")</span>
+                </a></li>
+            }
+        </ul>
+    </nav>
+}

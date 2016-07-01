@@ -1,41 +1,151 @@
-error.email = Valid email required
-error.required = This field is required
-invalid.credentials = Invalid credentials!
-access.denied = Access denied!
-user.exists = There already exists a user with this email!
-could.not.authenticate = Could not authenticate with social provider! Please try again!
+application.name = Auomation Web Managment from AML
+application.versionText = Version
+application.version = 0.1
+not.applicable = N/A
 
-home.title = Silhouette - Home
-sign.up.title = Silhouette - Sign Up
-sign.in.title = Silhouette - Sign In
+command.new = New
+command.add = Add
+command.update = Update
+command.delete = Delete
+command.edit = Edit
+command.back = Back
+command.previous = Previous
+command.next = Next
+command.go.back = Go back
+command.go.further = Go further
 
-toggle.navigation = Toggle navigation
-welcome.signed.in = Welcome, you are now signed in!
+navigation.organisations = Org.
+navigation.users = Users
+navigation.factories = Browse
+navigation.instructions = Instr.
+navigation.issues = Issues
+language = Language
 
-sign.up.account = Sign up for a new account
-sign.in.credentials = Sign in with your credentials
+home = Welcome
+home.welcome = Welcome {0} {1}
 
-error = Error!
-home = Home
-first.name = First name
-last.name = Last name
-full.name = Full name
-email = Email
-password = Password
-sign.up = Sign up
-sign.in = Sign in
-sign.out = Sign out
-sign.in.now = Sign in now
-sign.up.now = Sign up now
-already.a.member = Already a member?
-not.a.member = Not a member?
+link.video = Watch video
 
-remember.me = Remember my login on this computer
-or.use.social = Or use your existing account on one of the following services to sign in:
+function.list = List
+function.create = Create new
+function.edit = Edit
+function.details = Details
 
-google = Google
-facebook = Facebook
-twitter = Twitter
-vk = VK
-xing = Xing
-yahoo = Yahoo
+organisations = Organisations
+organisation.name = Organisation name
+organisation.allowedUsers = Allowed users
+organisation.changeAllowedUsers = Change allowed users
+organisation.minimum.one.user = There must be at least one allowed user
+organisations.select.active = Select active organisation
+organisation.activeOrganisation = Active organisation
+organisation.remove.self.not.allowed = It is not allowed to remove the logged in user
+
+users = Users
+user.details = User details
+user.fullName = Full name
+user.password = Password
+user.confirmPassword = Confirm password
+user.firstName = First name
+user.lastName = Last name
+user.email = Email
+user.active.organisation = Active organisation
+user.editAccount = Edit account
+user.signOut = Sign out
+user.signIn = Sign in
+user.signUp = Sign up
+user.question.notMember = Not a member?
+user.question.alreadyMember = Already member?
+user.allowed.organisations = Allowed organisations
+
+
+
+
+
+
+
+
+
+
+
+
+
+factories = Factories
+factory.view.hierarchy = view full hierarchy
+factory.hierarchy = Hierarchy {0}
+factory.hierarchies = Hierarchies
+factory.element = Factory element: {0}
+factory.element.ie = Factory element
+factory.element.ei = External interface
+factory.add.amlfile = Add AML file
+factory.add.image = Add image file
+
+instructions = Instructions
+instruction = Instruction
+instruction.create = Create instruction
+instruction.title = Title
+instruction.textDescription = Description
+instruction.refers.to = Refers to: {0}
+instruction.show.created.by = Created by {0}
+instruction.orderNumber = order number
+instruction.show.orderNumber = nr: {0}
+instruction.show.created.by = Created by {0}
+instructions.show = Show instructions
+
+instructions.move.down = Move down
+instructions.move.up = Move up
+
+issues = Issues
+issue = Issue
+issue.create = Create issue
+issue.title = Title
+issue.textDescription = Description
+issue.assignedTo = Responsible user
+issue.priority = Priority
+issues.list.all = All issues
+issues.list.all.open = All open issues
+issues.list.all.my.open = My open issues
+issue.close = Close this issue
+issue.reopen = Reopen
+issue.refers.to = Refers to: {0}
+
+issue.show.priority = Priority: {0}
+issue.show.not.assigned = Not assigned to any user
+issue.show.assigned.to = Assigned to {0}
+issue.show.open = Open
+issue.show.closed = Closed
+issue.show.created.by = Created by {0}
+issue.show.history = History
+
+issue.create.new = Create new issue
+
+AmlHierarchy.name = {0} (Hierarchy name)
+
+image.file = Image file
+
+validation.duplicate = Already exists
+
+db.success.save = Successfully added {0}
+db.success.remove = Successfully removed {0}
+db.success.update = Successfully updated {0}
+
+db.error.write = Problem when saving new to DB
+db.error.read = Problem reading from database
+db.error.find = Could not find {0}:{1} in database
+db.error.dependencies = There are dependencies (at least to {0})
+db.error.read.file = Error reading file {0}
+db.error.missing = Element {0} does not exist
+
+upload.error.notAllowedContentType = The file didn't have the allowed content type
+
+signupVerification.passwords.doNotMatch = Passwords don't match
+signupVerification.email.taken = An user with that email already exists
+signupVerification.username.taken = An user with that username already exists
+
+invalid.credentials = Wrong username or password
+access.denied = Access denied
+not.set = Not set
+select.active.organisation = Select active organisation
+upload.image = Upload image file
+change.upload.image = Change/upload image
+no.assigned.user = [Not assigned]
+none = none

@@ -9,6 +9,15 @@ import play.api.mvc.Controller
 import utils.auth.DefaultEnv
 
 import scala.concurrent.Future
+import reactivemongo.core.nodeset.Authentication
+import com.mohiva.play.silhouette.api.actions.SecuredAction
+import com.mohiva.play.silhouette.api.actions.UserAwareAction
+import models.User
+import play.api.i18n.Lang
+import com.mohiva.play.silhouette.api.actions.SecuredAction
+import com.mohiva.play.silhouette.api.actions.UserAwareAction
+import reactivemongo.core.nodeset.Authentication
+import scala.concurrent.ExecutionContext
 
 /**
  * The basic application controller.
@@ -43,5 +52,13 @@ class ApplicationController @Inject() (
     val result = Redirect(routes.ApplicationController.index())
     silhouette.env.eventBus.publish(LogoutEvent(request.identity, request))
     silhouette.env.authenticatorService.discard(request.authenticator, result)
+  }
+  
+
+  def changeLanguage(languageString: String) = silhouette.UserAwareAction.async { implicit request =>
+    request.identity match {
+      case Some(user) => Future.successful(Redirect(routes.ApplicationController.index).withLang(Lang(languageString)))
+      case None => Future.successful(Redirect(routes.SignInController.view).withLang(Lang(languageString)))
+    }
   }
 }

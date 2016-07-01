@@ -1,0 +1,29 @@
+@(users: List[User], count: Int, page: Int, pageLength: Int, loggedInUser: Option[User])(implicit flash: Flash,
+    messages: Messages, request: RequestHeader)
+
+@import templates._
+
+@main(Messages("users"), loggedInUser) {
+    @rowColumnCenter() {
+        @title(Messages("users"), Some(Messages("function.list")))
+    }
+    <hr>
+    @rowColumnCenter() {
+        @paginate(page, pageLength, count, controllers.routes.UserController.list(_))
+
+        @{
+            val mediaList = users.map((user: User) =>
+                if(user.imageFileRep.isDefined) {
+                    routes.UserController.thumbnail(user._id.toString)
+                } else {
+                    routes.Assets.versioned("images/user-default.png")
+                }
+            )
+            val linkList = users.map((user: User) => controllers.routes.UserController.show(user._id.toString, 1))
+            val headingList = users.map(_.username)
+            val textList = users.map(_.email)
+
+            mediaListWithOneLink(mediaList, linkList, headingList, textList)
+        }
+    }
+}

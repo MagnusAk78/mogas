@@ -1,0 +1,32 @@
+@(legend: String, submitTo: play.api.mvc.Call, btnText: String, btnClass: String = "btn btn-primary",
+    glyphicon: Option[String] = Option.empty[String])(content: Html = new Html(""))(contentExtra: Html =
+    new Html(""))(implicit flash: Flash, request: RequestHeader, messages: Messages)
+
+@import b3.vertical.fieldConstructor
+
+@rowColumnCenter() {
+    <fieldset>
+        <legend>@legend</legend>
+        @b3.form(submitTo) {
+        @helper.CSRF.formField
+
+        <div class="form-group">
+            @content
+        </div>
+
+        <div class="form-group">
+            <div>
+                <button id="submit" type="submit" value="submit" class="@btnClass">
+                    @if(glyphicon.isDefined) {
+                        <span class="glyphicon @glyphicon.get" aria-hidden="true"></span>
+                    }
+                    @btnText
+                </button>
+            </div>
+        </div>
+        <div class="form-group">
+            @contentExtra
+        </div>
+        }
+    </fieldset>
+}

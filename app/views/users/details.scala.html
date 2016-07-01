@@ -1,0 +1,31 @@
+@(user: User, organisations: List[Organisation], count: Int, page: Int, pageLength: Int,
+    loggedInUser: Option[User])(implicit flash: Flash, request: RequestHeader, messages: Messages)
+
+@import templates._
+
+@main(Messages("user.details", user.username), loggedInUser) {
+    @rowMainSecondary() {
+        @title(Messages("user.details"), Some(user.username))
+    }{
+        @backButton(controllers.routes.UserController.list(1))
+    }
+    <hr>
+    @rowColumnCenter() {
+        @{
+            val titles = List(Messages("user.username"), Messages("user.firstName"),
+                Messages("user.lastName"), Messages("user.email"))
+            val descriptions = List(user.username, user.firstName, user.lastName, user.email)
+
+            descriptionList(titles, descriptions)
+        }
+    }
+    <hr>
+    @rowColumnCenter() {
+        @title(Messages("user.allowed.organisations"))
+    }
+    @rowColumnCenter() {
+        @paginate(page, pageLength, count, controllers.routes.UserController.show(user._id.toString, _))
+
+        @unstyledList(organisations.map(_.name))
+    }
+}

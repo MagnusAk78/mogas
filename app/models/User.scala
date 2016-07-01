@@ -2,8 +2,6 @@ package models
 
 import com.mohiva.play.silhouette.api.{ Identity, LoginInfo }
 
-import scala.collection.mutable.Map
-
 case class User(
     id: Option[String] = None,
     loginInfo: Option[LoginInfo] = None,
