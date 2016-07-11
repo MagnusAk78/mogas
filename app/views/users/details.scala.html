@@ -1,11 +1,12 @@
 @(user: User, organisations: List[Organisation], count: Int, page: Int, pageLength: Int,
-    loggedInUser: Option[User])(implicit flash: Flash, request: RequestHeader, messages: Messages)
+    loggedInUser: Option[User], activeOrg: Option[Organisation])(implicit flash: Flash, request: RequestHeader, messages: Messages,
+    webJarAssets: WebJarAssets)
 
 @import templates._
 
-@main(Messages("user.details", user.username), loggedInUser) {
+@main(Messages("user.details", user.fullName), loggedInUser, activeOrg) {
     @rowMainSecondary() {
-        @title(Messages("user.details"), Some(user.username))
+        @title(Messages("user.details"), user.fullName)
     }{
         @backButton(controllers.routes.UserController.list(1))
     }
@@ -14,7 +15,7 @@
         @{
             val titles = List(Messages("user.username"), Messages("user.firstName"),
                 Messages("user.lastName"), Messages("user.email"))
-            val descriptions = List(user.username, user.firstName, user.lastName, user.email)
+            val descriptions = List(user.fullName.get, user.firstName.get, user.lastName.get, user.email.get)
 
             descriptionList(titles, descriptions)
         }
@@ -24,8 +25,8 @@
         @title(Messages("user.allowed.organisations"))
     }
     @rowColumnCenter() {
-        @paginate(page, pageLength, count, controllers.routes.UserController.show(user._id.toString, _))
+        @paginate(page, pageLength, count, controllers.routes.UserController.show(user.uuid.toString, _))
 
-        @unstyledList(organisations.map(_.name))
+        @unstyledList(organisations.map(_.name.get))
     }
 }

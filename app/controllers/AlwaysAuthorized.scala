@@ -18,3 +18,4 @@ case class AlwaysAuthorized() extends Authorization[User, CookieAuthenticator] {
     Future.successful(true)
   }
 }
+

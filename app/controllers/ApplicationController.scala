@@ -18,6 +18,10 @@ import com.mohiva.play.silhouette.api.actions.SecuredAction
 import com.mohiva.play.silhouette.api.actions.UserAwareAction
 import reactivemongo.core.nodeset.Authentication
 import scala.concurrent.ExecutionContext
+import models.services.UserService
+import models.services.OrganisationService
+import models.Organisation
+import play.api.Logger
 
 /**
  * The basic application controller.
@@ -31,7 +35,9 @@ class ApplicationController @Inject() (
   val messagesApi: MessagesApi,
   val silhouette: Silhouette[DefaultEnv],
   val socialProviderRegistry: SocialProviderRegistry,
-  implicit val webJarAssets: WebJarAssets)
+  val userService: UserService,
+  val organisationService: OrganisationService,
+  implicit val webJarAssets: WebJarAssets)(implicit exec: ExecutionContext)
   extends Controller with I18nSupport {
 
   /**
@@ -39,8 +45,33 @@ class ApplicationController @Inject() (
    *
    * @return The result to display.
    */
-  def index = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
-    Future.successful(Ok(views.html.home(Some(request.identity))))
+  def index = silhouette.UserAwareAction.async { implicit request =>
+    
+    Logger.info("ApplicationController index: " + request.identity)
+    
+    val futureResults = for {
+      userOpt <- request.identity match {
+        case Some(user) => {
+          user.loginInfo match {
+            case Some(li) => userService.retrieve(li)
+            case None => Future.successful(None)
+          }
+        }
+        case None => Future.successful(None)
+      }
+      activeOrg <- userOpt match {
+        case Some(user) => organisationService.find(Organisation(uuid = user.activeOrganisation), maxDocs = 1).map(_.headOption)
+        case None => Future.successful(None)
+      }
+    } yield(userOpt, activeOrg)
+    
+    futureResults.map( results => results._1 match {
+      case Some(user) => {
+        Logger.info("ApplicationController index, user: " + user)
+        Ok(views.html.home(Some(user), results._2))
+      }
+      case None => Redirect(routes.SignInController.view())
+    })
   }
 
   /**

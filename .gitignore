@@ -17,4 +17,8 @@ server.pid
 .classpath
 .project
 .settings
+.cache-main
+.sbtserver
+project/.sbtserver
+project/.sbtserver.lock
 

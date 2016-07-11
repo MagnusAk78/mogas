@@ -1,5 +1,11 @@
 package models
 
-abstract class ModelKey(val value: String)
 
-trait BaseModel
+trait BaseModel {
+  val uuid: Option[String]
+}
+
+abstract class BaseModelCompanion {
+  
+  val KeyUUID = "UUID"
+}

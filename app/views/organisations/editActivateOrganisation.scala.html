@@ -1,10 +1,9 @@
-@(organisations: List[Organisation], count: Int, page: Int, pageLength: Int, loggedInUser: Option[User])(implicit
-    flash: Flash, request: RequestHeader, messages: Messages)
+@(organisations: List[Organisation], count: Int, page: Int, pageLength: Int, loggedInUser: Option[User], activeOrg: Option[Organisation])(implicit
+    flash: Flash, request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets)
 
 @import templates._
-@import org.bson.types.ObjectId
 
-@main(Messages("organisations"), loggedInUser) {
+@main(Messages("organisations"), loggedInUser, activeOrg) {
     @rowMainSecondary() {
         @title(Messages("organisations.select.active"))
     }{
@@ -15,6 +14,7 @@
         @paginate(page, pageLength, count, controllers.routes.OrganisationController.editActiveOrganisation(_))
 
         @{
+        	/*
             val mediaList = organisations.map((organisation: Organisation) =>
                 if(organisation.imageFileRep.isDefined) {
                     routes.OrganisationController.image(organisation._id.toString)
@@ -36,6 +36,7 @@
             )
 
             mediaListToggle(mediaList, linkList, headingList, textList, activatedList)
+            */
         }
     }
 }

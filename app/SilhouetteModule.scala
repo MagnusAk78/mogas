@@ -32,7 +32,6 @@ import play.api.libs.ws.WSClient
 import utils.auth.{ CustomSecuredErrorHandler, CustomUnsecuredErrorHandler, DefaultEnv }
 import play.modules.reactivemongo.ReactiveMongoApi
 import play.api.libs.json.Json
-import models.daos.MyAuthInfoDAO
 import javax.inject._
 import com.mohiva.play.silhouette.persistence.daos.MongoAuthInfoDAO
 

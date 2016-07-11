@@ -8,12 +8,18 @@ object OrganisationForm {
     
   val form = Form[Data](
     mapping(
-      "id" -> optional(nonEmptyText),
+      "uuid" -> optional(nonEmptyText),
       "name" -> optional(nonEmptyText)
     )(Data.apply)(Data.unapply)
   )
     
   case class Data(
-    id: Option[String],
+    uuid: Option[String],
     name: Option[String])
+    
+  implicit def fromOrganisationToData(organisation: Organisation): Data = Data(uuid=organisation.uuid,
+      name = organisation.name)
+      
+  implicit def fromDataToOrganisation(data: Data): Organisation = Organisation(uuid=data.uuid,
+    name = data.name)
 }

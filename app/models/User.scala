@@ -1,66 +1,76 @@
 package models
 
 import com.mohiva.play.silhouette.api.{ Identity, LoginInfo }
+import play.api.Logger
+import java.util.UUID
 
 case class User(
-    id: Option[String] = None,
-    loginInfo: Option[LoginInfo] = None,
-    firstName: Option[String] = None,
-    lastName: Option[String] = None,
-    fullName: Option[String] = None,
-    email: Option[String] = None,
-    avatarURL: Option[String] = None,
-    activeOrganisation: Option[String] = None) extends BaseModel with Identity
-    
-object User {
+  override val uuid: Option[String] = None,
+  val loginInfo: Option[LoginInfo] = None,
+  val firstName: Option[String] = None,
+  val lastName: Option[String] = None,
+  val fullName: Option[String] = None,
+  val email: Option[String] = None,
+  val avatarURL: Option[String] = None,
+  val activeOrganisation: Option[String] = None) extends BaseModel with Identity
+
+object User extends BaseModelCompanion {
   import play.api.libs.json._
-  
-  object Keys {
-    case object Id extends ModelKey("_id")
-    case object LoginInfo extends ModelKey("loginInfo")
-    case object FirstName extends ModelKey("firstName")
-    case object LastName extends ModelKey("lastName")
-    case object FullName extends ModelKey("fullName")
-    case object Email extends ModelKey("email")
-    case object AvatarURL extends ModelKey("avatarURL")
-    case object ActiveOrganisation extends ModelKey("activeOrganisation")
-  }
+
+  val KeyLoginInfo = "loginInfo"
+  val KeyFirstName = "firstName"
+  val KeyLastName = "lastName"
+  val KeyFullName = "fullName"
+  val KeyEmail = "email"
+  val KeyAvatarURL = "avatarURL"
+  val KeyActiveOrganisation = "activeOrganisation"
+
+  def create(loginInfo: Option[LoginInfo] = None,
+             firstName: Option[String] = None,
+             lastName: Option[String] = None,
+             fullName: Option[String] = None,
+             email: Option[String] = None,
+             avatarURL: Option[String] = None,
+             activeOrganisation: Option[String] = None) =
+    User(uuid = Some(UUID.randomUUID.toString), loginInfo = loginInfo, firstName = firstName,
+      lastName = lastName, fullName = fullName, email = email, avatarURL = avatarURL,
+      activeOrganisation = activeOrganisation)
 
   implicit object UserWrites extends OWrites[User] {
-      def writes(user: User): JsObject = {
-        val sequence = Seq[JsField]() ++
-          user.id.map(Keys.Id.value -> JsString(_)) ++
-          user.loginInfo.map(Keys.LoginInfo.value -> Json.toJson(_)) ++
-          user.firstName.map(Keys.FirstName.value -> JsString(_)) ++
-          user.lastName.map(Keys.LastName.value -> JsString(_)) ++
-          user.fullName.map(Keys.FullName.value -> JsString(_)) ++
-          user.email.map(Keys.Email.value -> JsString(_)) ++
-          user.avatarURL.map(Keys.AvatarURL.value -> JsString(_)) ++
-          user.activeOrganisation.map(Keys.ActiveOrganisation.value -> JsString(_))
-          
-        JsObject(sequence)
-      }
+    def writes(user: User): JsObject = JsObject(
+      Seq[JsField]() ++
+        user.uuid.map(KeyUUID -> JsString(_)) ++
+        user.loginInfo.map(KeyLoginInfo -> Json.toJson(_)) ++
+        user.firstName.map(KeyFirstName -> JsString(_)) ++
+        user.lastName.map(KeyLastName -> JsString(_)) ++
+        user.fullName.map(KeyFullName -> JsString(_)) ++
+        user.email.map(KeyEmail -> JsString(_)) ++
+        user.avatarURL.map(KeyAvatarURL -> JsString(_)) ++
+        user.activeOrganisation.map(KeyActiveOrganisation -> JsString(_)))
   }
 
   implicit object UserReads extends Reads[User] {
-    def reads(json: JsValue): JsResult[User] = json match {
-      case obj: JsObject => try {
-        val id = (obj \ Keys.Id.value).asOpt[String]
-        val loginInfo = (obj \ Keys.LoginInfo.value).asOpt[LoginInfo]
-        val firstName = (obj \ Keys.FirstName.value).asOpt[String]
-        val lastName = (obj \ Keys.LastName.value).asOpt[String]
-        val fullName = (obj \ Keys.FullName.value).asOpt[String]
-        val email = (obj \ Keys.Email.value).asOpt[String]
-        val avatarURL = (obj \ Keys.AvatarURL.value).asOpt[String]
-        val activeOrganisation = (obj \ Keys.ActiveOrganisation.value).asOpt[String]
+    Logger.info("UserReads")
+    def reads(json: JsValue): JsResult[User] = {
+      json match {
+        case obj: JsObject => try {
+          val uuid = (obj \ KeyUUID).asOpt[String]
+          val loginInfo = (obj \ KeyLoginInfo).asOpt[LoginInfo]
+          val firstName = (obj \ KeyFirstName).asOpt[String]
+          val lastName = (obj \ KeyLastName).asOpt[String]
+          val fullName = (obj \ KeyFullName).asOpt[String]
+          val email = (obj \ KeyEmail).asOpt[String]
+          val avatarURL = (obj \ KeyAvatarURL).asOpt[String]
+          val activeOrganisation = (obj \ KeyActiveOrganisation).asOpt[String]
 
-        JsSuccess(User(id, loginInfo, firstName, lastName, fullName, email, avatarURL))
-        
-      } catch {
-        case cause: Throwable => JsError(cause.getMessage)
+          JsSuccess(User(uuid, loginInfo, firstName, lastName, fullName, email, avatarURL))
+
+        } catch {
+          case cause: Throwable => JsError(cause.getMessage)
+        }
+
+        case _ => JsError("expected.jsobject")
       }
-
-      case _ => JsError("expected.jsobject")
     }
   }
 }

@@ -5,8 +5,6 @@ import services.{ApplicationTimer, AtomicCounter, Counter, MessageCounter, Atomi
 import services.RandomNameServiceImpl
 import services.RandomNameService
 import models.daos._
-import models.services.ArticleService
-import models.services.ArticleServiceImpl
 import models.services.OrganisationServiceImpl
 import models.services.OrganisationService
 
@@ -45,7 +43,6 @@ class Module extends AbstractModule {
     //DAOs
     bind(classOf[UserDAO]).to(classOf[UserDAOImpl]).asEagerSingleton()
     bind(classOf[OrganisationDAO]).to(classOf[OrganisationDAOImpl]).asEagerSingleton()
-    
     
     //Services, User service is in Silhouette module
     bind(classOf[OrganisationService]).to(classOf[OrganisationServiceImpl])

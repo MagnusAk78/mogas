@@ -1,17 +1,17 @@
-@(organisations: List[Organisation], count: Int, page: Int, pageLength: Int, loggedInUser: Option[User])(implicit
-    flash: Flash, request: RequestHeader, messages: Messages)
+@(organisations: List[Organisation], count: Int, page: Int, pageLength: Int, loggedInUser: Option[User],
+	activeOrg: Option[Organisation])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
+	webJarAssets: WebJarAssets)
 
 @import templates._
-@import org.bson.types.ObjectId
 
-@main(Messages("organisations"), loggedInUser) {
+@main(Messages("organisations"), loggedInUser, activeOrg) {
     @rowColumnCenter() {
         @title(Messages("organisations"), Some(Messages("function.list")))
     }
     <hr>
     @rowColumnCenter() {
         @paginate(page, pageLength, count, controllers.routes.OrganisationController.list(_))
-        @{
+        @{/*
             val mediaList = organisations.map((organisation: Organisation) =>
                 if(organisation.imageFileRep.isDefined) {
                     routes.OrganisationController.thumbnail(organisation._id.toString)
@@ -31,6 +31,7 @@
             }
 
             mediaListWithOneLink(mediaList, linkList, headingList, textList, activatedList)
+            */
         }
     }
     <hr>
@@ -40,6 +41,6 @@
     }
     <hr>
     @rowColumnCenter() {
-        @createButton(controllers.routes.OrganisationController.edit((new ObjectId()).toString))
+        @createButton(controllers.routes.OrganisationController.create)
     }
 }

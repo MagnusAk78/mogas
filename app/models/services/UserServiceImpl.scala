@@ -9,6 +9,8 @@ import models.User
 import models.daos.UserDAO
 import play.api.libs.concurrent.Execution.Implicits._
 
+import play.api.Logger
+
 import scala.concurrent.Future
 
 /**
@@ -17,7 +19,7 @@ import scala.concurrent.Future
  * @param userDAO The user DAO implementation.
  */
 class UserServiceImpl @Inject() (override val dao: UserDAO) extends UserService {
- 
+
   /**
    * Retrieves a user that matches the specified login info.
    *
@@ -26,6 +28,50 @@ class UserServiceImpl @Inject() (override val dao: UserDAO) extends UserService 
    */
   override def retrieve(loginInfo: LoginInfo): Future[Option[User]] = dao.find(User(loginInfo = Some(loginInfo))).map { _.headOption }
 
+  override def save(user: User): Future[Option[User]] = {
+
+    Logger.info("UserServiceImpl save (user): " + user)
+
+    user.loginInfo match {
+      case Some(loginInfo) => {
+        retrieve(loginInfo).flatMap { optionUser =>
+          optionUser match {
+            case Some(oldUser) => { // Update user with profile
+              val updatedUser = User(
+                loginInfo = user.loginInfo,
+                firstName = user.firstName,
+                lastName = user.lastName,
+                fullName = user.fullName,
+                email = user.email,
+                avatarURL = user.avatarURL,
+                activeOrganisation = user.activeOrganisation)
+              dao.update(oldUser.uuid.get, updatedUser)
+            }
+            case None => { // Insert a new user
+              dao.insert(User.create(
+                loginInfo = user.loginInfo,
+                firstName = user.firstName,
+                lastName = user.lastName,
+                fullName = user.fullName,
+                email = user.email,
+                avatarURL = user.avatarURL,
+                activeOrganisation = user.activeOrganisation))
+            }
+          }
+        }
+      }
+      case None => {
+        dao.insert(User.create(
+          loginInfo = user.loginInfo,
+          firstName = user.firstName,
+          lastName = user.lastName,
+          fullName = user.fullName,
+          email = user.email,
+          avatarURL = user.avatarURL,
+          activeOrganisation = user.activeOrganisation))
+      }
+    }
+  }
 
   /**
    * Saves the social profile for a user.
@@ -36,29 +82,30 @@ class UserServiceImpl @Inject() (override val dao: UserDAO) extends UserService 
    * @return The user for whom the profile was saved.
    */
   override def save(profile: CommonSocialProfile): Future[Option[User]] = {
+
+    Logger.info("UserServiceImpl save (profile): " + profile)
+
     retrieve(profile.loginInfo).flatMap { optionUser =>
       optionUser match {
         case Some(user) => { // Update user with profile
-          val newUser = user.copy(
-            id = user.id,
+          val updatedUser = User(
             loginInfo = Some(profile.loginInfo),
             firstName = profile.firstName,
             lastName = profile.lastName,
             fullName = profile.fullName,
             email = profile.email,
             avatarURL = profile.avatarURL)
-          dao.save(newUser)
+          dao.update(user.uuid.get, updatedUser)
         }
         case None => { // Insert a new user
-          val newUser = User(
-            id = None,
+          val newUser = User.create(
             loginInfo = Some(profile.loginInfo),
             firstName = profile.firstName,
             lastName = profile.lastName,
             fullName = profile.fullName,
             email = profile.email,
             avatarURL = profile.avatarURL)
-          dao.save(newUser)
+          dao.insert(newUser)
         }
       }
     }

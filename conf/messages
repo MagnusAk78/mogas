@@ -124,7 +124,7 @@ image.file = Image file
 
 validation.duplicate = Already exists
 
-db.success.save = Successfully added {0}
+db.success.insert = Successfully added {0}
 db.success.remove = Successfully removed {0}
 db.success.update = Successfully updated {0}
 

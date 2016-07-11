@@ -1,9 +1,13 @@
-@(loggedInUser: Option[models.User])(implicit flash: Flash, messages: Messages, webJarAssets: WebJarAssets, lang: Lang)
+@(loggedInUser: Option[models.User], activeOrganisation: Option[models.Organisation])(implicit flash: Flash, messages: Messages, webJarAssets: WebJarAssets, lang: Lang)
 
 @import templates._
 
-@main(Messages("home"), loggedInUser) {
+@main(Messages("home"), loggedInUser, activeOrganisation) {
     @rowColumnCenter() {
-        @title(Messages("home.welcome", loggedInUser.get.firstName, loggedInUser.get.lastName), loggedInUser.flatMap(_.fullName))
+    	@if(loggedInUser.isDefined) {
+        	@title(Messages("home.welcome", loggedInUser.get.firstName, loggedInUser.get.lastName), loggedInUser.flatMap(_.fullName))
+        } else {
+        	@title(Messages("home.welcome", "", ""), None)
+        } 
     }
 }

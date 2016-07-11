@@ -1,23 +1,22 @@
-@(signUpForm: Form[models.Authentication.SignUpData], loggedInUser: Option[models.User])(implicit flash: Flash, request: RequestHeader, messages: Messages)
+@(userForm: Form[forms.UserForm.Data], loggedInUser: Option[models.User], activeOrg: Option[Organisation])(implicit flash: Flash, 
+	request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets)
 
 @import b3.vertical.fieldConstructor
 @import templates._
 
-@main(Messages("user.editAccount"), loggedInUser) {
+@main(Messages("user.editAccount"), loggedInUser, activeOrg) {
     @rowMainSecondary() {
-        @title(Messages("user.editAccount"), Some(loggedInUser.get.username))
+        @title(Messages("user.editAccount"), loggedInUser.get.fullName)
     }{
         @backButton(controllers.routes.UserController.list(1))
     }
     <hr>
-    @formMultipartColumn(Messages("user.editAccount"), routes.AuthenticationController.editUser, Messages("user.editAccount")) {
-        @b3.hidden(signUpForm("activeOrganisation").name, signUpForm("activeOrganisation").value)
-        @b3.text(signUpForm("username"), 'placeholder -> Messages("user.username"), '_label -> Messages("user.username"), 'class -> "form-control")
-        @b3.text(signUpForm("firstName"), 'placeholder -> Messages("user.firstName"), '_label -> Messages("user.firstName"), 'class -> "form-control")
-        @b3.text(signUpForm("lastName"), 'placeholder -> Messages("user.lastName"), '_label -> Messages("user.lastName"), 'class -> "form-control")
-        @b3.email(signUpForm("email"), 'placeholder -> Messages("user.email"), '_label -> Messages("user.email"), 'class -> "form-control")
-        @b3.password(signUpForm("password.main"), 'placeholder -> Messages("user.password"), '_label -> Messages("user.password"), 'class -> "form-control")
-        @b3.password(signUpForm("password.confirm"), 'placeholder -> Messages("user.confirmPassword"), '_label -> Messages("user.confirmPassword"), 'class -> "form-control")
-        @b3.file(signUpForm(models.imageFileKeyString), '_label -> Messages("image.file"))
+    @formMultipartColumn(Messages("user.editAccount"), routes.UserController.submit, Messages("user.editAccount")) {
+        @b3.hidden(userForm("activeOrganisation").name, userForm("activeOrganisation").value)
+        @b3.text(userForm("firstName"), 'placeholder -> Messages("user.firstName"), '_label -> Messages("user.firstName"), 'class -> "form-control")
+        @b3.text(userForm("lastName"), 'placeholder -> Messages("user.lastName"), '_label -> Messages("user.lastName"), 'class -> "form-control")
+        @b3.email(userForm("email"), 'placeholder -> Messages("user.email"), '_label -> Messages("user.email"), 'class -> "form-control")
+        @b3.password(userForm("password.main"), 'placeholder -> Messages("user.password"), '_label -> Messages("user.password"), 'class -> "form-control")
+        @b3.password(userForm("password.confirm"), 'placeholder -> Messages("user.confirmPassword"), '_label -> Messages("user.confirmPassword"), 'class -> "form-control")
     }()
 }

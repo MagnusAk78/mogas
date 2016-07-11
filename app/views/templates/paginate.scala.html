@@ -1,4 +1,5 @@
-@(page:Int, pageLength:Int, collectionLength:Int, route:Int => Call, bound:Int = models.defaultPaginationLength)(implicit flash: Flash, messages: Messages)
+@(page:Int, pageLength:Int, collectionLength:Int, route:Int => Call, 
+	bound:Int = utils.DefaultValues.DefaultPageLength)(implicit flash: Flash, messages: Messages)
 
 @lowbound() = @{
     ((page.toDouble / bound).floor * bound).toInt

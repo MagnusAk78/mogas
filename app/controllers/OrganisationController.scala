@@ -1,231 +1,365 @@
 package controllers
 
 import javax.inject.Inject
+import javax.inject.Singleton
 
-import com.mohiva.play.silhouette.api.{Environment, Silhouette}
+import com.mohiva.play.silhouette.api.{ Environment, Silhouette }
 import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
 import models._
 import play.Logger
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.mvc.Controller
 
 import scala.concurrent.Future
+import scala.util.{ Success, Failure }
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
-import models.daos.UserDAO
 import com.sun.corba.se.spi.ior.ObjectId
 import utils.auth.DefaultEnv
-import models.daos.OrganisationDAO
-import models.daos.UserDAO
-import models.daos.OrganisationDAO
+import models.services.UserService
 import models.services.OrganisationService
-import models.daos.UserDAO
-import models.daos.OrganisationDAO
-import models.daos.UserDAO
-import models.daos.OrganisationDAO
-import models.daos.UserDAO
-import models.daos.OrganisationDAO
-import models.daos.UserDAO
 import forms.OrganisationForm
-import models.daos.OrganisationDAO
+import play.modules.reactivemongo.MongoController
+import play.modules.reactivemongo.ReactiveMongoComponents
+import play.modules.reactivemongo.ReactiveMongoApi
+import reactivemongo.api.gridfs.ReadFile
+import play.api.libs.json.JsString
+import reactivemongo.play.json.JSONSerializationPack
+import akka.stream.Materializer
+import play.api.libs.json._
 
-class OrganisationController @Inject()(val messagesApi: MessagesApi, val silhouette: Silhouette[DefaultEnv],
-    val organisationService: OrganisationService)(implicit exec: ExecutionContext)
-  extends Controller with I18nSupport {
+import reactivemongo.api.gridfs.{ GridFS, ReadFile }
+
+import play.modules.reactivemongo.json._, ImplicitBSONHandlers._
+import play.modules.reactivemongo.json.collection._
+import scala.concurrent.Await
+
+@Singleton
+class OrganisationController @Inject() (
+    val messagesApi: MessagesApi, 
+    val silhouette: Silhouette[DefaultEnv],
+    val organisationService: OrganisationService, 
+    val userService: UserService,
+    val reactiveMongoApi: ReactiveMongoApi,
+    implicit val webJarAssets: WebJarAssets)(implicit exec: ExecutionContext, materialize: Materializer)
+    extends Controller with MongoController with ReactiveMongoComponents with I18nSupport {
+  
+  import MongoController._
+  type JSONReadFile = ReadFile[JSONSerializationPack.type, JsString]
+  
+  //private val gridFS = reactiveMongoApi.gridFS
+  private val gridFS = for {
+    fs <- reactiveMongoApi.database.map(db =>
+      GridFS[JSONSerializationPack.type](db))
+    _ <- fs.ensureIndex().map { index =>
+      // let's build an index on our gridfs chunks collection if none
+      Logger.info(s"Checked index, result is $index")
+    }
+  } yield fs
+   
 
   def list(organisationsPage: Int) = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
 
-    val selector = Organisation(allowedUsers = request.identity.id.toSet)
-    
+    val selector = Organisation(allowedUsers = request.identity.uuid.toSet)
+
     val responses = for {
       futureCount <- organisationService.count(selector)
       futureOrgList <- organisationService.find(selector, organisationsPage, utils.DefaultValues.DefaultPageLength)
-    } yield (futureOrgList, futureCount)
+      activeOrg <- organisationService.find(Organisation(uuid = request.identity.activeOrganisation)).map(_.headOption)
+    } yield (futureOrgList, futureCount, activeOrg)
+
+    responses.map(results =>
+      Ok(views.html.organisations.list(results._1, results._2, organisationsPage, utils.DefaultValues.DefaultPageLength,
+        Some(request.identity), results._3)))
+  }
+
+  def submit = {
+    def fs = Await.result(gridFS, Duration("5s"))
+    silhouette.SecuredAction(AlwaysAuthorized()).async(gridFSBodyParser(fs)) { implicit request =>
+        
+    Logger.info("OrganisationController.submit")
     
-    responses.map( resultTuple =>
-        Ok(views.html.organisations.list(resultTuple._1, resultTuple._2, organisationsPage, utils.DefaultValues.DefaultPageLength, 
-            Some(request.identity)))
-            )       
+    val futureFile = request.body.files.head.ref
+    
+    futureFile.onFailure {
+        case err => err.printStackTrace()
+      }
+
+    val responses = for {
+      oldOrg <- request.body.asFormUrlEncoded.get("uuid") match {
+        case Some(uuid :: ignoringTheTail) => organisationService.find(Organisation(uuid = Some(uuid)), maxDocs = 1).map(_.headOption)
+        case _ => Future.successful(None)
+      }
+      fs <- gridFS
+      file <- { 
+        Logger.info("_0")
+        futureFile 
+        }
+        // here, the file is completely uploaded, so it is time to update the article
+          updateResult <- fs.files.update(
+            Json.obj("_id" -> file.id),
+            Json.obj("$set" -> Json.obj("article" -> oldOrg.get.uuid)))
+          }
+      
+      //Get the uuid from the form data and see if it exists in the database
+
+      activeOrg <- request.identity.activeOrganisation.isDefined match {
+        case true  => organisationService.find(Organisation(uuid = request.identity.activeOrganisation)).map(_.headOption)
+        case false => Future.successful(None)
+      }
+    } yield {
+
+      OrganisationForm.form.bindFromRequest().fold(
+        formWithErrors => {
+          Future.successful(BadRequest(views.html.organisations.edit(formWithErrors, true, Some(request.identity),
+            activeOrg)))
+        },
+        formData => {
+
+          //val imageFileReps = Organisation.saveImageFile(request.body.file(models.imageFileKeyString))
+
+          oldOrg match {
+            case Some(oo) => {
+              val updateOrg = Organisation(
+              name = formData.name,
+              allowedUsers = oo.allowedUsers /*,
+          		imageFileRep = imageFileReps._1.orElse(organisationOpt.flatMap(_.imageFileRep)),
+          		thumbnailFileRep = imageFileReps._2.orElse(organisationOpt.flatMap(_.thumbnailFileRep)) */ ) 
+          		
+          		val futureUpdateResult = organisationService.update(oo.uuid.get, updateOrg)
+          		
+          futureUpdateResult map {
+            optNewOrg =>
+              optNewOrg.isDefined match {
+                case true => Redirect(routes.OrganisationController.edit(optNewOrg.map(_.uuid.get).get)).
+                  flashing("success" -> Messages("db.success.update", updateOrg.name))
+                case false => Redirect(routes.OrganisationController.edit(formData.uuid.get)).
+                  flashing("failure" -> Messages("db.success.update", updateOrg.name))
+              }
+          }          		
+            }
+            case None => {
+              val newOrg = Organisation.create(formData.name, 
+                allowedUsers = Set(request.identity.uuid.get))
+                
+                val futureSaveResult = organisationService.insert(newOrg)
+                
+          futureSaveResult map {
+            optNewOrg =>
+              optNewOrg.isDefined match {
+                case true => Redirect(routes.OrganisationController.edit(optNewOrg.map(_.uuid.get).get)).
+                  flashing("success" -> Messages("db.success.insert", newOrg.name))
+                case false => Redirect(routes.OrganisationController.edit(formData.uuid.get)).
+                  flashing("failure" -> Messages("db.success.insert", newOrg.name))
+              }
+          }                
+              }
+              
+          }
+        })
+    }
   }
   
+  def create = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
+    Logger.info("OrganisationController.create")
 
-  def save = silhouette.SecuredAction(AlwaysAuthorized()).async(parse.multipartFormData) { implicit request =>
-    Logger.info("OrganisationController.save")
-
-    //Get the id from the form data and see if it exists in the database
-    val futureOpOrg: Future[Option[Organisation]] = request.body.asFormUrlEncoded.get("id") match {
-      case Some(idString :: ignoringTheTail) => organisationService.find(Organisation(id = Some(idString)), maxDocs = 1).map(_.headOption)
-      case _ => Future(None)
-    }
-
-    OrganisationForm.form.bindFromRequest().fold(
-      formWithErrors => Future.successful(
-          BadRequest(views.html.organisations.edit(formWithErrors, true, Some(request.identity)))
-        ),
-      formData => {
-
-        //val imageFileReps = Organisation.saveImageFile(request.body.file(models.imageFileKeyString))
-
-        val newOrg = Organisation(
-          id = formData.id,
-          name = formData.name,
-          allowedUsers = organisationOpt map(_.allowedUsers) getOrElse (Set(request.identity._id)) /*,
-          imageFileRep = imageFileReps._1.orElse(organisationOpt.flatMap(_.imageFileRep)),
-          thumbnailFileRep = imageFileReps._2.orElse(organisationOpt.flatMap(_.thumbnailFileRep)) */)
-
-        if(organisationOpt.isDefined) {
-          OrganisationDAO.update(OrganisationParams(_id = Some(newOrg._id)), newOrg)
-        } else {
-          OrganisationDAO.insert(newOrg)
-        }
-
-        Future.successful(Redirect(routes.OrganisationController.edit(newOrg._id.toString)).
-          flashing("success" -> Messages("db.success.update", newOrg.name)))
+    val futureResponses = for {
+      //Get the uuid from the form data and see if it exists in the database
+      futureActiveOrg <- request.identity.activeOrganisation.isDefined match {
+        case true  => organisationService.find(Organisation(uuid = request.identity.activeOrganisation)).map(_.headOption)
+        case false => Future.successful(None)
       }
+    } yield futureActiveOrg
+
+    futureResponses.map( activeOrgOpt => 
+      Ok(views.html.organisations.edit(OrganisationForm.form, false, Some(request.identity), activeOrgOpt))
+    )
+  }  
+
+  def edit(uuid: String) = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
+    Logger.info("OrganisationController.edit")
+
+    val futureResponses = for {
+      //Get the uuid from the form data and see if it exists in the database
+      futureOpOrg <- organisationService.find(Organisation(uuid = Some(uuid)), maxDocs = 1).map(_.headOption)
+      futureActiveOrg <- request.identity.activeOrganisation.isDefined match {
+        case true  => organisationService.find(Organisation(uuid = request.identity.activeOrganisation)).map(_.headOption)
+        case false => Future.successful(None)
+      }
+    } yield (futureOpOrg, futureActiveOrg)
+
+    futureResponses.map(responses => responses._1 match {
+      case Some(organisation) => {
+        Ok(views.html.organisations.edit(OrganisationForm.form.fill(organisation), true, Some(request.identity), responses._2))
+      }
+      case None =>
+        val orgForm = OrganisationForm.form
+        Ok(views.html.organisations.edit(orgForm, false, Some(request.identity), responses._2))
+    })
+  }
+
+  def editActiveOrganisation(organisationsPage: Int) = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
+    Logger.info("OrganisationController.editActivatedOrganisation")
+    
+    val selector = Organisation(allowedUsers = request.identity.uuid.toSet)
+    
+    val futureResponses = for {
+      futureCount <- organisationService.count(selector)
+      futureOrgList <- organisationService.find(selector, organisationsPage, utils.DefaultValues.DefaultPageLength)
+      activeOrg <- organisationService.find(Organisation(uuid = request.identity.activeOrganisation)).map(_.headOption)
+    } yield(futureOrgList, futureCount, activeOrg)
+
+    futureResponses.map( responses =>
+      Ok(views.html.organisations.editActivateOrganisation(responses._1, responses._2, organisationsPage, 
+          utils.DefaultValues.DefaultPageLength, Some(request.identity), responses._3)))
+  }
+
+  def setActiveOrganisation(uuid: String, organisationsPage: Int) = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
+    
+    val selector = Organisation(allowedUsers = request.identity.uuid.toSet)
+    
+    val futureResponses = for {
+      //Get the uuid from the form data and see if it exists in the database
+      futureOpOrg <- organisationService.find(Organisation(uuid = Some(uuid)), maxDocs = 1).map(_.headOption)
+      futureActiveOrg <- request.identity.activeOrganisation.isDefined match {
+        case true  => organisationService.find(Organisation(uuid = request.identity.activeOrganisation)).map(_.headOption)
+        case false => Future.successful(None)
+      }
+      updatedUser <- {
+        val newActiveOrg = if (request.identity.activeOrganisation.isDefined &&
+          request.identity.activeOrganisation.get == uuid) {
+          None
+        } else {
+          Some(uuid)
+        } 
+        
+        val newUser = request.identity.copy(activeOrganisation = newActiveOrg) 
+        
+        userService.save(newUser)
+      }
+      futureCount <- organisationService.count(selector)
+      futureOrgList <- organisationService.find(selector, organisationsPage, utils.DefaultValues.DefaultPageLength)
+    } yield (futureOpOrg, futureActiveOrg, updatedUser, futureOrgList, futureCount)
+    
+    futureResponses.map( responses =>
+    
+    responses._3 match {
+      case Some(updateUser) =>
+
+        Ok(views.html.organisations.editActivateOrganisation(responses._4, responses._5,
+          organisationsPage, utils.DefaultValues.DefaultPageLength, Some(updateUser), responses._2))
+      case None =>
+        Redirect(routes.OrganisationController.list(1)).flashing("error" -> Messages("db.error.read"))
+    }
     )
   }
 
-  def edit(idString: String) = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
-    Logger.info("OrganisationController.edit")
-
-    OrganisationDAO.findOneById(idString) match {
-      case Some(organisation) => {
-        Future.successful(Ok(views.html.organisations.edit(Organisation.organisationForm(Some(organisation)).
-          fill(organisation), true, Some(request.identity))))
-      }
-      case None =>
-        val orgForm = Organisation.organisationForm(None).fill(Organisation(new ObjectId, "",
-          Set(request.identity._id), None, None))
-        Future.successful(Ok(views.html.organisations.edit(orgForm, false, Some(request.identity))))
-    }
-  }
-
-  def editActiveOrganisation(page: Int) = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
-    Logger.info("OrganisationController.editActivatedOrganisation")
-
-    val orgCursor = OrganisationDAO.find(OrganisationParams(allowedUsers = Some(request.identity._id)))
-    val count = orgCursor.count
-    val organisationList = DbHelper.paginate(orgCursor, page, models.defaultPageLength).toList
-
-    Future.successful(Ok(views.html.organisations.editActivateOrganisation(organisationList, count,
-      page, models.defaultPageLength, Some(request.identity))))
-  }
-
-  def setActiveOrganisation(idString: String, page: Int) = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
-    OrganisationDAO.findOneById(idString) match {
-      case Some(organisation) =>
-        val newUser = if (request.identity.activeOrganisation.isDefined &&
-          request.identity.activeOrganisation.get == idString) {
-          request.identity.copy(activeOrganisation = None)
-        } else {
-          request.identity.copy(activeOrganisation = Some(idString))
-        }
-        UserDAO.update(UserParams(_id = Some(newUser._id)), newUser)
-
-        val orgCursor = OrganisationDAO.find(OrganisationParams(allowedUsers = Some(request.identity._id)))
-        val count = orgCursor.count
-        val organisationList = DbHelper.paginate(orgCursor, page, models.defaultPageLength).toList
-
-        Future.successful(Ok(views.html.organisations.editActivateOrganisation(organisationList, count,
-          page, models.defaultPageLength, Some(newUser))))
-      case None =>
-        Future.successful(Redirect(routes.OrganisationController.list(1)).
-          flashing("error" -> Messages("db.error.read")))
-    }
-  }
-
-  def editAllowedUsers(idString: String, usersPage: Int) = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
+  def editAllowedUsers(uuid: String, usersPage: Int) = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
     Logger.info("OrganisationController.editAllowedUsers")
+    
+    val futureResponses = for {
+      futureOpOrg <- organisationService.find(Organisation(uuid = Some(uuid)), maxDocs = 1).map(_.headOption)
+      userCount <- userService.count(User())
+      futureUserList <- userService.find(User(), usersPage, utils.DefaultValues.DefaultPageLength)
+      activeOrg <- organisationService.find(Organisation(uuid = request.identity.activeOrganisation)).map(_.headOption)
+    } yield(futureOpOrg, futureUserList, userCount, activeOrg)
 
-    OrganisationDAO.findOneById(idString) match {
+    futureResponses.map( responses =>
+    
+    responses._1 match {
       case Some(organisation) => {
-        val usersCursor = UserDAO.find(DbHelper.queryAll)
-        val usersCount = usersCursor.count
-        val users = DbHelper.paginate(usersCursor, usersPage, models.defaultPageLength).toList
-
-        Future.successful(Ok(views.html.organisations.editAllowedUsers(organisation, users,
-          usersCount, usersPage, models.defaultPageLength, Some(request.identity))))
+        Ok(views.html.organisations.editAllowedUsers(organisation, responses._2, responses._3, usersPage, 
+            utils.DefaultValues.DefaultPageLength, Some(request.identity), responses._4))
       }
       case None =>
-        Future.successful(Redirect(routes.OrganisationController.list(1)).
-          flashing("error" -> Messages("db.error.read")))
+        Redirect(routes.OrganisationController.list(1)).flashing("error" -> Messages("db.error.read"))
     }
+    )
   }
 
-  def changeAllowedUser(idString: String, userIdString: String, usersPage: Int) =
+  def changeAllowedUser(uuid: String, userIdString: String, usersPage: Int) =
     silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
       Logger.info("OrganisationController.changeAllowedUser")
-
-      OrganisationDAO.findOneById(idString) match {
-        case Some(organisation) => {
-          if (organisation.allowedUsers.contains(request.identity._id)) {
-            //Access allowed
-
-            val userObjectId = new ObjectId(userIdString)
-            val newOrganisation = organisation.allowedUsers.contains(userObjectId) match {
-              case true => organisation.copy(allowedUsers = organisation.allowedUsers - userObjectId)
-              case false => organisation.copy(allowedUsers = organisation.allowedUsers + userObjectId)
+      
+    val futureResponses = for {
+      opOrg <- organisationService.find(Organisation(uuid = Some(uuid)), maxDocs = 1).map(_.headOption)
+      orgUpdate <- opOrg match {
+          case Some(organisation) => {
+            val newOrganisation = organisation.allowedUsers.contains(userIdString) match {
+              case true  => organisation.copy(allowedUsers = organisation.allowedUsers - userIdString)
+              case false => organisation.copy(allowedUsers = organisation.allowedUsers + userIdString)
             }
-
+            
             if (newOrganisation.allowedUsers.isEmpty) {
               //This is not ok, some user must be allowed to see/change it
-              Future.successful(Redirect(routes.OrganisationController.editAllowedUsers(organisation._id.toString,
-                usersPage)).flashing("error" -> Messages("organisation.minimum.one.user")))
-            } else if (newOrganisation.allowedUsers.contains(request.identity._id) == false) {
+              Future.successful(Some(organisation), ("error" -> Messages("organisation.minimum.one.user")))
+            } else if (newOrganisation.allowedUsers.contains(request.identity.uuid.get) == false) {
               //This is not ok, the logged in user must be part of the organisation.
-              Future.successful(Redirect(routes.OrganisationController.editAllowedUsers(organisation._id.toString,
-                usersPage)).flashing("error" -> Messages("organisation.remove.self.not.allowed")))
+              Future.successful(Some(organisation), ("error" -> Messages("organisation.remove.self.not.allowed")))
             } else {
-              OrganisationDAO.update(OrganisationParams(_id = Some(newOrganisation._id)), newOrganisation)
-
-              Future.successful(Redirect(routes.OrganisationController.editAllowedUsers(organisation._id.toString,
-                usersPage)).flashing("success" -> Messages("db.success.update", organisation.name)))
+              //Update the organisation
+              organisationService.update(uuid, newOrganisation).map((_, "success" -> Messages("db.success.update", organisation.name)))
             }
+          }
+          case None => Future.successful(None, ("error" -> Messages("db.error.find")))
+      }
+    } yield(opOrg, orgUpdate)
+    
+    futureResponses.map( responses =>
+      responses._1 match {
+        case Some(organisation) => {
+          if (organisation.allowedUsers.contains(request.identity.uuid.get)) {
+            //Access allowed
+              
+            
+           Redirect(routes.OrganisationController.editAllowedUsers(responses._2._1.get.uuid.get,
+                usersPage)).flashing(responses._2._2)
+            
           } else {
-            Future.successful(Redirect(routes.OrganisationController.list(1)).
-              flashing("error" -> Messages("access.denied")))
+            Redirect(routes.OrganisationController.list(1)).
+              flashing("error" -> Messages("access.denied"))
           }
         }
         case None =>
-          val orgForm = Organisation.organisationForm(None).fill(Organisation(new ObjectId, "",
-            Set(request.identity._id), None, None))
-          Future.successful(Redirect(routes.OrganisationController.list(1)).
-            flashing("error" -> Messages("db.error.read")))
+          val orgForm = OrganisationForm.form.fill(Organisation(uuid = Some(uuid)))
+          Redirect(routes.OrganisationController.list(1)).flashing("error" -> Messages("db.error.read"))
       }
+      )
     }
 
-  def delete(idString: String) = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
-    Logger.info("OrganisationController.delete idString: " + idString)
-
-    OrganisationDAO.findOneById(idString) match {
-      case Some(organisation) => {
-        //The user can't delete if not in the allowed users list
-        if (organisation.allowedUsers.contains(request.identity._id)) {
+  def delete(uuid: String) = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
+    Logger.info("OrganisationController.delete uuid: " + uuid)
+    
+    val futureResponses = for {
+      opOrg <- organisationService.find(Organisation(uuid = Some(uuid)), maxDocs = 1).map(_.headOption)
+      deletedOrg <- opOrg match {
+        case Some(organisation) => {
+          if (organisation.allowedUsers.contains(request.identity.uuid.get)) {
           //We can't remove organisations that have dependencies to factories
-          val depFacCursor = FactoryDAO.find(FactoryParams(organisation = Some(organisation._id))).
-            sort(DbHelper.sortAscKey(Factory.nameKey))
+       //   val depFacCursor = FactoryDAO.find(FactoryParams(organisation = Some(organisation._id))).
+       //     sort(DbHelper.sortAscKey(Factory.nameKey))
 
-          if(depFacCursor.isEmpty) {
-            OrganisationDAO.remove(organisation)
-            Future.successful(Redirect(routes.OrganisationController.list(1)).
-              flashing("success" -> Messages("db.success.remove", organisation.name)))
-          } else {
+         // if (depFacCursor.isEmpty) {
+            organisationService.remove(organisation).map((_, "success" -> Messages("db.success.remove", organisation.name)))
+         /* } else {
             Future.successful(Redirect(routes.OrganisationController.list(1)).
               flashing("error" -> Messages("db.error.dependencies", "Factory: " + depFacCursor.next.name)))
-          }
+          }*/
         } else {
-          Future.successful(Redirect(routes.OrganisationController.list(1)).
-            flashing("error" -> Messages("access.denied")))
+          Future.successful(None, ("error" -> Messages("access.denied")))
         }
+          }
+        case None => Future.successful(None, ("error" -> Messages("db.error.find", "Organisation", uuid)))
       }
-      case None => {
-        Future.successful(Redirect(routes.OrganisationController.list(1)).
-          flashing("error" -> Messages("db.error.find", "Organisation", idString)))
-      }
-    }
+    } yield(opOrg, deletedOrg)
+
+    futureResponses.map( responses =>
+      Redirect(routes.OrganisationController.list(1)).flashing(responses._2._2))
   }
 
-  def image(idString: String) = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
-    OrganisationDAO.findOneById(idString) match {
+  /*
+  def image(uuid: String) = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
+    OrganisationDAO.findOneById(uuid) match {
       case Some(organisation) => {
         Organisation.getImageFile(organisation) match {
           case Some(imageFile) => {
@@ -233,7 +367,7 @@ class OrganisationController @Inject()(val messagesApi: MessagesApi, val silhoue
           }
           case None =>
             Future.successful(Redirect(routes.OrganisationController.list(1)).
-              flashing("error" -> Messages("db.error.read.file", idString)))
+              flashing("error" -> Messages("db.error.read.file", uuid)))
         }
       }
       case None => Future.successful(Redirect(routes.OrganisationController.list(1)).
@@ -241,8 +375,8 @@ class OrganisationController @Inject()(val messagesApi: MessagesApi, val silhoue
     }
   }
 
-  def thumbnail(idString: String) = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
-    OrganisationDAO.findOneById(idString) match {
+  def thumbnail(uuid: String) = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
+    OrganisationDAO.findOneById(uuid) match {
       case Some(organisation) => {
         Organisation.getThumbnailFile(organisation) match {
           case Some(thumbnailFile) => {
@@ -250,11 +384,13 @@ class OrganisationController @Inject()(val messagesApi: MessagesApi, val silhoue
           }
           case None =>
             Future.successful(Redirect(routes.OrganisationController.list(1)).
-              flashing("error" -> Messages("db.error.read.file", idString)))
+              flashing("error" -> Messages("db.error.read.file", uuid)))
         }
       }
       case None => Future.successful(Redirect(routes.OrganisationController.list(1)).
         flashing("error" -> Messages("db.read.error")))
     }
   }
+  * 
+  */
 }

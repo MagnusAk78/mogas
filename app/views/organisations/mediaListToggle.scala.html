@@ -1,5 +1,5 @@
 @(mediaList: List[Call], linkList: List[Call], headingList: List[String], textList: List[String],
-    activatedList: List[Boolean])(implicit flash: Flash, messages: Messages)
+    activatedList: List[Boolean])(implicit flash: Flash, messages: Messages, webJarAssets: WebJarAssets)
 
 <div class="list-group">
     @for(i <- 0 to (mediaList.size-1)) {

@@ -63,21 +63,20 @@ class SignUpController @Inject() (
             Future.successful(Redirect(routes.SignUpController.view()).flashing("error" -> Messages("user.exists")))
           case None =>
             val authInfo = passwordHasher.hash(data.password)
-            val user = User(
+            val newUser = User(
               loginInfo = Some(loginInfo),
               firstName = Some(data.firstName),
               lastName = Some(data.lastName),
               fullName = Some(data.firstName + " " + data.lastName),
               email = Some(data.email),
-              avatarURL = None
-            )
+              avatarURL = None)
             for {
               avatar <- avatarService.retrieveURL(data.email)
-              user <- userService.save(user.copy(avatarURL = avatar))
+              user <- userService.save(newUser.copy(avatarURL = avatar))
               authInfo <- authInfoRepository.add(loginInfo, authInfo)
               authenticator <- silhouette.env.authenticatorService.create(loginInfo)
               value <- silhouette.env.authenticatorService.init(authenticator)
-              result <- silhouette.env.authenticatorService.embed(value, Redirect(routes.ApplicationController.index()))
+              result <- silhouette.env.authenticatorService.embed(value, Redirect(routes.ApplicationController.index))
             } yield {
               //ugly. no error handling for .get method
               silhouette.env.eventBus.publish(SignUpEvent(user.get, request))

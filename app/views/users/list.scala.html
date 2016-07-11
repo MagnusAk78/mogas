@@ -1,9 +1,9 @@
-@(users: List[User], count: Int, page: Int, pageLength: Int, loggedInUser: Option[User])(implicit flash: Flash,
-    messages: Messages, request: RequestHeader)
+@(users: List[User], count: Int, page: Int, pageLength: Int, loggedInUser: Option[User], activeOrg: Option[Organisation])(implicit flash: Flash,
+    messages: Messages, request: RequestHeader, webJarAssets: WebJarAssets)
 
 @import templates._
 
-@main(Messages("users"), loggedInUser) {
+@main(Messages("users"), loggedInUser, activeOrg) {
     @rowColumnCenter() {
         @title(Messages("users"), Some(Messages("function.list")))
     }
@@ -12,7 +12,7 @@
         @paginate(page, pageLength, count, controllers.routes.UserController.list(_))
 
         @{
-            val mediaList = users.map((user: User) =>
+/*            val mediaList = users.map((user: User) =>
                 if(user.imageFileRep.isDefined) {
                     routes.UserController.thumbnail(user._id.toString)
                 } else {
@@ -24,6 +24,7 @@
             val textList = users.map(_.email)
 
             mediaListWithOneLink(mediaList, linkList, headingList, textList)
+            */
         }
     }
 }

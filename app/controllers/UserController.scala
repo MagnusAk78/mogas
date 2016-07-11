@@ -1,69 +1,164 @@
 package controllers
 
 import javax.inject.Inject
-import com.google.inject.Singleton
-import com.mohiva.play.silhouette.api.{Environment, Silhouette}
-import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
-import com.mongodb.casbah.Imports._
+import javax.inject.Singleton
 
+import com.mohiva.play.silhouette.api.{ Environment, Silhouette }
+import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
 import models._
 import play.Logger
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.mvc.Controller
 
-
 import scala.concurrent.Future
-import models.OrganisationConversions._
+import scala.util.{ Success, Failure }
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext
+import com.sun.corba.se.spi.ior.ObjectId
+import utils.auth.DefaultEnv
+import models.services.UserService
+import models.services.OrganisationService
+import forms.UserForm
 
 @Singleton
-class UserController @Inject() (val messagesApi: MessagesApi, val env: Environment[User, CookieAuthenticator])
-  extends Controller with I18nSupport with Silhouette[User, CookieAuthenticator] with UserAuthorization {
+class UserController @Inject() (
+    val messagesApi: MessagesApi, 
+    val silhouette: Silhouette[DefaultEnv],
+    val organisationService: OrganisationService, 
+    val userService: UserService,
+    implicit val webJarAssets: WebJarAssets)(implicit exec: ExecutionContext) 
+      extends Controller with I18nSupport {
+  
+  
 
-  def list(page: Int) = SecuredAction(AlwaysAuthorized()).async { implicit request =>
+  def list(page: Int) = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
     Logger.info("UserController.list")
-
-    val orgOpt: Option[Organisation] = if(request.identity.activeOrganisation.isDefined) {
-      Logger.info("request.identity.activeOrganisation.get: " + request.identity.activeOrganisation.get.toString)
-      OrganisationDAO.findOneById(request.identity.activeOrganisation.get)
-    } else {
-      Option.empty[Organisation]
-    }
-
-    if(orgOpt.isDefined) {
-      val organisation = orgOpt.get
-      val usersCursor = UserDAO.find(DbHelper.queryIdFromIdList(organisation.allowedUsers))
-      val count = usersCursor.count
-      val users = DbHelper.paginate(usersCursor, page, models.defaultPageLength).toList
-      Future.successful(Ok(views.html.users.list(users, count, page, models.defaultPageLength,
-        Some(request.identity))))
-    } else {
-      Future.successful(Ok(views.html.users.list(List(), 0, page, models.defaultPageLength,
-        Some(request.identity))))
-    }
-  }
-
-  def show(userObjectIdString: String, organisationPage: Int) = SecuredAction(AlwaysAuthorized()).async {
-    implicit request =>
-      Logger.info("UserController.show userObjectIdString: " + userObjectIdString)
-
-      UserDAO.findOneById(userObjectIdString) match {
-        case Some(user) => {
-          Logger.info("UserController.show user: " + user.toString)
-
-          val orgCursor = OrganisationDAO.find(OrganisationParams(allowedUsers = Some(user._id)))
-          val count = orgCursor.count
-          val organisationList = DbHelper.paginate(orgCursor, organisationPage, models.defaultPageLength).toList
-
-          Future.successful(Ok(views.html.users.details(user, organisationList, count,
-            organisationPage, models.defaultPageLength, Some(user))))
+    
+    val futureResponses = for {
+      activeOrgOpt <- {
+        if(request.identity.activeOrganisation.isDefined) {
+          organisationService.find(Organisation(uuid = request.identity.activeOrganisation), page, utils.DefaultValues.DefaultPageLength).map(_.headOption)
+        } else {
+          Future.successful(None)
         }
-        case None => Future.successful(Redirect(routes.UserController.list(1)).
-          flashing("error" -> Messages("db.read.error")))
       }
+      userList <- {
+        //Todo: add get uuid from string
+        userService.find(User(activeOrgOpt.get.allowedUsers.headOption))
+      }
+      //Todo: add count get uuid from string
+      userCount <- userService.count(User())
+    } yield(activeOrgOpt, userList, userCount)
+
+    futureResponses map( responses =>
+      
+    if(responses._1.isDefined) {
+      Ok(views.html.users.list(responses._2, responses._3, page, utils.DefaultValues.DefaultPageLength,
+        Some(request.identity), responses._1))
+    } else {
+      Ok(views.html.users.list(List(), 0, page, utils.DefaultValues.DefaultPageLength,
+        Some(request.identity), responses._1))
+    })
   }
 
-  def image(idString: String) = SecuredAction(AlwaysAuthorized()).async { implicit request =>
-    UserDAO.findOneById(idString) match {
+  def show(uuid: String, organisationPage: Int) = silhouette.SecuredAction(AlwaysAuthorized()).async {
+    implicit request =>
+      Logger.info("UserController.show userObjectIdString: " + uuid)
+      
+    val futureResponses = for {
+      userOpt <- userService.find(User(uuid = Some(uuid))).map(_.head)
+      orgList <- {
+        //Todo: add get uuid from string
+        organisationService.find(Organisation(allowedUsers = Set(uuid)))
+      }
+      //Todo: add count get uuid from string
+      orgCount <- organisationService.count(Organisation(allowedUsers = Set(uuid)))
+      activeOrg <- organisationService.find(Organisation(uuid = request.identity.activeOrganisation)).map(_.headOption)
+    } yield(userOpt, orgList, orgCount, activeOrg)
+    
+    futureResponses map( responses =>
+
+      Ok(views.html.users.details(responses._1, responses._2, responses._3, organisationPage, 
+        utils.DefaultValues.DefaultPageLength, Some(responses._1), responses._4))
+      )
+  }
+  
+  def edit(uuid: String) = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
+    Logger.info("UserController.edit")
+
+    val futureResponses = for {
+      //Get the uuid from the form data and see if it exists in the database
+      userOpt <- userService.find(User(uuid = Some(uuid)), maxDocs = 1).map(_.headOption)
+      activeOrg <- organisationService.find(Organisation(uuid = request.identity.activeOrganisation)).map(_.headOption)
+    } yield (userOpt, activeOrg)
+
+    futureResponses.map(responses => responses._1 match {
+      case Some(user) => 
+        Ok(views.html.users.editUser(UserForm.form.fill(user), Some(request.identity), responses._2))
+      case None =>
+        Redirect(routes.UserController.list(1))
+    })
+  }
+  
+  def submit = silhouette.SecuredAction(AlwaysAuthorized()).async(parse.multipartFormData) { implicit request =>
+    Logger.info("UserController.save")
+
+    val responses = for {
+      //Get the uuid from the form data and see if it exists in the database
+      opUser <- request.body.asFormUrlEncoded.get("uuid") match {
+        case Some(uuid :: ignoringTheTail) => userService.find(User(uuid = Some(uuid)), maxDocs = 1).map(_.headOption)
+        case _                                 => Future.successful(None)
+      }
+      activeOrg <- request.identity.activeOrganisation.isDefined match {
+        case true  => organisationService.find(Organisation(uuid = request.identity.activeOrganisation)).map(_.headOption)
+        case false => Future.successful(None)
+      }
+      
+    } yield (opUser, activeOrg)
+
+    responses.flatMap(responseTuple =>
+
+      UserForm.form.bindFromRequest().fold(
+        formWithErrors => {
+          Future.successful(BadRequest(views.html.users.editUser(formWithErrors, Some(request.identity),
+            responseTuple._2)))
+        },
+        formData => {
+          
+          //val imageFileReps = Organisation.saveImageFile(request.body.file(models.imageFileKeyString))
+
+          val newUser = responseTuple._1.get.copy(firstName = formData.firstName, lastName = formData.lastName, 
+              fullName = formData.getFullName, email = formData.email)
+          
+          /*  
+          uuid = formData.uuid,
+            name = formData.name,
+            allowedUsers = responseTuple._1 map (_.allowedUsers) getOrElse (Set(request.identity.uuid.get)) /*,
+          imageFileRep = imageFileReps._1.orElse(organisationOpt.flatMap(_.imageFileRep)),
+          thumbnailFileRep = imageFileReps._2.orElse(organisationOpt.flatMap(_.thumbnailFileRep)) */ )
+
+          val futureSaveResult = userService.save(newUser)
+
+          futureSaveResult map {
+            optNewOrg =>
+              optNewOrg.isDefined match {
+                case true => Redirect(routes.OrganisationController.edit(optNewOrg.map(_.uuid.get).get)).
+                  flashing("success" -> Messages("db.success.update", newUser.fullName))
+                case false => Redirect(routes.OrganisationController.edit(formData.uuid.get)).
+                  flashing("failure" -> Messages("db.success.update", newUser.fullName))
+              }
+
+          }
+
+        }))*/
+       Future.successful(Redirect(routes.UserController.list(1)))
+      }
+    )
+  )}  
+  
+/*
+  def image(uuid: String) = SecuredAction(AlwaysAuthorized()).async { implicit request =>
+    UserDAO.findOneById(uuid) match {
       case Some(user) => {
         User.getImageFile(user) match {
           case Some(imageFile) => {
@@ -71,7 +166,7 @@ class UserController @Inject() (val messagesApi: MessagesApi, val env: Environme
           }
           case None =>
             Future.successful(Redirect(routes.UserController.list(1)).
-              flashing("error" -> Messages("db.error.read.file", idString)))
+              flashing("error" -> Messages("db.error.read.file", uuid)))
         }
       }
       case None => Future.successful(Redirect(routes.UserController.list(1)).
@@ -79,8 +174,8 @@ class UserController @Inject() (val messagesApi: MessagesApi, val env: Environme
     }
   }
 
-  def thumbnail(idString: String) = SecuredAction(AlwaysAuthorized()).async { implicit request =>
-    UserDAO.findOneById(idString) match {
+  def thumbnail(uuid: String) = SecuredAction(AlwaysAuthorized()).async { implicit request =>
+    UserDAO.findOneById(uuid) match {
       case Some(user) => {
         User.getThumbnailFile(user) match {
           case Some(thumbnailFile) => {
@@ -88,11 +183,11 @@ class UserController @Inject() (val messagesApi: MessagesApi, val env: Environme
           }
           case None =>
             Future.successful(Redirect(routes.UserController.list(1)).
-              flashing("error" -> Messages("db.error.read.file", idString)))
+              flashing("error" -> Messages("db.error.read.file", uuid)))
         }
       }
       case None => Future.successful(Redirect(routes.UserController.list(1)).
         flashing("error" -> Messages("db.read.error")))
     }
-  }
+  }*/
 }

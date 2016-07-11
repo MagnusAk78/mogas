@@ -7,40 +7,42 @@ GET     /                                					controllers.ApplicationController.
 # Language actions
 GET     /language/:languageString                   		controllers.ApplicationController.changeLanguage(languageString: String)
 
-
 # Authentication actions
+GET     /authentication/signOut                             controllers.ApplicationController.signOut
 POST    /authentication/authenticate/:provider              controllers.SocialAuthController.authenticate(provider)
 POST    /authentication/signUp                              controllers.SignUpController.submit
 POST    /authentication/signIn								controllers.SignInController.submit
 GET     /authentication/signIn                              controllers.SignInController.view
 GET     /authentication/signUp                              controllers.SignUpController.view
-GET     /authentication/signOut                             controllers.ApplicationController.signOut
 
 # Organisation actions
-POST    /organisation/save                                              controllers.OrganisationController.save
-GET     /organisation/:id/edit                                          controllers.OrganisationController.edit(id: String)
-GET     /organisation/:id/changeAllowedUser/:userIdString/:usersPage    controllers.OrganisationController.changeAllowedUser(id: String, userIdString: String, usersPage: Int)
-GET     /organisation/:id/editAllowedUsers                              controllers.OrganisationController.editAllowedUsers(id: String, usersPage: Int=1)
-GET     /organisation/:id/editAllowedUsers/:usersPage                   controllers.OrganisationController.editAllowedUsers(id: String, usersPage: Int)
-GET     /organisation/:id/delete                                        controllers.OrganisationController.delete(id: String)
-GET     /organisations/list                                             controllers.OrganisationController.list(organisationsPage: Int=1)
-GET     /organisations/list/:organisationsPage                          controllers.OrganisationController.list(organisationsPage: Int)
-GET     /organisations/editActivateOrganisation                         controllers.OrganisationController.editActiveOrganisation(page:Int=1)
-GET     /organisations/editActivateOrganisation/:page                   controllers.OrganisationController.editActiveOrganisation(page:Int)
-GET     /organisations/setActivateOrganisation/:id                      controllers.OrganisationController.setActiveOrganisation(id: String, page:Int=1)
-GET     /organisations/setActivateOrganisation/:id/:page                controllers.OrganisationController.setActiveOrganisation(id: String, page:Int)
-GET     /organisation/:id/image                                         controllers.OrganisationController.image(id: String)
-GET     /organisation/:id/thumbnail                                     controllers.OrganisationController.thumbnail(id: String)
+POST    /organisation/submit                                              	controllers.OrganisationController.submit
+GET     /organisation/create                                            	controllers.OrganisationController.create
+GET     /organisation/:uuid/edit                                          	controllers.OrganisationController.edit(uuid: String)
+
+GET     /organisation/:uuid/changeAllowedUser/:userIdString/:usersPage    	controllers.OrganisationController.changeAllowedUser(uuid: String, userIdString: String, usersPage: Int)
+GET     /organisation/:uuid/editAllowedUsers                              	controllers.OrganisationController.editAllowedUsers(uuid: String, usersPage: Int=1)
+GET     /organisation/:uuid/editAllowedUsers/:usersPage                   	controllers.OrganisationController.editAllowedUsers(uuid: String, usersPage: Int)
+GET     /organisation/:uuid/delete                                        	controllers.OrganisationController.delete(uuid: String)
+GET     /organisations/list                                             	controllers.OrganisationController.list(organisationsPage: Int=1)
+GET     /organisations/list/:organisationsPage                          	controllers.OrganisationController.list(organisationsPage: Int)
+GET     /organisations/editActivateOrganisation                         	controllers.OrganisationController.editActiveOrganisation(page:Int=1)
+GET     /organisations/editActivateOrganisation/:page                   	controllers.OrganisationController.editActiveOrganisation(page:Int)
+GET     /organisations/setActivateOrganisation/:uuid                      	controllers.OrganisationController.setActiveOrganisation(uuid: String, page:Int=1)
+GET     /organisations/setActivateOrganisation/:uuid/:page                	controllers.OrganisationController.setActiveOrganisation(uuid: String, page:Int)
+#GET     /organisation/:uuid/image                                        	controllers.OrganisationController.image(uuid: String)
+#GET     /organisation/:uuid/thumbnail                                    	controllers.OrganisationController.thumbnail(uuid: String)
 
 # User actions
-POST    /user/edit                                  controllers.AuthenticationController.editUser
-GET     /user/edit                                  controllers.ApplicationController.editUser
-GET     /user/:id/show                              controllers.UserController.show(id: String, page: Int=1)
-GET     /user/:id/show/:page                        controllers.UserController.show(id: String, page: Int)
-GET     /users/list                                 controllers.UserController.list(page: Int=1)
-GET     /users/list/:page                           controllers.UserController.list(page: Int)
-GET     /user/:id/image                             controllers.UserController.image(id: String)
-GET     /user/:id/thumbnail                         controllers.UserController.thumbnail(id: String)
+POST    /user/submit                                   			controllers.UserController.submit
+GET     /user/:uuid/edit                               			controllers.UserController.edit(uuid: String)
+
+GET     /user/:uuid/show                               			controllers.UserController.show(uuid: String, page: Int=1)
+GET     /user/:uuid/show/:page                         			controllers.UserController.show(uuid: String, page: Int)
+GET     /users/list                                  			controllers.UserController.list(page: Int=1)
+GET     /users/list/:page                            			controllers.UserController.list(page: Int)
+#GET     /user/:uuid/image                             			controllers.UserController.image(uuid: String)
+#GET     /user/:uuid/thumbnail                         			controllers.UserController.thumbnail(uuid: String)
 
 # Map static resources from the /public folder to the /assets URL path
 #GET     /assets/*file               		controllers.Assets.versioned(path="/public", file: Asset)
