@@ -38,7 +38,7 @@
                                   Messages("navigation.instructions"),
                                   Messages("navigation.issues") */)
 
-                if(loggedInUser.isDefined && activeOrg.isDefined) {
+                if(activeOrg.isDefined) {
                     navigationBar(activeOrg.get.name.get, navLinks, navTexts, loggedInUser)
                 } else {
                     navigationBar(Messages("not.applicable"), navLinks, navTexts, loggedInUser)

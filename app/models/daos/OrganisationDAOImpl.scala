@@ -12,6 +12,7 @@ import reactivemongo.play.json._
 import reactivemongo.play.json.collection._
 import models.Organisation
 import reactivemongo.api.QueryOpts
+import play.api.Logger
 
 /**
  * Give access to the organisation object.
@@ -22,8 +23,11 @@ class OrganisationDAOImpl @Inject() (val reactiveMongoApi: ReactiveMongoApi)(imp
 
   protected override def collection: Future[JSONCollection] = reactiveMongoApi.database.map(_.collection[JSONCollection]("organisations"))
     
-  override def insert(organisation: Organisation): Future[Option[Organisation]] =
+  override def insert(organisation: Organisation): Future[Option[Organisation]] = {
+    Logger.info("OrganisationDAOImpl.insert organisation:" +  organisation)
+    
     collection.flatMap { collection => collection.insert(organisation) }.map { wr => if(wr.ok) Some(organisation) else None }
+  }
   
   override def update(uuid: String, newOrganisation: Organisation): Future[Option[Organisation]] = {
     

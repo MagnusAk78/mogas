@@ -28,6 +28,7 @@ class UserServiceImpl @Inject() (override val dao: UserDAO) extends UserService 
    */
   override def retrieve(loginInfo: LoginInfo): Future[Option[User]] = dao.find(User(loginInfo = Some(loginInfo))).map { _.headOption }
 
+  /*
   override def save(user: User): Future[Option[User]] = {
 
     Logger.info("UserServiceImpl save (user): " + user)
@@ -72,6 +73,8 @@ class UserServiceImpl @Inject() (override val dao: UserDAO) extends UserService 
       }
     }
   }
+  * 
+  */
 
   /**
    * Saves the social profile for a user.

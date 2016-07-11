@@ -63,7 +63,7 @@ object User extends BaseModelCompanion {
           val avatarURL = (obj \ KeyAvatarURL).asOpt[String]
           val activeOrganisation = (obj \ KeyActiveOrganisation).asOpt[String]
 
-          JsSuccess(User(uuid, loginInfo, firstName, lastName, fullName, email, avatarURL))
+          JsSuccess(User(uuid, loginInfo, firstName, lastName, fullName, email, avatarURL, activeOrganisation))
 
         } catch {
           case cause: Throwable => JsError(cause.getMessage)

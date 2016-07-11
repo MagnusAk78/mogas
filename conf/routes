@@ -30,8 +30,6 @@ GET     /organisations/editActivateOrganisation                         	control
 GET     /organisations/editActivateOrganisation/:page                   	controllers.OrganisationController.editActiveOrganisation(page:Int)
 GET     /organisations/setActivateOrganisation/:uuid                      	controllers.OrganisationController.setActiveOrganisation(uuid: String, page:Int=1)
 GET     /organisations/setActivateOrganisation/:uuid/:page                	controllers.OrganisationController.setActiveOrganisation(uuid: String, page:Int)
-#GET     /organisation/:uuid/image                                        	controllers.OrganisationController.image(uuid: String)
-#GET     /organisation/:uuid/thumbnail                                    	controllers.OrganisationController.thumbnail(uuid: String)
 
 # User actions
 POST    /user/submit                                   			controllers.UserController.submit
@@ -41,10 +39,11 @@ GET     /user/:uuid/show                               			controllers.UserContro
 GET     /user/:uuid/show/:page                         			controllers.UserController.show(uuid: String, page: Int)
 GET     /users/list                                  			controllers.UserController.list(page: Int=1)
 GET     /users/list/:page                            			controllers.UserController.list(page: Int)
-#GET     /user/:uuid/image                             			controllers.UserController.image(uuid: String)
-#GET     /user/:uuid/thumbnail                         			controllers.UserController.thumbnail(uuid: String)
+
+#File retreival
+GET     /image/:imageUuid                                      controllers.FileRetreiverController.getImage(imageUuid: String)
 
 # Map static resources from the /public folder to the /assets URL path
 #GET     /assets/*file               		controllers.Assets.versioned(path="/public", file: Asset)
-GET     /assets/*file                   	controllers.Assets.at(path="/public", file)
+GET     /assets/*file                   	controllers.Assets.at(path="/public/", file)
 GET     /webjars/*file                   	controllers.WebJarAssets.at(file)

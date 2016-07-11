@@ -21,11 +21,8 @@
     <hr>
     @formMultipartColumn(updateNewText(update), routes.OrganisationController.submit, updateNewText(update)) {
         @b3.hidden(organisationForm("uuid").name, organisationForm("uuid").value)
-        @b3.hidden(organisationForm("usersCount").name, organisationForm("usersCount").value)
-        @b3.hidden(organisationForm("usersPage").name, organisationForm("usersPage").value)
-        @b3.hidden(organisationForm("usersPageLenght").name, organisationForm("usersPageLenght").value)
         @b3.text(organisationForm("name"), '_label -> Messages("organisation.name"))
-        @* b3.file(organisationForm(models.imageFileKeyString), '_label -> Messages("image.file")) *@
+        @b3.file(organisationForm(forms.imageFileKeyString), '_label -> Messages("image.file"))
     }{
         @if(update) {
             @editButton(controllers.routes.OrganisationController.editAllowedUsers(

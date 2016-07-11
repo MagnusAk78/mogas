@@ -11,27 +11,26 @@
     <hr>
     @rowColumnCenter() {
         @paginate(page, pageLength, count, controllers.routes.OrganisationController.list(_))
-        @{/*
+        @{
             val mediaList = organisations.map((organisation: Organisation) =>
-                if(organisation.imageFileRep.isDefined) {
-                    routes.OrganisationController.thumbnail(organisation._id.toString)
+                if(organisation.imageReadFileId.isDefined) {
+                    routes.FileRetreiverController.getImage(organisation.imageReadFileId.get)
                 } else {
-                    routes.Assets.versioned("images/organisation-default.png")
+                    routes.Assets.at("images/organisation-default.png")
                 }
             )
 
-            val linkList = organisations.map((organisation: Organisation) => controllers.routes.OrganisationController.edit(organisation._id.toString))
-            val headingList = organisations.map(_.name)
-            val textList = organisations.map(_.name)
-            val activatedList = if(loggedInUser.get.activeOrganisation.isDefined) {
+            val linkList = organisations.map((organisation: Organisation) => controllers.routes.OrganisationController.edit(organisation.uuid.get))
+            val headingList = organisations.map(_.name.get)
+            val textList = organisations.map(_.name.get)
+            val activatedList = if(activeOrg.isDefined) {
                 organisations.map((organisation: Organisation) =>
-                    (organisation._id == loggedInUser.get.activeOrganisation.get))
+                    (organisation.uuid.get == activeOrg.get.uuid.get))
             } else {
                 List()
             }
 
             mediaListWithOneLink(mediaList, linkList, headingList, textList, activatedList)
-            */
         }
     }
     <hr>

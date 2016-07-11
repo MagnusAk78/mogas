@@ -13,14 +13,6 @@ import models.daos.UserDAO
 trait UserService extends BaseModelService[User, UserDAO] with IdentityService[User] {
 
   /**
-   * Saves a user.
-   *
-   * @param user The user to save.
-   * @return The saved user.
-   */
-  def save(user: User): Future[Option[User]]
-
-  /**
    * Saves the social profile for a user.
    *
    * If a user exists for this profile then update the user, otherwise create a new user with the given profile.
