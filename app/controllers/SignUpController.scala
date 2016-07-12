@@ -1,6 +1,5 @@
 package controllers
 
-import java.util.UUID
 import javax.inject.Inject
 
 import com.mohiva.play.silhouette.api._
@@ -10,6 +9,7 @@ import com.mohiva.play.silhouette.api.util.PasswordHasher
 import com.mohiva.play.silhouette.impl.providers._
 import forms.SignUpForm
 import models.User
+import models.Organisation
 import models.services.UserService
 import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.libs.concurrent.Execution.Implicits._
@@ -17,6 +17,9 @@ import play.api.mvc.Controller
 import utils.auth.DefaultEnv
 
 import scala.concurrent.Future
+import models.services.OrganisationService
+import play.api.Logger
+import models.Organisation
 
 /**
  * The `Sign Up` controller.
@@ -33,6 +36,7 @@ class SignUpController @Inject() (
   val messagesApi: MessagesApi,
   val silhouette: Silhouette[DefaultEnv],
   val userService: UserService,
+  val organisationService: OrganisationService,
   val authInfoRepository: AuthInfoRepository,
   val avatarService: AvatarService,
   val passwordHasher: PasswordHasher,
@@ -45,8 +49,32 @@ class SignUpController @Inject() (
    * @return The result to display.
    */
   def view = silhouette.UnsecuredAction.async { implicit request =>
-    Future.successful(Ok(views.html.signUp(SignUpForm.form)))
+    Future.successful(Ok(views.html.signUp(SignUpForm.form, None, None)))
   }
+  
+  def edit(uuid: String) = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
+    Logger.info("SignUpController.edit")
+
+    val responses = for {
+      userOpt <- userService.find(User.uuidQuery(uuid)).map(_.headOption)
+      activeOrgOpt <- organisationService.find(Organisation.uuidQuery(request.identity.activeOrganisation)).map(_.headOption)
+    } yield userOpt match {
+      case Some(user) => {
+        if(user.uuid == request.identity.uuid) {
+          //TODO: Use sign up form and edit
+          Ok(views.html.signUp(SignUpForm.form.fill(user), Some(request.identity), activeOrgOpt))
+        } else {
+        Redirect(routes.UserController.list(1))
+        }
+      }
+      case None =>
+        Redirect(routes.UserController.list(1))
+    }
+
+      responses recover {
+        case e => InternalServerError(e.getMessage())
+      }    
+  }  
 
   /**
    * Handles the submitted form.
@@ -55,7 +83,7 @@ class SignUpController @Inject() (
    */
   def submit = silhouette.UnsecuredAction.async { implicit request =>
     SignUpForm.form.bindFromRequest.fold(
-      form => Future.successful(BadRequest(views.html.signUp(form))),
+      errorForm => Future.successful(BadRequest(views.html.signUp(errorForm, None, None))),
       data => {
         val loginInfo = LoginInfo(CredentialsProvider.ID, data.email)
         userService.retrieve(loginInfo).flatMap {
@@ -63,13 +91,46 @@ class SignUpController @Inject() (
             Future.successful(Redirect(routes.SignUpController.view()).flashing("error" -> Messages("user.exists")))
           case None =>
             val authInfo = passwordHasher.hash(data.password)
-            val newUser = User(
-              loginInfo = Some(loginInfo),
-              firstName = Some(data.firstName),
-              lastName = Some(data.lastName),
-              fullName = Some(data.firstName + " " + data.lastName),
-              email = Some(data.email),
-              avatarURL = None)
+            val newUser = User.create(
+              loginInfo = loginInfo,
+              firstName = data.firstName,
+              lastName = data.lastName,
+              fullName = data.firstName + " " + data.lastName,
+              email = data.email)
+            for {
+              avatar <- avatarService.retrieveURL(data.email)
+              user <- userService.insert(newUser.copy(avatarURL = avatar))
+              authInfo <- authInfoRepository.add(loginInfo, authInfo)
+              authenticator <- silhouette.env.authenticatorService.create(loginInfo)
+              value <- silhouette.env.authenticatorService.init(authenticator)
+              result <- silhouette.env.authenticatorService.embed(value, Redirect(routes.ApplicationController.index))
+            } yield {
+              //ugly. no error handling for .get method
+              silhouette.env.eventBus.publish(SignUpEvent(user.get, request))
+              silhouette.env.eventBus.publish(LoginEvent(user.get, request))
+              result
+            }
+        }
+      }
+    )
+  }
+  
+    def editSubmit(uuid: String) = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
+    SignUpForm.form.bindFromRequest.fold(
+      errorForm => Future.successful(BadRequest(views.html.signUp(errorForm, Some(request.identity), None))),
+      data => {
+        val loginInfo = LoginInfo(CredentialsProvider.ID, data.email)
+        userService.retrieve(loginInfo).flatMap {
+          case Some(user) =>
+            Future.successful(Redirect(routes.SignUpController.view()).flashing("error" -> Messages("user.exists")))
+          case None =>
+            val authInfo = passwordHasher.hash(data.password)
+            val newUser = User.create(
+              loginInfo = loginInfo,
+              firstName = data.firstName,
+              lastName = data.lastName,
+              fullName = data.firstName + " " + data.lastName,
+              email = data.email)
             for {
               avatar <- avatarService.retrieveURL(data.email)
               user <- userService.insert(newUser.copy(avatarURL = avatar))

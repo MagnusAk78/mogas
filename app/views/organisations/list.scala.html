@@ -13,19 +13,19 @@
         @paginate(page, pageLength, count, controllers.routes.OrganisationController.list(_))
         @{
             val mediaList = organisations.map((organisation: Organisation) =>
-                if(organisation.imageReadFileId.isDefined) {
-                    routes.FileRetreiverController.getImage(organisation.imageReadFileId.get)
+                if(organisation.imageReadFileId != models.UuidNotSet) {
+                    routes.FileRetreiverController.getImage(organisation.imageReadFileId)
                 } else {
                     routes.Assets.at("images/organisation-default.png")
                 }
             )
 
-            val linkList = organisations.map((organisation: Organisation) => controllers.routes.OrganisationController.edit(organisation.uuid.get))
-            val headingList = organisations.map(_.name.get)
-            val textList = organisations.map(_.name.get)
+            val linkList = organisations.map((organisation: Organisation) => controllers.routes.OrganisationController.edit(organisation.uuid))
+            val headingList = organisations.map(_.name)
+            val textList = organisations.map(_.name)
             val activatedList = if(activeOrg.isDefined) {
                 organisations.map((organisation: Organisation) =>
-                    (organisation.uuid.get == activeOrg.get.uuid.get))
+                    (organisation.uuid == activeOrg.get.uuid))
             } else {
                 List()
             }

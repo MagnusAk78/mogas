@@ -29,23 +29,16 @@ class OrganisationDAOImpl @Inject() (val reactiveMongoApi: ReactiveMongoApi)(imp
     collection.flatMap { collection => collection.insert(organisation) }.map { wr => if(wr.ok) Some(organisation) else None }
   }
   
-  override def update(uuid: String, newOrganisation: Organisation): Future[Option[Organisation]] = {
-    
-    val selector = JsObject(Seq(Organisation.KeyUUID -> JsString(uuid)))
-    
-    val updateJsValue = JsObject(Seq("$set" -> Organisation.OrganisationWrites.writes(newOrganisation)))
-    
-    collection.flatMap ( collection => 
-      collection.update(selector, updateJsValue)).map(wr => if(wr.ok) Some(newOrganisation) else None)
-  }
+  override def update(query: JsObject, update: JsObject): Future[Boolean] = collection.flatMap ( collection => 
+      collection.update(query, update)).map(wr => wr.ok)
 
-  override def remove(organisation: Organisation): Future[Boolean] = collection.flatMap(_.remove(organisation).map { wr => wr.ok })
+  override def remove(query: JsObject): Future[Boolean] = collection.flatMap(_.remove(query).map { wr => wr.ok })
     
-  override def count(organisation: Organisation): Future[Int] = collection.flatMap(_.count(Some(Organisation.OrganisationWrites.writes(organisation))))
+  override def count(query: JsObject): Future[Int] = collection.flatMap(_.count(Some(query)))
 
-  override def find(organisation: Organisation, pageNumber: Int = 1, numberPerPage: Int = 20, maxDocs: Int = 0): Future[List[Organisation]] =
-    collection.flatMap(_.find(organisation).options(QueryOpts((pageNumber - 1)*numberPerPage, numberPerPage)).cursor[Organisation]().collect[List](maxDocs))
+  override def find(query: JsObject, page: Int, pageSize: Int): Future[List[Organisation]] =
+    collection.flatMap(_.find(query).options(QueryOpts((page - 1)*pageSize, pageSize)).cursor[Organisation]().collect[List](pageSize))
 
-  override def findAndSort(organisation: Organisation, sortBy: String, ascending: Boolean, pageNumber: Int = 1, numberPerPage: Int = 20, maxDocs: Int = 0): Future[List[Organisation]] =
-    collection.flatMap(_.find(organisation).sort(DaoHelper.getSortByJsObject(sortBy, ascending)).options(QueryOpts((pageNumber - 1)*numberPerPage, numberPerPage)).cursor[Organisation]().collect[List](maxDocs))
+  override def findAndSort(query: JsObject, sort: JsObject, page: Int, pageSize: Int): Future[List[Organisation]] =
+    collection.flatMap(_.find(query).sort(sort).options(QueryOpts((page - 1)*pageSize, pageSize)).cursor[Organisation]().collect[List](pageSize))
 }

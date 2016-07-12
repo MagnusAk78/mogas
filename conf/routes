@@ -32,8 +32,8 @@ GET     /organisations/setActivateOrganisation/:uuid                      	contr
 GET     /organisations/setActivateOrganisation/:uuid/:page                	controllers.OrganisationController.setActiveOrganisation(uuid: String, page:Int)
 
 # User actions
-POST    /user/submit                                   			controllers.UserController.submit
-GET     /user/:uuid/edit                               			controllers.UserController.edit(uuid: String)
+POST    /user/:uuid/submit                                   			    controllers.SignUpController.editSubmit(uuid: String)
+GET     /user/:uuid/edit                               			            controllers.SignUpController.edit(uuid: String)
 
 GET     /user/:uuid/show                               			controllers.UserController.show(uuid: String, page: Int=1)
 GET     /user/:uuid/show/:page                         			controllers.UserController.show(uuid: String, page: Int)

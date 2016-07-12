@@ -42,11 +42,7 @@
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
                             <span class="glyphicon glyphicon-cog" aria-hidden="true"></span></a>
                         <ul class="dropdown-menu">
-                        	@u.uuid.map { uuid =>
-                            	<li><a href="@routes.UserController.edit(uuid)">@Messages("user.editAccount")</a></li>
-                            }.getOrElse {
-                            	<li><a href="@routes.UserController.edit("remove-later")">@Messages("user.editAccount")</a></li>
-                            }
+                        	<li><a href="@routes.SignUpController.edit(u.uuid)">@Messages("user.editAccount")</a></li>
                         </ul>
                     </li>
 

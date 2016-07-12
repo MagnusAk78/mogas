@@ -2,6 +2,7 @@ package forms
 
 import play.api.data.Form
 import play.api.data.Forms._
+import models.User
 
 /**
  * The form which handles the sign up process.
@@ -32,5 +33,8 @@ object SignUpForm {
     firstName: String,
     lastName: String,
     email: String,
-    password: String)    
+    password: String)
+    
+    implicit def fromUserToData(user: User): Data = Data(firstName=user.firstName,
+      lastName = user.lastName, email = user.email, password = "")
 }

@@ -6,7 +6,7 @@
 
 @main(Messages("user.details", user.fullName), loggedInUser, activeOrg) {
     @rowMainSecondary() {
-        @title(Messages("user.details"), user.fullName)
+        @title(Messages("user.details"), Some(user.fullName))
     }{
         @backButton(controllers.routes.UserController.list(1))
     }
@@ -15,7 +15,7 @@
         @{
             val titles = List(Messages("user.username"), Messages("user.firstName"),
                 Messages("user.lastName"), Messages("user.email"))
-            val descriptions = List(user.fullName.get, user.firstName.get, user.lastName.get, user.email.get)
+            val descriptions = List(user.fullName, user.firstName, user.lastName, user.email)
 
             descriptionList(titles, descriptions)
         }
@@ -25,8 +25,8 @@
         @title(Messages("user.allowed.organisations"))
     }
     @rowColumnCenter() {
-        @paginate(page, pageLength, count, controllers.routes.UserController.show(user.uuid.toString, _))
+        @paginate(page, pageLength, count, controllers.routes.UserController.show(user.uuid, _))
 
-        @unstyledList(organisations.map(_.name.get))
+        @unstyledList(organisations.map(_.name))
     }
 }

@@ -1,5 +1,5 @@
 package utils
 
 object DefaultValues {
-  val DefaultPageLength = 8
+  val DefaultPageLength = 3
 }

@@ -5,7 +5,7 @@
 @main(Messages("home"), loggedInUser, activeOrganisation) {
     @rowColumnCenter() {
     	@if(loggedInUser.isDefined) {
-        	@title(Messages("home.welcome", loggedInUser.get.firstName, loggedInUser.get.lastName), loggedInUser.flatMap(_.fullName))
+        	@title(Messages("home.welcome", loggedInUser.get.firstName, loggedInUser.get.lastName), loggedInUser.map(_.fullName))
         } else {
         	@title(Messages("home.welcome", "", ""), None)
         } 

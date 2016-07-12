@@ -49,29 +49,23 @@ class ApplicationController @Inject() (
     
     Logger.info("ApplicationController index: " + request.identity)
     
-    val futureResults = for {
+    val responses = for {
       userOpt <- request.identity match {
-        case Some(user) => {
-          user.loginInfo match {
-            case Some(li) => userService.retrieve(li)
-            case None => Future.successful(None)
-          }
-        }
+        case Some(user) => userService.retrieve(user.loginInfo)
         case None => Future.successful(None)
       }
       activeOrg <- userOpt match {
-        case Some(user) => organisationService.find(Organisation(uuid = user.activeOrganisation), maxDocs = 1).map(_.headOption)
+        case Some(user) => organisationService.findOne(Organisation.uuidQuery(user.activeOrganisation))
         case None => Future.successful(None)
       }
-    } yield(userOpt, activeOrg)
-    
-    futureResults.map( results => results._1 match {
-      case Some(user) => {
-        Logger.info("ApplicationController index, user: " + user)
-        Ok(views.html.home(Some(user), results._2))
-      }
+    } yield userOpt match {
+      case Some(user) => Ok(views.html.home(Some(user), activeOrg))
       case None => Redirect(routes.SignInController.view())
-    })
+    }
+    
+    responses recover {
+      case e => InternalServerError(e.getMessage())
+    }
   }
 
   /**

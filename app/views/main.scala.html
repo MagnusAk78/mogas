@@ -39,7 +39,7 @@
                                   Messages("navigation.issues") */)
 
                 if(activeOrg.isDefined) {
-                    navigationBar(activeOrg.get.name.get, navLinks, navTexts, loggedInUser)
+                    navigationBar(activeOrg.get.name, navLinks, navTexts, loggedInUser)
                 } else {
                     navigationBar(Messages("not.applicable"), navLinks, navTexts, loggedInUser)
                 }
@@ -75,9 +75,9 @@
                                     val titles = List(Messages("user.fullName"),
                                                       Messages("organisation.activeOrganisation"),
                                                       Messages("application.versionText"))
-                                    val descriptions = List(loggedInUser.get.fullName.getOrElse(""),
+                                    val descriptions = List(loggedInUser.get.fullName,
                                         if(activeOrg.isDefined) {
-                                            activeOrg.get.name.get
+                                            activeOrg.get.name
                                         } else {
                                             Messages("not.set")
                                         },

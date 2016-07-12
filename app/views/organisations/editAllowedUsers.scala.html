@@ -6,13 +6,13 @@
 
 @main(Messages("organisations"), loggedInUser, activeOrg) {
     @rowMainSecondary() {
-        @title(organisation.name.get, Some(Messages("organisation.changeAllowedUsers")))
+        @title(organisation.name, Some(Messages("organisation.changeAllowedUsers")))
     }{
-        @backButton(controllers.routes.OrganisationController.edit(organisation.uuid.get))
+        @backButton(controllers.routes.OrganisationController.edit(organisation.uuid))
     }
     <hr>
     @rowColumnCenter() {
-        @paginate(usersPage, usersPageLength, usersCount, controllers.routes.OrganisationController.editAllowedUsers(organisation.uuid.get, _))
+        @paginate(usersPage, usersPageLength, usersCount, controllers.routes.OrganisationController.editAllowedUsers(organisation.uuid, _))
 
         @{
         	/*

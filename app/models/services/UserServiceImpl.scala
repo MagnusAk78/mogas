@@ -6,6 +6,7 @@ import javax.inject.Inject
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.impl.providers.CommonSocialProfile
 import models.User
+import models.UserUpdate
 import models.daos.UserDAO
 import play.api.libs.concurrent.Execution.Implicits._
 
@@ -26,7 +27,7 @@ class UserServiceImpl @Inject() (override val dao: UserDAO) extends UserService 
    * @param loginInfo The login info to retrieve a user.
    * @return The retrieved user or None if no user could be retrieved for the given login info.
    */
-  override def retrieve(loginInfo: LoginInfo): Future[Option[User]] = dao.find(User(loginInfo = Some(loginInfo))).map { _.headOption }
+  override def retrieve(loginInfo: LoginInfo): Future[Option[User]] = find(User.loginInfoQuery(loginInfo)).map { _.headOption }
 
   /*
   override def save(user: User): Future[Option[User]] = {
@@ -87,26 +88,30 @@ class UserServiceImpl @Inject() (override val dao: UserDAO) extends UserService 
   override def save(profile: CommonSocialProfile): Future[Option[User]] = {
 
     Logger.info("UserServiceImpl save (profile): " + profile)
-
+    
     retrieve(profile.loginInfo).flatMap { optionUser =>
       optionUser match {
         case Some(user) => { // Update user with profile
-          val updatedUser = User(
+          val updatedUser = UserUpdate(
             loginInfo = Some(profile.loginInfo),
             firstName = profile.firstName,
             lastName = profile.lastName,
             fullName = profile.fullName,
             email = profile.email,
-            avatarURL = profile.avatarURL)
-          dao.update(user.uuid.get, updatedUser)
+            avatarURL = profile.avatarURL,
+            activeOrganisation = Some(user.activeOrganisation))
+          dao.update(User.uuidQuery(user.uuid), updatedUser.toSetJsObj) flatMap { _ match {
+            case true => findOne(User.uuidQuery(user.uuid))
+            case false => Future.successful(None)
+          }}
         }
         case None => { // Insert a new user
           val newUser = User.create(
-            loginInfo = Some(profile.loginInfo),
-            firstName = profile.firstName,
-            lastName = profile.lastName,
-            fullName = profile.fullName,
-            email = profile.email,
+            loginInfo = profile.loginInfo,
+            firstName = profile.firstName.getOrElse(""),
+            lastName = profile.lastName.getOrElse(""),
+            fullName = profile.fullName.getOrElse(""),
+            email = profile.email.getOrElse(""),
             avatarURL = profile.avatarURL)
           dao.insert(newUser)
         }
