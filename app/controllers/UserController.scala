@@ -59,11 +59,11 @@ class UserController @Inject() (
       activeOrgOpt <- organisationService.findOne(Organisation.uuidQuery(request.identity.activeOrganisation))
       userOpt <- userService.findOne(User.uuidQuery(uuid))
       orgList <- userOpt match {
-        case Some(user) => organisationService.find(Organisation.allowedUsersQuery(Set(user.uuid)), page, utils.DefaultValues.DefaultPageLength)
+        case Some(user) => organisationService.find(Organisation.allowedUserQuery(user.uuid), page, utils.DefaultValues.DefaultPageLength)
         case None => Future.successful(List.empty[Organisation])
       }
       orgCount <- userOpt match {
-        case Some(user) => organisationService.count(Organisation.allowedUsersQuery(Set(user.uuid)))
+        case Some(user) => organisationService.count(Organisation.allowedUserQuery(user.uuid))
         case None => Future.successful(0)
       }
     } yield Ok(views.html.users.details(userOpt.get, orgList, orgCount, page, 

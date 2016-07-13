@@ -1,16 +1,16 @@
-@(organisationForm: Form[forms.OrganisationForm.Data], update: Boolean, loggedInUser: Option[models.User], activeOrg: Option[models.Organisation])(implicit flash: Flash,
+@(organisationForm: Form[forms.OrganisationForm.Data], uuidToEdit: Option[String], loggedInUser: Option[models.User], activeOrg: Option[models.Organisation])(implicit flash: Flash,
     request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
 
 @import b3.vertical.fieldConstructor
 @import templates._
 
 @updateNewText(update: Boolean) = @{
-    if (update) Messages("command.update") else Messages("command.add")
+    if (uuidToEdit.isDefined) Messages("command.update") else Messages("command.add")
 }
 
 @main(Messages("organisations"), loggedInUser, activeOrg) {
     @rowMainSecondary() {
-        @if(update) {
+        @if(uuidToEdit.isDefined) {
             @title(Messages("organisations"), Some(Messages("function.edit")))
         } else {
             @title(Messages("organisations"), Some(Messages("function.create")))
@@ -19,16 +19,29 @@
         @backButton(controllers.routes.OrganisationController.list(1))
     }
     <hr>
-    @formMultipartColumn(updateNewText(update), routes.OrganisationController.submit, updateNewText(update)) {
-        @b3.hidden(organisationForm("uuid").name, organisationForm("uuid").value)
-        @b3.text(organisationForm("name"), '_label -> Messages("organisation.name"))
-        @b3.file(organisationForm(forms.imageFileKeyString), '_label -> Messages("image.file"))
-    }{
-        @if(update) {
-            @editButton(controllers.routes.OrganisationController.editAllowedUsers(
-                organisationForm("id").value.get, 1), Some(Messages("organisation.changeAllowedUsers")))
-            <hr>
-            @deleteButton(controllers.routes.OrganisationController.delete(organisationForm("id").value.get))
+    @if(uuidToEdit.isDefined) {
+    	@formColumn(updateNewText(true), routes.OrganisationController.submitEdit(uuidToEdit.get), updateNewText(true)) {
+        	@b3.text(organisationForm("name"), '_label -> Messages("organisation.name"))
+        }{
+        	<hr>
         }
+        
+        @fileUploadFormColumn(routes.OrganisationController.submitImage(uuidToEdit.get))
+        	
+        @rowColumnCenter() {	
+        	@editButton(controllers.routes.OrganisationController.editAllowedUsers(
+        		uuidToEdit.get, 1), Some(Messages("organisation.changeAllowedUsers")))
+        	<hr>
+        	@deleteButton(controllers.routes.OrganisationController.delete(uuidToEdit.get))
+        }
+        
+    } else {
+    	@formColumn(updateNewText(false), routes.OrganisationController.submitCreate, updateNewText(false)) {
+        	@b3.text(organisationForm("name"), '_label -> Messages("organisation.name"))
+        }{
+        	<hr>
+        }    
     }
 }
+
+

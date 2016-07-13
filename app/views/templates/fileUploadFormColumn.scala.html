@@ -1,0 +1,26 @@
+@(submitTo: play.api.mvc.Call)(implicit flash: Flash, request: RequestHeader, messages: Messages)
+
+@import b3.inline.fieldConstructor
+
+@rowColumnCenter() {
+    <fieldset>
+        <legend>@Messages("image.upload.legend")</legend>
+        @b3.form(submitTo, 'enctype -> "multipart/form-data") {
+        @helper.CSRF.formField
+
+        <div class="form-group">
+            @b3.file(forms.FileUploadForm.form("file"), '_label -> Messages("choose.image.file"))
+        </div>
+
+        <div class="form-group">
+            <div>
+                <button id="submit" type="submit" value="submit" class="btn btn-primary">
+                        <span class="glyphicon glyphicon-upload" aria-hidden="true"></span>
+                    @Messages("image.upload")
+                </button>
+            </div>
+        </div>
+        }
+        <hr>
+    </fieldset>
+}

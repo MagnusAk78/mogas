@@ -16,14 +16,17 @@ GET     /authentication/signIn                              controllers.SignInCo
 GET     /authentication/signUp                              controllers.SignUpController.view
 
 # Organisation actions
-POST    /organisation/submit                                              	controllers.OrganisationController.submit
+POST    /organisation/submit                                              	controllers.OrganisationController.submitCreate
 GET     /organisation/create                                            	controllers.OrganisationController.create
+POST    /organisation/:uuid/submit                                        	controllers.OrganisationController.submitEdit(uuid: String)
 GET     /organisation/:uuid/edit                                          	controllers.OrganisationController.edit(uuid: String)
-
+POST    /organisation/:uuid/submitImage   									controllers.OrganisationController.submitImage(uuid: String)
 GET     /organisation/:uuid/changeAllowedUser/:userIdString/:usersPage    	controllers.OrganisationController.changeAllowedUser(uuid: String, userIdString: String, usersPage: Int)
 GET     /organisation/:uuid/editAllowedUsers                              	controllers.OrganisationController.editAllowedUsers(uuid: String, usersPage: Int=1)
 GET     /organisation/:uuid/editAllowedUsers/:usersPage                   	controllers.OrganisationController.editAllowedUsers(uuid: String, usersPage: Int)
 GET     /organisation/:uuid/delete                                        	controllers.OrganisationController.delete(uuid: String)
+
+
 GET     /organisations/list                                             	controllers.OrganisationController.list(organisationsPage: Int=1)
 GET     /organisations/list/:organisationsPage                          	controllers.OrganisationController.list(organisationsPage: Int)
 GET     /organisations/editActivateOrganisation                         	controllers.OrganisationController.editActiveOrganisation(page:Int=1)

@@ -13,7 +13,8 @@ case class User(
   val fullName: String,
   val email: String,
   val avatarURL: Option[String],
-  val activeOrganisation: String) extends BaseModel with Identity
+  val activeOrganisation: String,
+  val imageReadFileId: String) extends BaseModel with Identity
   
 case class UserUpdate(
   val loginInfo: Option[LoginInfo] = None,
@@ -22,7 +23,8 @@ case class UserUpdate(
   val fullName: Option[String] = None,
   val email: Option[String] = None,
   val avatarURL: Option[String] = None,
-  val activeOrganisation: Option[String] = None) extends BaseModelUpdate {
+  val activeOrganisation: Option[String] = None,
+  val imageReadFileId: Option[String] = None) extends BaseModelUpdate {
   
   override def toSetJsObj: JsObject = {
       val sequence: Seq[JsField] = Seq[JsField]() ++
@@ -32,7 +34,8 @@ case class UserUpdate(
         fullName.map(User.KeyFullName -> JsString(_)) ++
         email.map(User.KeyEmail -> JsString(_)) ++
         avatarURL.map(User.KeyAvatarURL -> JsString(_)) ++
-        activeOrganisation.map(User.KeyActiveOrganisation -> JsString(_))
+        activeOrganisation.map(User.KeyActiveOrganisation -> JsString(_))++
+        imageReadFileId.map(Organisation.KeyImageReadFileId -> JsString(_))
 
       Json.obj("$set" -> JsObject(sequence))
   } 
@@ -46,6 +49,7 @@ object User extends BaseModelCompanion {
   val KeyEmail = "email"
   val KeyAvatarURL = "avatarURL"
   val KeyActiveOrganisation = "activeOrganisation"
+  val KeyImageReadFileId = "imageReadFileId"
   
   implicit val userFormat = Json.format[User]
   
@@ -59,8 +63,9 @@ object User extends BaseModelCompanion {
              fullName: String,
              email: String,
              avatarURL: Option[String] = None,
-             activeOrganisation: String = UuidNotSet) =
+             activeOrganisation: String = UuidNotSet,
+             imageReadFileId: String = UuidNotSet) =
     User(uuid = UUID.randomUUID.toString, loginInfo = loginInfo, firstName = firstName,
       lastName = lastName, fullName = fullName, email = email, avatarURL = avatarURL,
-      activeOrganisation = activeOrganisation)
+      activeOrganisation = activeOrganisation, imageReadFileId = imageReadFileId)
 }

@@ -40,6 +40,15 @@ import utils.auth.DefaultEnv
 import com.mohiva.play.silhouette.impl.providers.SocialProviderRegistry
 import models.UserUpdate
 
+import play.api.libs.iteratee.Iteratee
+
+import com.sksamuel.scrimage._
+import com.sksamuel.scrimage.nio.JpegWriter
+import play.api.libs.iteratee.Enumerator
+import play.modules.reactivemongo.JSONFileToSave
+
+
+
 @Singleton
 class OrganisationController @Inject() (
   val messagesApi: MessagesApi,
@@ -63,12 +72,12 @@ class OrganisationController @Inject() (
   } yield fs
 
   def list(page: Int) = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
-    
+
     Logger.info("OrganisationController.list organisationsPage:" + page)
 
     //Non-future values
-    val selector = Organisation.allowedUsersQuery(Set(request.identity.uuid))
-    
+    val selector = Organisation.allowedUserQuery(request.identity.uuid)
+
     //Future values that can start in parallel
     val futureOrgCount = organisationService.count(selector)
     val futureOrgList = organisationService.find(selector, page, utils.DefaultValues.DefaultPageLength)
@@ -79,89 +88,10 @@ class OrganisationController @Inject() (
       orgList <- futureOrgList
       activeOrg <- futureActiveOrg
     } yield Ok(views.html.organisations.list(orgList, count, page,
-        utils.DefaultValues.DefaultPageLength, Some(request.identity), activeOrg))
+      utils.DefaultValues.DefaultPageLength, Some(request.identity), activeOrg))
 
     responses recover {
       case e => InternalServerError(e.getMessage())
-    }
-  }
-
-  def submit = {
-    def fs = Await.result(gridFS, Duration("5s"))
-
-    silhouette.SecuredAction(AlwaysAuthorized()).async(gridFSBodyParser(fs)) { implicit request =>
-
-      val responses = for {
-        optFile <- request.body.file(forms.imageFileKeyString) match {
-          case Some(file) => file.ref.map(Some(_))
-          case None       => Future.successful(None)
-        }
-        oldOrg <- request.body.asFormUrlEncoded.get("uuid") match {
-          case Some(uuid :: ignoringTheTail) => organisationService.findOne(Organisation.uuidQuery(uuid))
-          case _                             => Future.successful(None)
-        }
-        //fs <- gridFS
-        activeOrg <- organisationService.findOne(Organisation.uuidQuery(request.identity.activeOrganisation))
-        formResult <- OrganisationForm.form.bindFromRequest().fold(
-          formWithErrors => {
-            Future.successful(BadRequest(views.html.organisations.edit(formWithErrors, true, Some(request.identity),
-              activeOrg)))
-          },
-          formData => {
-
-            Logger.info("OrganisationController.submit _ 3")
-
-            oldOrg match {
-              case Some(oo) => {
-                Logger.info("OrganisationController.submit _ 4.1")
-
-                val updateOrg = OrganisationUpdate(
-                  name = Some(formData.name),
-                  allowedUsers = oo.allowedUsers,
-                  imageReadFileId = optFile.map(file => file.id.as[String]))
-
-                val futureUpdateResult = organisationService.update(Organisation.uuidQuery(oo.uuid), updateOrg.toSetJsObj)
-
-                futureUpdateResult map {
-                  optNewOrg =>
-                    optNewOrg match {
-                      case true => Redirect(routes.OrganisationController.edit(oo.uuid)).
-                        flashing("success" -> Messages("db.success.update", formData.name))
-                      case false => Redirect(routes.OrganisationController.edit(oo.uuid)).
-                        flashing("failure" -> Messages("db.failed.update", oo.name))
-                    }
-                }
-              }
-              case None => {
-                val newOrg = Organisation.create(
-                  name = formData.name,
-                  allowedUsers = Set(request.identity.uuid),
-                  imageReadFileId = optFile match {
-                    case Some(file) => file.id.as[String]
-                    case None       => models.UuidNotSet
-                  })
-
-                val futureSaveResult = organisationService.insert(newOrg)
-
-                futureSaveResult map {
-                  optNewOrg =>
-                    optNewOrg.isDefined match {
-                      case true =>
-                        Redirect(routes.OrganisationController.edit(optNewOrg.get.uuid)).
-                          flashing("success" -> Messages("db.success.insert", newOrg.name))
-                      case false =>
-                        Redirect(routes.OrganisationController.create).flashing("failure" -> Messages("db.failure.insert", formData.name))
-                    }
-                }
-              }
-
-            }
-          })
-      } yield formResult
-
-      responses recover {
-        case e => InternalServerError(e.getMessage())
-      }
     }
   }
 
@@ -170,37 +100,210 @@ class OrganisationController @Inject() (
 
     val responses = for {
       activeOrg <- organisationService.findOne(Organisation.uuidQuery(request.identity.activeOrganisation))
-    } yield Ok(views.html.organisations.edit(OrganisationForm.form, false, Some(request.identity), activeOrg))
+    } yield Ok(views.html.organisations.edit(OrganisationForm.form, None, Some(request.identity), activeOrg))
 
     responses recover {
       case e => InternalServerError(e.getMessage())
     }
   }
 
+  def submitCreate = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
+    OrganisationForm.form.bindFromRequest().fold(
+      formWithErrors => {
+        val futureActiveOrg = organisationService.findOne(Organisation.uuidQuery(request.identity.activeOrganisation))
+        futureActiveOrg.map(activeOrg =>
+          BadRequest(views.html.organisations.edit(formWithErrors, None, Some(request.identity), activeOrg)))
+      },
+      formData => {
+        val futureActiveOrg = organisationService.findOne(Organisation.uuidQuery(request.identity.activeOrganisation))
+
+        val newOrg = Organisation.create(name = formData.name, allowedUsers = Set(request.identity.uuid))
+
+        val futureOptSavedOrg = organisationService.insert(newOrg)
+
+        futureOptSavedOrg map { optSavedOrg =>
+          optSavedOrg.isDefined match {
+            case true =>
+              Redirect(routes.OrganisationController.edit(newOrg.uuid)).
+                flashing("success" -> Messages("db.success.insert", newOrg.name))
+            case false =>
+              Redirect(routes.OrganisationController.create).
+                flashing("failure" -> Messages("db.failure.insert", formData.name))
+          }
+        }
+      })
+  }
+
   def edit(uuid: String) = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
     Logger.info("OrganisationController.edit")
 
+    val futureOptOrg = organisationService.findOne(Organisation.uuidQuery(uuid))
+
+    val futureOptActiveOrg = organisationService.findOne(Organisation.uuidQuery(request.identity.activeOrganisation))
+
+    Logger.info("OrganisationController.edit 2")
+
     val responses = for {
-      //Get the uuid from the form data and see if it exists in the database
-      optOrg <- organisationService.findOne(Organisation.uuidQuery(uuid))
-      activeOrg <- organisationService.findOne(Organisation.uuidQuery(request.identity.activeOrganisation))
+      activeOrg <- futureOptActiveOrg
+      optOrg <- futureOptOrg
     } yield optOrg match {
       case Some(organisation) => {
-        Ok(views.html.organisations.edit(OrganisationForm.form.fill(organisation), true, Some(request.identity), activeOrg))
+        Logger.info("OrganisationController.edit organisation:" + organisation)
+        Ok(views.html.organisations.edit(OrganisationForm.form.fill(organisation), Some(uuid), Some(request.identity), activeOrg))
       }
       case None =>
-        Ok(views.html.organisations.edit(OrganisationForm.form, false, Some(request.identity), activeOrg))
+        Logger.info("OrganisationController.edit None:")
+        Ok(views.html.organisations.edit(OrganisationForm.form, Some(uuid), Some(request.identity), activeOrg))
     }
 
     responses recover {
       case e => InternalServerError(e.getMessage())
+    }
+  }
+
+  def submitEdit(uuid: String) = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
+    OrganisationForm.form.bindFromRequest().fold(
+      formWithErrors => {
+        val futureActiveOrg = organisationService.findOne(Organisation.uuidQuery(request.identity.activeOrganisation))
+        futureActiveOrg.map(activeOrg =>
+          BadRequest(views.html.organisations.edit(formWithErrors, None, Some(request.identity), activeOrg)))
+      },
+      formData => {
+        val futureActiveOrg = organisationService.findOne(Organisation.uuidQuery(request.identity.activeOrganisation))
+
+        val futureOldOrg = organisationService.findOne(Organisation.uuidQuery(uuid))
+
+        val responses = for {
+          activeOrg <- futureActiveOrg
+          oldOrg <- futureOldOrg
+          updateResult <- {
+            val updateOrg = OrganisationUpdate(name = Some(formData.name))
+
+            organisationService.update(Organisation.uuidQuery(oldOrg.get.uuid), updateOrg.toSetJsObj)
+          }
+        } yield updateResult match {
+          case true =>
+            Redirect(routes.OrganisationController.list(1)).
+              flashing("success" -> Messages("db.success.update", formData.name))
+          case false =>
+            Redirect(routes.OrganisationController.edit(uuid)).
+              flashing("failure" -> Messages("db.failure.update", formData.name))
+        }
+
+        responses recover {
+          case e => InternalServerError(e.getMessage())
+        }
+      })
+  }
+
+  def submitImage(uuid: String) = {
+    def fs = Await.result(gridFS, Duration("5s"))
+
+    silhouette.SecuredAction(AlwaysAuthorized()).async(gridFSBodyParser(fs)) { implicit request =>
+
+      Logger.info("OrganisationController: submitImage")
+
+      val futureOldOrg = organisationService.findOne(Organisation.uuidQuery(uuid))
+
+      val futureOptFileRef = request.body.file(forms.imageFileKeyString) match {
+        case Some(file) => file.ref.map(Some(_))
+        case None       => Future.successful(None)
+      }
+
+      //If the file is not an image or the correct size, just remove it
+      val futureOptFile = futureOptFileRef.flatMap(optFileRef => optFileRef match {
+        case Some(file) => {
+          if (file.contentType.isEmpty ||
+            file.contentType.get.startsWith("image") == false ||
+            file.length < utils.DefaultValues.MinimumImageSize) {
+
+            //File is not ok, remove it
+            val result = fs.remove(file.id)
+
+            //And return nothing
+            Future.successful(None)
+          } else {
+            
+            Logger.info("FILE UPLOADED CORRECTLY")
+            
+            val iterator = fs.enumerate(file).run(Iteratee.consume[Array[Byte]]())
+            
+            Logger.info("Iterator created")
+            
+            val resp = iterator.flatMap {
+              bytes => {
+                // Create resized image
+                
+                  val enumerator: Enumerator[Array[Byte]] = Enumerator.fromStream(Image(bytes).bound(120, 120).stream)
+
+                  val data = JSONFileToSave(
+                    filename = file.filename,
+                    contentType = file.contentType,
+                    uploadDate = Some(DateTime.now().getMillis))
+                    
+                    Logger.info("Saving the new image file")
+                    val futureSaveResult = fs.save(enumerator, data)
+                    
+                    val totalResult = for {
+                       saveResult <- futureSaveResult
+                       removeResult <- {
+                         Logger.info("Removing the old file")
+                         fs.remove(file.id)
+                       }
+                       finalResult <- {
+                         //This is only logging things, totally got to go or change
+                         Logger.info("removeResult: " + removeResult)
+                         Future.successful(removeResult)
+                       }
+                    } yield saveResult
+                    
+                    totalResult.map(Some(_))
+                }
+              }
+            
+            resp
+            
+            //File is ok, continue
+            //Some(file)
+          }
+        }
+        case None => Future.successful(None)
+      })
+
+      val futureActiveOrg = organisationService.findOne(Organisation.uuidQuery(request.identity.activeOrganisation))
+
+      val responses = for {
+        optFile <- futureOptFile
+        oldOrg <- futureOldOrg
+        activeOrg <- futureActiveOrg
+        updateOrg <- Future.successful(OrganisationUpdate(imageReadFileId = Some(optFile.get.id.as[String])))
+        remOldImageResult <- {
+          //Before the organisation is updated the old image (if any) must be removed
+          if(oldOrg.get.imageReadFileId != models.UuidNotSet) {
+            fs.remove(JsString(oldOrg.get.imageReadFileId)).map(Some(_))
+          } else {
+            Future.successful(None)
+          }
+        }
+        updateResult <- organisationService.update(Organisation.uuidQuery(oldOrg.get.uuid), updateOrg.toSetJsObj)
+        result <- updateResult match {
+          case true => Future.successful(Redirect(routes.OrganisationController.edit(uuid)).
+            flashing("success" -> Messages("db.success.update", oldOrg.get.name)))
+          case false => Future.successful(Redirect(routes.OrganisationController.edit(uuid)).
+            flashing("failure" -> Messages("db.failed.update", oldOrg.get.name)))
+        }
+      } yield result
+
+      responses recover {
+        case e => InternalServerError(e.getMessage())
+      }
     }
   }
 
   def editActiveOrganisation(organisationsPage: Int) = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
     Logger.info("OrganisationController.editActivatedOrganisation")
 
-    val selector = Organisation.allowedUsersQuery(Set(request.identity.uuid))
+    val selector = Organisation.allowedUserQuery(request.identity.uuid)
 
     val responses = for {
       orgList <- organisationService.find(selector, organisationsPage, utils.DefaultValues.DefaultPageLength)
@@ -218,7 +321,7 @@ class OrganisationController @Inject() (
     silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
 
       //Non-future values
-      val selector = Organisation.allowedUsersQuery(Set(request.identity.uuid))
+      val selector = Organisation.allowedUserQuery(request.identity.uuid)
 
       //Future values for parallel execution
       val futureOrgCount = organisationService.count(selector)
@@ -283,18 +386,18 @@ class OrganisationController @Inject() (
         orgUpdate <- opOrg match {
           case Some(organisation) => {
             val newOrganisation = organisation.allowedUsers.contains(userUuid) match {
-              case true  => OrganisationUpdate(allowedUsers = organisation.allowedUsers - userUuid)
-              case false => OrganisationUpdate(allowedUsers = organisation.allowedUsers + userUuid)
+              case true  => OrganisationUpdate(allowedUsers = Some(organisation.allowedUsers - userUuid))
+              case false => OrganisationUpdate(allowedUsers = Some(organisation.allowedUsers + userUuid))
             }
 
-            if (newOrganisation.allowedUsers.isEmpty) {
+            if (newOrganisation.allowedUsers.isDefined && newOrganisation.allowedUsers.get.isEmpty) {
               //This is not ok, some user must be allowed to see/change it
               Future.successful(Some(organisation), ("error" -> Messages("organisation.minimum.one.user")))
-            } else if (newOrganisation.allowedUsers.contains(request.identity.uuid) == false) {
+            } else if (newOrganisation.allowedUsers.isDefined && 
+                newOrganisation.allowedUsers.get.contains(request.identity.uuid) == false) {
               //This is not ok, the logged in user must be part of the organisation.
               Future.successful(Some(organisation), ("error" -> Messages("organisation.remove.self.not.allowed")))
             } else {
-
               //Update the organisation
               organisationService.update(Organisation.uuidQuery(uuid), newOrganisation.toSetJsObj).
                 map(a => (Some(organisation), ("success" -> Messages("db.success.update", organisation.name))))

@@ -14,6 +14,7 @@ libraryDependencies ++= Seq(
   //Reactive mongo
   "org.reactivemongo" %% "play2-reactivemongo" % "0.11.14",
   //Play with bootstrap
+  //"com.adrianhurt" %% "play-bootstrap" % "1.0-P25-B3",
   "com.adrianhurt" %% "play-bootstrap" % "1.1-P25-B3-SNAPSHOT",
   //Silhouette for authentication
   "com.mohiva" %% "play-silhouette" % "4.0.0-RC1",
@@ -27,7 +28,10 @@ libraryDependencies ++= Seq(
   "org.webjars" %% "webjars-play" % "2.5.0-2",
   //Extra stuff from silhuette example, don´t know exactly
   "net.codingwell" %% "scala-guice" % "4.0.1",
-  "com.iheart" %% "ficus" % "1.2.6"
+  "com.iheart" %% "ficus" % "1.2.6",
+  
+  //Scrimage that allows for rescaling of images etc.
+  "com.sksamuel.scrimage" %% "scrimage-core" % "2.1.0"  
 )
 
 //Scala play test

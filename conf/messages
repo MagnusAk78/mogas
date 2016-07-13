@@ -122,6 +122,10 @@ AmlHierarchy.name = {0} (Hierarchy name)
 
 image.file = Image file
 
+choose.image.file = Choose image file
+image.upload.legend = Manage image
+image.upload = Upload image
+
 validation.duplicate = Already exists
 
 db.success.insert = Successfully added {0}
