@@ -6,20 +6,26 @@ import javax.inject.Inject
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.impl.providers.CommonSocialProfile
 import models.User
-import models.UserUpdate
-import models.daos.UserDAO
-import play.api.libs.concurrent.Execution.Implicits._
 
 import play.api.Logger
 
 import scala.concurrent.Future
+import play.api.libs.json.JsObject
+import scala.concurrent.ExecutionContext
+import models.daos.ModelDAO
+import play.api.libs.json.Reads
+import play.api.libs.json.OWrites
 
 /**
  * Handles actions to users.
  *
  * @param userDAO The user DAO implementation.
  */
-class UserServiceImpl @Inject() (override val dao: UserDAO) extends UserService {
+class UserServiceImpl @Inject() (val dao: ModelDAO, implicit override val ec: ExecutionContext) extends UserService {
+  
+  implicit val joWrites: OWrites[User] = User.userFormat 
+  
+  implicit val joReads: Reads[User] = User.userFormat
 
   /**
    * Retrieves a user that matches the specified login info.
@@ -92,16 +98,15 @@ class UserServiceImpl @Inject() (override val dao: UserDAO) extends UserService 
     retrieve(profile.loginInfo).flatMap { optionUser =>
       optionUser match {
         case Some(user) => { // Update user with profile
-          val updatedUser = UserUpdate(
-            loginInfo = Some(profile.loginInfo),
-            firstName = profile.firstName,
-            lastName = profile.lastName,
-            fullName = profile.fullName,
-            email = profile.email,
-            avatarURL = profile.avatarURL,
-            activeOrganisation = Some(user.activeOrganisation))
-          dao.update(User.uuidQuery(user.uuid), updatedUser.toSetJsObj) flatMap { _ match {
-            case true => findOne(User.uuidQuery(user.uuid))
+          val updatedUser = user.copy(
+            loginInfo = profile.loginInfo,
+            firstName = profile.firstName.getOrElse(user.firstName),
+            lastName = profile.lastName.getOrElse(user.lastName),
+            fullName = profile.fullName.getOrElse(user.fullName),
+            email = profile.email.getOrElse(user.email),
+            avatarURL = Some(profile.avatarURL.getOrElse(user.avatarURL.getOrElse(""))))
+          update(updatedUser.uuidQuery, updatedUser.updateQuery) flatMap { _ match {
+            case true => findOne(user.uuidQuery)
             case false => Future.successful(None)
           }}
         }
@@ -113,9 +118,14 @@ class UserServiceImpl @Inject() (override val dao: UserDAO) extends UserService 
             fullName = profile.fullName.getOrElse(""),
             email = profile.email.getOrElse(""),
             avatarURL = profile.avatarURL)
-          dao.insert(newUser)
+          insert(newUser)
         }
       }
     }
+  }
+  
+  override def remove(user: User): Future[RemoveResult] = {
+    //You may not delete a user
+    Future.successful(RemoveResult(false))
   }
 }

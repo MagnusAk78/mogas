@@ -3,6 +3,10 @@ application.versionText = Version
 application.version = 0.1
 not.applicable = N/A
 
+signIn = Sign In
+signUp = Sign Up
+or.use.social = Login using other provider
+
 command.new = New
 command.add = Add
 command.update = Update
@@ -123,7 +127,6 @@ AmlHierarchy.name = {0} (Hierarchy name)
 image.file = Image file
 
 choose.image.file = Choose image file
-image.upload.legend = Manage image
 image.upload = Upload image
 
 validation.duplicate = Already exists

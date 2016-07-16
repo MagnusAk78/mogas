@@ -3,15 +3,24 @@ package models.services
 import models.BaseModel
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
-import models.daos.BaseModelDAO
+import models.daos.ModelDAO
 import play.api.libs.json.JsObject
 import play.api.Logger
+import play.api.libs.json.Json
+import play.api.libs.json.OWrites
+import play.api.libs.json.Reads
 
-trait BaseModelService[M <: BaseModel, D <: BaseModelDAO[M]] {
+trait BaseModelService[M <: BaseModel] {
   
-  protected val dao: D
+  implicit val ec: ExecutionContext
   
-  final def insert(model: M): Future[Option[M]] = dao.insert(model)
+  implicit val joWrites: OWrites[M]
+  
+  implicit val joReads: Reads[M]  
+    
+  protected val dao: ModelDAO
+  
+  final def insert(model: M): Future[Option[M]] = dao.insert(joWrites.writes(model)).map(_.map { jsObj => jsObj.as[M] })
   
   final def update(query: JsObject, update: JsObject): Future[Boolean] = {
     
@@ -21,8 +30,12 @@ trait BaseModelService[M <: BaseModel, D <: BaseModelDAO[M]] {
     
     dao.update(query, update)
   }
-  
-  final def remove(query: JsObject): Future[Boolean] = dao.remove(query)
+
+  def remove(model: M): Future[RemoveResult] = dao.remove(model.uuidQuery).map(success => if (success) {
+    RemoveResult(true, None)
+  } else {
+    RemoveResult(false, Some("DAO refused to remove: " + model.uuid))
+  })
   
   final def count(query: JsObject): Future[Int] = {
     
@@ -31,22 +44,35 @@ trait BaseModelService[M <: BaseModel, D <: BaseModelDAO[M]] {
     dao.count(query)
   }
   
-  final def findOne(query: JsObject)(implicit executionContext: ExecutionContext): Future[Option[M]] = {
+  final def findOneByUuid(uuid: String): Future[Option[M]] = {
+    val query = BaseModel.uuidQuery(uuid)
+    
+    Logger.info("BaseModelService.findOneByUuid query: " + query)    
+   
+    dao.find(query, 1, 1).map(_.headOption.map( jsObj => jsObj.as[M] ))
+  }
+  
+  final def findOne(query: JsObject): Future[Option[M]] = {
     
     Logger.info("BaseModelService.findOne query: " + query)    
    
-    dao.find(query, 1, 1).map(_.headOption)
+    dao.find(query, 1, 1).map(_.headOption.map( jsObj => jsObj.as[M] ))
   }
   
   final def find(query: JsObject, page: Int = 1, pageSize: Int = utils.DefaultValues.DefaultPageLength): Future[List[M]] = {
     
     Logger.info("BaseModelService.find query: " + query)
     Logger.info("BaseModelService.find page: " + page)
-    Logger.info("BaseModelService.find pageSize: " + pageSize)   
-   
-    dao.find(query, page, pageSize)
+    Logger.info("BaseModelService.find pageSize: " + pageSize)       
+       
+    dao.find(query, page, pageSize).map(_.map{ 
+        jsObj => {
+        Logger.info("jsObj: " + jsObj)    
+          jsObj.as[M]
+        }
+        })
   }
   
   final def findAndSort(query: JsObject, sort: JsObject, page: Int = 1, pageSize: Int = utils.DefaultValues.DefaultPageLength): Future[List[M]] =
-    dao.findAndSort(query, sort, page, pageSize)
+    dao.findAndSort(query, sort, page, pageSize).map(_.map{ jsObj => jsObj.as[M] })
 }

@@ -55,11 +55,11 @@ class ApplicationController @Inject() (
         case None => Future.successful(None)
       }
       activeOrg <- userOpt match {
-        case Some(user) => organisationService.findOne(Organisation.uuidQuery(user.activeOrganisation))
+        case Some(user) => organisationService.findOneByUuid(user.activeOrganisation)
         case None => Future.successful(None)
       }
     } yield userOpt match {
-      case Some(user) => Ok(views.html.home(Some(user), activeOrg))
+      case Some(user) => Redirect(routes.OrganisationController.list(1))
       case None => Redirect(routes.SignInController.view())
     }
     

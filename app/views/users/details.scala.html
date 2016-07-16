@@ -1,16 +1,12 @@
-@(user: User, organisations: List[Organisation], count: Int, page: Int, pageLength: Int,
+@(user: User, organisations: List[Organisation], paginateData:utils.PaginateData,
     loggedInUser: Option[User], activeOrg: Option[Organisation])(implicit flash: Flash, request: RequestHeader, messages: Messages,
     webJarAssets: WebJarAssets)
 
 @import templates._
 
 @main(Messages("user.details", user.fullName), loggedInUser, activeOrg) {
-    @rowMainSecondary() {
-        @title(Messages("user.details"), Some(user.fullName))
-    }{
-        @backButton(controllers.routes.UserController.list(1))
-    }
-    <hr>
+	@titleArea(Messages("user"), Some(Messages("info.details")), 
+		Some(controllers.routes.UserController.list(1)))
     @rowColumnCenter() {
         @{
             val titles = List(Messages("user.username"), Messages("user.firstName"),
@@ -25,7 +21,7 @@
         @title(Messages("user.allowed.organisations"))
     }
     @rowColumnCenter() {
-        @paginate(page, pageLength, count, controllers.routes.UserController.show(user.uuid, _))
+        @paginate(paginateData, controllers.routes.UserController.show(user.uuid, _))
 
         @unstyledList(organisations.map(_.name))
     }

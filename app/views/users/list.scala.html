@@ -1,30 +1,23 @@
-@(users: List[User], count: Int, page: Int, pageLength: Int, loggedInUser: Option[User], activeOrg: Option[Organisation])(implicit flash: Flash,
+@(users: List[User], paginateData:utils.PaginateData, loggedInUser: Option[User], activeOrg: Option[Organisation])(implicit flash: Flash,
     messages: Messages, request: RequestHeader, webJarAssets: WebJarAssets)
 
 @import templates._
 
 @main(Messages("users"), loggedInUser, activeOrg) {
+	@titleArea(Messages("users"), Some(Messages("function.list")), None)
     @rowColumnCenter() {
-        @title(Messages("users"), Some(Messages("function.list")))
-    }
-    <hr>
-    @rowColumnCenter() {
-        @paginate(page, pageLength, count, controllers.routes.UserController.list(_))
+        @paginate(paginateData, controllers.routes.UserController.list(_))
 
         @{
-/*            val mediaList = users.map((user: User) =>
-                if(user.imageFileRep.isDefined) {
-                    routes.UserController.thumbnail(user._id.toString)
-                } else {
-                    routes.Assets.versioned("images/user-default.png")
-                }
-            )
-            val linkList = users.map((user: User) => controllers.routes.UserController.show(user._id.toString, 1))
-            val headingList = users.map(_.username)
+			val mediaList = users.map{ user =>
+                routes.FileController.getThumbnail(user.uuid, models.Types.UserType.stringValue)
+            }
+            
+            val linkList = users.map((user: User) => controllers.routes.UserController.show(user.uuid, 1))
+            val headingList = users.map(_.fullName)
             val textList = users.map(_.email)
 
             mediaListWithOneLink(mediaList, linkList, headingList, textList)
-            */
         }
     }
 }

@@ -20,7 +20,6 @@ POST    /organisation/submit                                              	contr
 GET     /organisation/create                                            	controllers.OrganisationController.create
 POST    /organisation/:uuid/submit                                        	controllers.OrganisationController.submitEdit(uuid: String)
 GET     /organisation/:uuid/edit                                          	controllers.OrganisationController.edit(uuid: String)
-POST    /organisation/:uuid/submitImage   									controllers.OrganisationController.submitImage(uuid: String)
 GET     /organisation/:uuid/changeAllowedUser/:userIdString/:usersPage    	controllers.OrganisationController.changeAllowedUser(uuid: String, userIdString: String, usersPage: Int)
 GET     /organisation/:uuid/editAllowedUsers                              	controllers.OrganisationController.editAllowedUsers(uuid: String, usersPage: Int=1)
 GET     /organisation/:uuid/editAllowedUsers/:usersPage                   	controllers.OrganisationController.editAllowedUsers(uuid: String, usersPage: Int)
@@ -43,8 +42,10 @@ GET     /user/:uuid/show/:page                         			controllers.UserContro
 GET     /users/list                                  			controllers.UserController.list(page: Int=1)
 GET     /users/list/:page                            			controllers.UserController.list(page: Int)
 
-#File retreival
-GET     /image/:imageUuid                                      controllers.FileRetreiverController.getImage(imageUuid: String)
+#File stuff
+GET     /image/:uuid/standard/:modelType						controllers.FileController.getImage(uuid: String, modelType: String)
+GET     /image/:uuid/thumbnail/:modelType 						controllers.FileController.getThumbnail(uuid: String, modelType: String)
+POST    /image/:uuid/submitImage/:modelType   					controllers.FileController.submitImage(uuid: String, modelType: String)
 
 # Map static resources from the /public folder to the /assets URL path
 #GET     /assets/*file               		controllers.Assets.versioned(path="/public", file: Asset)

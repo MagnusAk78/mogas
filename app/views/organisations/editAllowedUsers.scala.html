@@ -1,28 +1,20 @@
-@(organisation: Organisation, users: List[User], usersCount: Int, usersPage: Int, usersPageLength: Int,
-    loggedInUser: Option[User], activeOrg: Option[Organisation])(implicit flash: Flash, request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets)
+@(organisation: Organisation, users: List[User], paginateData: utils.PaginateData, loggedInUser: Option[User], 
+	activeOrg: Option[Organisation])(implicit flash: Flash, request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets)
 
 @import b3.vertical.fieldConstructor  // Declares a vertical field constructor as default
 @import templates._
 
 @main(Messages("organisations"), loggedInUser, activeOrg) {
-    @rowMainSecondary() {
-        @title(organisation.name, Some(Messages("organisation.changeAllowedUsers")))
-    }{
-        @backButton(controllers.routes.OrganisationController.edit(organisation.uuid))
-    }
-    <hr>
+	@titleArea(Messages("organisations"), Some(Messages("function.changeAllowedUsers")), 
+		Some(controllers.routes.OrganisationController.edit(organisation.uuid)))
     @rowColumnCenter() {
-        @paginate(usersPage, usersPageLength, usersCount, controllers.routes.OrganisationController.editAllowedUsers(organisation.uuid, _))
+        @paginate(paginateData, controllers.routes.OrganisationController.editAllowedUsers(organisation.uuid, _))
 
         @{
-            val mediaList = users.map((user: User) =>
-				if(user.imageReadFileId != models.UuidNotSet) {					
-                    routes.FileRetreiverController.getImage(user.imageReadFileId)
-                } else {
-                    routes.Assets.at("images/user-default.png")
-                }
-            )
-            val linkList = users.map((user: User) => controllers.routes.OrganisationController.changeAllowedUser(organisation.uuid, user.uuid, usersPage))
+			val mediaList = users.map{ user =>
+                routes.FileController.getThumbnail(user.uuid, models.Types.UserType.stringValue)
+            }            
+            val linkList = users.map((user: User) => controllers.routes.OrganisationController.changeAllowedUser(organisation.uuid, user.uuid, paginateData.page))
             val headingList = users.map(_.fullName)
             val textList = users.map(_.email)
             val activatedList = users.map((user: User) => organisation.allowedUsers.contains(user.uuid))

@@ -1,26 +1,20 @@
-@(organisations: List[Organisation], count: Int, page: Int, pageLength: Int, loggedInUser: Option[User],
+@(organisations: List[Organisation], paginateData: utils.PaginateData, loggedInUser: Option[User],
 	activeOrg: Option[Organisation])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
 	webJarAssets: WebJarAssets)
 
 @import templates._
 
 @main(Messages("organisations"), loggedInUser, activeOrg) {
+	@titleArea(Messages("organisations"), Some(Messages("function.list")), None)
     @rowColumnCenter() {
-        @title(Messages("organisations"), Some(Messages("function.list")))
-    }
-    <hr>
-    @rowColumnCenter() {
-        @paginate(page, pageLength, count, controllers.routes.OrganisationController.list(_))
+        @paginate(paginateData, controllers.routes.OrganisationController.list(_))
         @{
-            val mediaList = organisations.map((organisation: Organisation) =>
-                if(organisation.imageReadFileId != models.UuidNotSet) {
-                    routes.FileRetreiverController.getImage(organisation.imageReadFileId)
-                } else {
-                    routes.Assets.at("images/organisation-default.png")
-                }
-            )
+            val mediaList = organisations.map{ organisation =>
+            	routes.FileController.getThumbnail(organisation.uuid, models.Types.OrganisationType.stringValue)
+            }
 
-            val linkList = organisations.map((organisation: Organisation) => controllers.routes.OrganisationController.edit(organisation.uuid))
+            val linkList = organisations.map((organisation: Organisation) => 
+            	controllers.routes.OrganisationController.edit(organisation.uuid))
             val headingList = organisations.map(_.name)
             val textList = organisations.map(_.name)
             val activatedList = if(activeOrg.isDefined) {
@@ -35,7 +29,7 @@
     }
     <hr>
     @rowColumnCenter() {
-        @editButton(controllers.routes.OrganisationController.editActiveOrganisation(1),
+        @editButton(controllers.routes.OrganisationController.editActiveOrganisation(paginateData.page),
             Some(Messages("organisations.select.active")))
     }
     <hr>

@@ -1,0 +1,10 @@
+@(titleMain: String, titleSecondary: Option[String] = None, backLink: Option[play.api.mvc.Call] = None)(implicit flash: Flash,
+    request: RequestHeader, messages: Messages)
+
+@rowMainSecondary() {
+	@title(titleMain, titleSecondary)
+}{
+	@if(backLink.isDefined) {
+    	@backButton(backLink.get)
+   	}
+}

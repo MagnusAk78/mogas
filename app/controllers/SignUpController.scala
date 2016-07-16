@@ -1,25 +1,49 @@
 package controllers
 
-import javax.inject.Inject
+import scala.concurrent.Future
+
+import org.joda.time.DateTime
 
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.repositories.AuthInfoRepository
 import com.mohiva.play.silhouette.api.services.AvatarService
 import com.mohiva.play.silhouette.api.util.PasswordHasher
 import com.mohiva.play.silhouette.impl.providers._
-import forms.SignUpForm
-import models.User
-import models.Organisation
-import models.services.UserService
-import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
-import play.api.libs.concurrent.Execution.Implicits._
-import play.api.mvc.Controller
-import utils.auth.DefaultEnv
+import com.sksamuel.scrimage.Image
 
-import scala.concurrent.Future
-import models.services.OrganisationService
-import play.api.Logger
+import forms.SignUpForm
+import javax.inject.Inject
 import models.Organisation
+import models.Images
+import models.User
+import models.daos.FileDAO
+import models.services.FileService
+import models.services.OrganisationService
+import models.services.UserService
+import play.api.Logger
+import play.api.Logger
+import play.api.i18n.I18nSupport
+import play.api.i18n.Messages
+import play.api.i18n.MessagesApi
+import play.api.libs.concurrent.Execution.Implicits._
+import play.api.libs.iteratee.Enumerator
+import play.api.libs.json.JsObject
+import play.api.mvc.Action
+import play.api.mvc.BodyParser
+import play.api.mvc.Controller
+import play.api.mvc.Controller
+import play.api.mvc.MultipartFormData
+import play.api.mvc.Request
+import play.modules.reactivemongo.JSONFileToSave
+import play.modules.reactivemongo.MongoController
+import play.modules.reactivemongo.ReactiveMongoApi
+import play.modules.reactivemongo.ReactiveMongoComponents
+import reactivemongo.play.json.JsFieldBSONElementProducer
+import reactivemongo.api.gridfs.GridFS
+import reactivemongo.api.gridfs.ReadFile
+import utils.auth.DefaultEnv
+import akka.stream.Materializer
+import play.api.libs.iteratee.Iteratee
 
 /**
  * The `Sign Up` controller.
@@ -40,8 +64,10 @@ class SignUpController @Inject() (
   val authInfoRepository: AuthInfoRepository,
   val avatarService: AvatarService,
   val passwordHasher: PasswordHasher,
+  val reactiveMongoApi: ReactiveMongoApi,
   implicit val webJarAssets: WebJarAssets)
-  extends Controller with I18nSupport {
+  (implicit materialize: Materializer)
+  extends Controller with MongoController with ReactiveMongoComponents with I18nSupport {
 
   /**
    * Views the `Sign Up` page.
@@ -56,8 +82,8 @@ class SignUpController @Inject() (
     Logger.info("SignUpController.edit")
 
     val responses = for {
-      userOpt <- userService.find(User.uuidQuery(uuid)).map(_.headOption)
-      activeOrgOpt <- organisationService.find(Organisation.uuidQuery(request.identity.activeOrganisation)).map(_.headOption)
+      userOpt <- userService.findOneByUuid(uuid)
+      activeOrgOpt <- organisationService.findOneByUuid(request.identity.activeOrganisation)
     } yield userOpt match {
       case Some(user) => {
         if(user.uuid == request.identity.uuid) {

@@ -26,14 +26,14 @@
     <body>
 
             @{
-                val navLinks = Array( routes.OrganisationController.list(1) /*,
-                                  routes.UserController.list(1),
+                val navLinks = Array( routes.OrganisationController.list(1),
+                                  routes.UserController.list(1) /*,
                                   routes.FactoryController.list(1),
                                   routes.InstructionController.list(1),
                                   routes.IssueController.list("MyResponsability", 1) */)
 
-                val navTexts = Array( Messages("navigation.organisations") /*,
-                                  Messages("navigation.users"),
+                val navTexts = Array( Messages("navigation.organisations"),
+                                  Messages("navigation.users") /*,
                                   Messages("navigation.factories"),
                                   Messages("navigation.instructions"),
                                   Messages("navigation.issues") */)
@@ -68,7 +68,11 @@
                 @row() {
                     @mainContentColumn() {
                         <hr>
+                    }
+                }
 
+                @row() {
+                    @mainContentColumn() {
                         @if(loggedInUser.isDefined){
                             <footer>
                                 @{

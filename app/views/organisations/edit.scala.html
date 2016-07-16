@@ -9,37 +9,29 @@
 }
 
 @main(Messages("organisations"), loggedInUser, activeOrg) {
-    @rowMainSecondary() {
-        @if(uuidToEdit.isDefined) {
-            @title(Messages("organisations"), Some(Messages("function.edit")))
-        } else {
-            @title(Messages("organisations"), Some(Messages("function.create")))
-        }
-    }{
-        @backButton(controllers.routes.OrganisationController.list(1))
-    }
-    <hr>
-    @if(uuidToEdit.isDefined) {
-    	@formColumn(updateNewText(true), routes.OrganisationController.submitEdit(uuidToEdit.get), updateNewText(true)) {
-        	@b3.text(organisationForm("name"), '_label -> Messages("organisation.name"))
-        }{
-        	<hr>
-        }
-        
-        @fileUploadFormColumn(routes.OrganisationController.submitImage(uuidToEdit.get))
+	@titleArea(Messages("organisation"), uuidToEdit.map(s => Some(Messages("function.edit"))).getOrElse(Some(Messages("function.create"))), 
+		Some(controllers.routes.OrganisationController.list(1)))
+    @rowColumnCenter() {
+    	@if(uuidToEdit.isDefined) {
+    		@formNormal(routes.OrganisationController.submitEdit(uuidToEdit.get), updateNewText(true)) {
+        		@b3.text(organisationForm("name"), '_label -> Messages("organisation.name"))
+        	}
         	
-        @rowColumnCenter() {	
+        	<hr>
+        
+        	@formFileUpload(routes.FileController.submitImage(uuidToEdit.get, models.Types.OrganisationType.stringValue))
+        	
+        	<hr>
+        	
         	@editButton(controllers.routes.OrganisationController.editAllowedUsers(
         		uuidToEdit.get, 1), Some(Messages("organisation.changeAllowedUsers")))
         	<hr>
         	@deleteButton(controllers.routes.OrganisationController.delete(uuidToEdit.get))
-        }
         
-    } else {
-    	@formColumn(updateNewText(false), routes.OrganisationController.submitCreate, updateNewText(false)) {
-        	@b3.text(organisationForm("name"), '_label -> Messages("organisation.name"))
-        }{
-        	<hr>
+    	} else {
+    		@formNormal(routes.OrganisationController.submitCreate, updateNewText(false)) {
+        		@b3.text(organisationForm("name"), '_label -> Messages("organisation.name"))
+        	}
         }    
     }
 }

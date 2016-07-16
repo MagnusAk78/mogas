@@ -1,29 +1,21 @@
-@(organisations: List[Organisation], count: Int, page: Int, pageLength: Int, loggedInUser: Option[User], activeOrg: Option[Organisation])(implicit
+@(organisations: List[Organisation], paginateData: utils.PaginateData, loggedInUser: Option[User], activeOrg: Option[Organisation])(implicit
     flash: Flash, request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets)
 
 @import templates._
 
 @main(Messages("organisations"), loggedInUser, activeOrg) {
-    @rowMainSecondary() {
-        @title(Messages("organisations.select.active"))
-    }{
-        @backButton(controllers.routes.OrganisationController.list(1))
-    }
-    <hr>
+	@titleArea(Messages("organisations"), Some(Messages("organisations.select.active")), 
+		Some(controllers.routes.OrganisationController.list(paginateData.page)))
     @rowColumnCenter() {
-        @paginate(page, pageLength, count, controllers.routes.OrganisationController.editActiveOrganisation(_))
+        @paginate(paginateData, controllers.routes.OrganisationController.editActiveOrganisation(_))
 
         @{
-            val mediaList = organisations.map((organisation: Organisation) =>
-                if(organisation.imageReadFileId != models.UuidNotSet) {
-                    routes.FileRetreiverController.getImage(organisation.imageReadFileId)
-                } else {
-                    routes.Assets.at("images/organisation-default.png")
+            val mediaList = organisations.map{ organisation =>
+                    routes.FileController.getThumbnail(organisation.uuid, models.Types.OrganisationType.stringValue)
                 }
-            )
             val linkList = organisations.map((organisation: Organisation) =>
                 controllers.routes.OrganisationController.setActiveOrganisation(organisation.uuid,
-                page))
+                paginateData.page))
             val headingList = organisations.map(_.name)
             val textList = organisations.map(_.name)
             val activatedList = organisations.map((organisation: Organisation) =>

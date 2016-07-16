@@ -5,12 +5,11 @@ import com.mohiva.play.silhouette.impl.providers.CommonSocialProfile
 import models.User
 
 import scala.concurrent.Future
-import models.daos.UserDAO
 
 /**
  * Handles actions to users.
  */
-trait UserService extends BaseModelService[User, UserDAO] with IdentityService[User] {
+trait UserService extends BaseModelService[User] with IdentityService[User] {
 
   /**
    * Saves the social profile for a user.
