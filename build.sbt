@@ -6,6 +6,15 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 scalaVersion := "2.11.8"
 
+//Scala play test
+resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
+
+//Snapshots resolver for play-bootstrap
+resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
+
+//Silhouette
+resolvers += Resolver.jcenterRepo
+
 libraryDependencies ++= Seq(
   jdbc,
   cache,
@@ -33,15 +42,6 @@ libraryDependencies ++= Seq(
   //Scrimage that allows for rescaling of images etc.
   "com.sksamuel.scrimage" %% "scrimage-core" % "2.1.0"  
 )
-
-//Scala play test
-resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
-
-//Snapshots resolver for play-bootstrap
-resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
-
-//Silhouette
-resolvers += Resolver.jcenterRepo
 
 EclipseKeys.preTasks := Seq(compile in Compile)
 

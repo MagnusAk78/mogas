@@ -12,20 +12,32 @@ import play.api.Logger
 import scala.concurrent.Future
 import play.api.libs.json.JsObject
 import scala.concurrent.ExecutionContext
-import models.daos.ModelDAO
+import models.daos.UserDAO
 import play.api.libs.json.Reads
 import play.api.libs.json.OWrites
+import utils.PaginateData
+import models.BaseModel
 
 /**
  * Handles actions to users.
  *
  * @param userDAO The user DAO implementation.
  */
-class UserServiceImpl @Inject() (val dao: ModelDAO, implicit override val ec: ExecutionContext) extends UserService {
+class UserServiceImpl @Inject() (val dao: UserDAO, implicit override val ec: ExecutionContext) extends UserService {
   
   implicit val joWrites: OWrites[User] = User.userFormat 
   
   implicit val joReads: Reads[User] = User.userFormat
+  
+  override def getUserList(page: Int, uuidSet: Set[String]): Future[ModelListData[User]] = {
+   for {
+        userList <- find(BaseModel.uuidInSetQuery(uuidSet), page, utils.DefaultValues.DefaultPageLength)
+        userCount <- count(BaseModel.uuidInSetQuery(uuidSet))
+      } yield new ModelListData[User] { 
+      override val list = userList
+      override val paginateData = PaginateData(page, userCount)
+    } 
+  }
 
   /**
    * Retrieves a user that matches the specified login info.
@@ -122,10 +134,5 @@ class UserServiceImpl @Inject() (val dao: ModelDAO, implicit override val ec: Ex
         }
       }
     }
-  }
-  
-  override def remove(user: User): Future[RemoveResult] = {
-    //You may not delete a user
-    Future.successful(RemoveResult(false))
   }
 }

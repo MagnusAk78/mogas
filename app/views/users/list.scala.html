@@ -10,7 +10,7 @@
 
         @{
 			val mediaList = users.map{ user =>
-                routes.FileController.getThumbnail(user.uuid, models.Types.UserType.stringValue)
+                routes.FileController.getThumbnailImage(user.uuid, models.Types.UserType.stringValue)
             }
             
             val linkList = users.map((user: User) => controllers.routes.UserController.show(user.uuid, 1))

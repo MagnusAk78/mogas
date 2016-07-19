@@ -10,7 +10,7 @@
         @paginate(paginateData, controllers.routes.OrganisationController.list(_))
         @{
             val mediaList = organisations.map{ organisation =>
-            	routes.FileController.getThumbnail(organisation.uuid, models.Types.OrganisationType.stringValue)
+            	routes.FileController.getThumbnailImage(organisation.uuid, models.Types.OrganisationType.stringValue)
             }
 
             val linkList = organisations.map((organisation: Organisation) => 

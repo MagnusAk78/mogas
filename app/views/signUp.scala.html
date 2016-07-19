@@ -25,8 +25,14 @@
         }
         @if(loggedInUser.isDefined) {
         	<hr>
-        
         	@formFileUpload(routes.FileController.submitImage(loggedInUser.get.uuid, models.Types.UserType.stringValue))
         }
+    }
+    @if(loggedInUser.isDefined) {
+       	@rowColumnCenter() {
+    		@imageOrVideo(Some(routes.FileController.getStandardImage(loggedInUser.get.uuid, models.Types.UserType.stringValue)),
+    			Some(routes.FileController.getThumbnailImage(loggedInUser.get.uuid, models.Types.UserType.stringValue)), 
+    			None)
+    	}
     }
 }

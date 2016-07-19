@@ -22,6 +22,7 @@ import models.services.UserService
 import models.services.OrganisationService
 import models.Organisation
 import play.api.Logger
+import controllers.actions.GeneralActions
 
 /**
  * The basic application controller.
@@ -34,6 +35,7 @@ import play.api.Logger
 class ApplicationController @Inject() (
   val messagesApi: MessagesApi,
   val silhouette: Silhouette[DefaultEnv],
+  val generalActions: GeneralActions,
   val socialProviderRegistry: SocialProviderRegistry,
   val userService: UserService,
   val organisationService: OrganisationService,
@@ -45,7 +47,7 @@ class ApplicationController @Inject() (
    *
    * @return The result to display.
    */
-  def index = silhouette.UserAwareAction.async { implicit request =>
+  def index = generalActions.MyUserAwareAction.async { implicit request =>
     
     Logger.info("ApplicationController index: " + request.identity)
     
@@ -67,20 +69,21 @@ class ApplicationController @Inject() (
       case e => InternalServerError(e.getMessage())
     }
   }
+ 
 
   /**
    * Handles the Sign Out action.
    *
    * @return The result to display.
    */
-  def signOut = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
+  def signOut = generalActions.MySecuredAction.async { implicit request =>
     val result = Redirect(routes.ApplicationController.index())
     silhouette.env.eventBus.publish(LogoutEvent(request.identity, request))
     silhouette.env.authenticatorService.discard(request.authenticator, result)
   }
   
 
-  def changeLanguage(languageString: String) = silhouette.UserAwareAction.async { implicit request =>
+  def changeLanguage(languageString: String) = generalActions.MyUserAwareAction.async { implicit request =>
     request.identity match {
       case Some(user) => Future.successful(Redirect(routes.ApplicationController.index).withLang(Lang(languageString)))
       case None => Future.successful(Redirect(routes.SignInController.view).withLang(Lang(languageString)))

@@ -4,6 +4,7 @@ import play.api.http.HttpFilters
 import play.api.mvc._
 import play.filters.csrf.CSRFFilter
 import play.filters.headers.SecurityHeadersFilter
+import controllers.filters.LoggingFilter
 
 /**
  * This class configures filters that run on every request. This
@@ -22,10 +23,14 @@ import play.filters.headers.SecurityHeadersFilter
 class Filters @Inject() (
   env: Environment,
   csrfFilter: CSRFFilter, 
-  securityHeadersFilter: SecurityHeadersFilter) extends HttpFilters {
+  securityHeadersFilter: SecurityHeadersFilter,
+  loggingFilter: LoggingFilter) extends HttpFilters {
 
   override val filters = {
-    if (env.mode == Mode.Dev) Seq(csrfFilter, securityHeadersFilter) else Seq(csrfFilter, securityHeadersFilter)
+    if (env.mode == Mode.Dev) 
+      Seq(csrfFilter, securityHeadersFilter, loggingFilter) 
+    else 
+      Seq(csrfFilter, securityHeadersFilter)
   }
 
 }

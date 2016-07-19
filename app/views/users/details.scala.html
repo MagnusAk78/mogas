@@ -25,4 +25,9 @@
 
         @unstyledList(organisations.map(_.name))
     }
+   	@rowColumnCenter() {
+    	@imageOrVideo(Some(routes.FileController.getStandardImage(user.uuid, models.Types.UserType.stringValue)),
+    		Some(routes.FileController.getThumbnailImage(user.uuid, models.Types.UserType.stringValue)), 
+    		None)
+    }
 }

@@ -43,8 +43,8 @@ GET     /users/list                                  			controllers.UserControll
 GET     /users/list/:page                            			controllers.UserController.list(page: Int)
 
 #File stuff
-GET     /image/:uuid/standard/:modelType						controllers.FileController.getImage(uuid: String, modelType: String)
-GET     /image/:uuid/thumbnail/:modelType 						controllers.FileController.getThumbnail(uuid: String, modelType: String)
+GET     /image/:uuid/standard/:modelType						controllers.FileController.getStandardImage(uuid: String, modelType: String)
+GET     /image/:uuid/thumbnail/:modelType 						controllers.FileController.getThumbnailImage(uuid: String, modelType: String)
 POST    /image/:uuid/submitImage/:modelType   					controllers.FileController.submitImage(uuid: String, modelType: String)
 
 # Map static resources from the /public folder to the /assets URL path

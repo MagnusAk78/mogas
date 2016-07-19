@@ -44,6 +44,7 @@ import reactivemongo.api.gridfs.ReadFile
 import utils.auth.DefaultEnv
 import akka.stream.Materializer
 import play.api.libs.iteratee.Iteratee
+import controllers.actions.GeneralActions
 
 /**
  * The `Sign Up` controller.
@@ -59,6 +60,7 @@ import play.api.libs.iteratee.Iteratee
 class SignUpController @Inject() (
   val messagesApi: MessagesApi,
   val silhouette: Silhouette[DefaultEnv],
+  val generalActions: GeneralActions,
   val userService: UserService,
   val organisationService: OrganisationService,
   val authInfoRepository: AuthInfoRepository,
@@ -141,7 +143,7 @@ class SignUpController @Inject() (
     )
   }
   
-    def editSubmit(uuid: String) = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
+    def editSubmit(uuid: String) = generalActions.MySecuredAction.async { implicit request =>
     SignUpForm.form.bindFromRequest.fold(
       errorForm => Future.successful(BadRequest(views.html.signUp(errorForm, Some(request.identity), None))),
       data => {

@@ -43,11 +43,17 @@ import models.Images
 import models.Types
 import play.api.mvc.Result
 import java.io.File
+import play.api.mvc.ActionRefiner
+import com.mohiva.play.silhouette.api.actions.SecuredAction
+import com.mohiva.play.silhouette.api.actions.SecuredRequest
+import reactivemongo.api.Cursor
+import play.api.mvc.WrappedRequest
+import controllers.actions.GeneralActions
 
 @Singleton
 class FileController @Inject() (
   val messagesApi: MessagesApi,
-  val silhouette: Silhouette[DefaultEnv],
+  val generalActions: GeneralActions,
   val organisationService: OrganisationService,
   val userService: UserService,
   val fileService: FileService,
@@ -55,12 +61,11 @@ class FileController @Inject() (
   implicit val webJarAssets: WebJarAssets)(implicit exec: ExecutionContext, materialize: Materializer)
     extends Controller with MongoController with ReactiveMongoComponents with I18nSupport {
 
-  import MongoController.readFileReads
-
-  //TODO: FIX (remove)
   import models.daos.FileDAO.JSONReadFile
-
-  def getImage(uuid: String, modelTypeString: String) = silhouette.SecuredAction(AlwaysAuthorized()).async { request =>
+  
+  import MongoController.readFileReads
+ 
+  def getStandardImage(uuid: String, modelTypeString: String) = generalActions.MySecuredAction async { request =>
       // find the matching attachment, if any, and streams it to the client
       val serveResult = fileService.findByQuery(Images.getQueryImage(uuid, Images.Standard)).flatMap( cursor =>
           fileService.withAsyncGfs[Result] { gfs => serve[JsValue, JSONReadFile](gfs)(cursor, CONTENT_DISPOSITION_INLINE) }
@@ -75,10 +80,6 @@ class FileController @Inject() (
               Logger.info("Trying to send organisation-default")
               
               Future.successful(Redirect(routes.Assets.at("images/organisation-default.png")).as("image/png"))
-              
-              //Future.successful(Ok.sendFile(new File("public/images/organisation-default.png"), true).as("image/png"))
-              
-              //Future.successful(Redirect(routes.Assets.at("images/organisation-default.png")).as("image/png"))
             case models.Types.UserType => Future.successful(Redirect(routes.Assets.at("images/user-default.png")).as("image/png"))
             case models.Types.UnknownType => Future.successful(NotFound)
           }
@@ -88,9 +89,9 @@ class FileController @Inject() (
       }
       
       response
-    }
+    }  
   
-  def getThumbnail(uuid: String, modelTypeString: String) = silhouette.SecuredAction(AlwaysAuthorized()).async { request =>
+  def getThumbnailImage(uuid: String, modelTypeString: String) = generalActions.MySecuredAction async { request =>
     // find the matching attachment, if any, and streams it to the client
       val serveResult = fileService.findByQuery(Images.getQueryImage(uuid, Images.Thumbnail)).flatMap( cursor =>
         fileService.withAsyncGfs[Result] { gfs => serve[JsValue, JSONReadFile](gfs)(cursor, CONTENT_DISPOSITION_INLINE) }
@@ -123,7 +124,7 @@ class FileController @Inject() (
 		//Create the parser using the GridFS collection from FileService
 		val gdfsParser = fileService.withSyncGfs[BodyParser[MultipartFormData[Future[FileDAO.JSONReadFile]]]] { gfs => gridFSBodyParser(gfs) }
 
-		silhouette.SecuredAction(AlwaysAuthorized()).async(gdfsParser) { implicit request =>
+		generalActions.MySecuredAction.async(gdfsParser) { implicit request =>
 
 		Logger.info("SignUpController: submitImage")
 
