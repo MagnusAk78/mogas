@@ -67,9 +67,8 @@ class SignUpController @Inject() (
   val avatarService: AvatarService,
   val passwordHasher: PasswordHasher,
   val reactiveMongoApi: ReactiveMongoApi,
-  implicit val webJarAssets: WebJarAssets)
-  (implicit materialize: Materializer)
-  extends Controller with MongoController with ReactiveMongoComponents with I18nSupport {
+  implicit val webJarAssets: WebJarAssets)(implicit materialize: Materializer)
+    extends Controller with MongoController with ReactiveMongoComponents with I18nSupport {
 
   /**
    * Views the `Sign Up` page.
@@ -79,7 +78,7 @@ class SignUpController @Inject() (
   def view = silhouette.UnsecuredAction.async { implicit request =>
     Future.successful(Ok(views.html.signUp(SignUpForm.form, None, None)))
   }
-  
+
   def edit(uuid: String) = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
     Logger.info("SignUpController.edit")
 
@@ -88,28 +87,28 @@ class SignUpController @Inject() (
       activeOrgOpt <- organisationService.findOneByUuid(request.identity.activeOrganisation)
     } yield userOpt match {
       case Some(user) => {
-        if(user.uuid == request.identity.uuid) {
+        if (user.uuid == request.identity.uuid) {
           //TODO: Use sign up form and edit
           Ok(views.html.signUp(SignUpForm.form.fill(user), Some(request.identity), activeOrgOpt))
         } else {
-        Redirect(routes.UserController.list(1))
+          Redirect(routes.UserController.list(1))
         }
       }
       case None =>
         Redirect(routes.UserController.list(1))
     }
 
-      responses recover {
-        case e => InternalServerError(e.getMessage())
-      }    
-  }  
+    responses recover {
+      case e => InternalServerError(e.getMessage())
+    }
+  }
 
   /**
    * Handles the submitted form.
    *
    * @return The result to display.
    */
-  def submit = silhouette.UnsecuredAction.async { implicit request =>
+  def submitSignUp = silhouette.UnsecuredAction.async { implicit request =>
     SignUpForm.form.bindFromRequest.fold(
       errorForm => Future.successful(BadRequest(views.html.signUp(errorForm, None, None))),
       data => {
@@ -123,7 +122,7 @@ class SignUpController @Inject() (
               loginInfo = loginInfo,
               firstName = data.firstName,
               lastName = data.lastName,
-              fullName = data.firstName + " " + data.lastName,
+              name = data.firstName + " " + data.lastName,
               email = data.email)
             for {
               avatar <- avatarService.retrieveURL(data.email)
@@ -139,11 +138,10 @@ class SignUpController @Inject() (
               result
             }
         }
-      }
-    )
+      })
   }
-  
-    def editSubmit(uuid: String) = generalActions.MySecuredAction.async { implicit request =>
+
+  def submitEdit(uuid: String) = generalActions.MySecuredAction.async { implicit request =>
     SignUpForm.form.bindFromRequest.fold(
       errorForm => Future.successful(BadRequest(views.html.signUp(errorForm, Some(request.identity), None))),
       data => {
@@ -157,7 +155,7 @@ class SignUpController @Inject() (
               loginInfo = loginInfo,
               firstName = data.firstName,
               lastName = data.lastName,
-              fullName = data.firstName + " " + data.lastName,
+              name = data.firstName + " " + data.lastName,
               email = data.email)
             for {
               avatar <- avatarService.retrieveURL(data.email)
@@ -173,7 +171,6 @@ class SignUpController @Inject() (
               result
             }
         }
-      }
-    )
+      })
   }
 }

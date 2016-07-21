@@ -14,7 +14,7 @@
             }
             
             val linkList = users.map((user: User) => controllers.routes.UserController.show(user.uuid, 1))
-            val headingList = users.map(_.fullName)
+            val headingList = users.map(_.name)
             val textList = users.map(_.email)
 
             mediaListWithOneLink(mediaList, linkList, headingList, textList)

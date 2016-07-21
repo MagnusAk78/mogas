@@ -26,17 +26,21 @@
     <body>
 
             @{
-                val navLinks = Array( routes.OrganisationController.list(1),
-                                  routes.UserController.list(1) /*,
-                                  routes.FactoryController.list(1),
-                                  routes.InstructionController.list(1),
-                                  routes.IssueController.list("MyResponsability", 1) */)
+                val navLinks = Set() ++
+                			   loggedInUser.map(u => Set(routes.OrganisationController.list(1))).getOrElse(Set.empty) ++ 
+                			   loggedInUser.map(u => Set(routes.UserController.list(1))).getOrElse(Set.empty) ++ 
+                			   activeOrg.map(u => Set(routes.FactoryController.list(1))).getOrElse(Set.empty) /*
 
-                val navTexts = Array( Messages("navigation.organisations"),
-                                  Messages("navigation.users") /*,
-                                  Messages("navigation.factories"),
+                                  routes.InstructionController.list(1),
+                                  routes.IssueController.list("MyResponsability", 1) */
+
+                val navTexts = Set() ++
+                			   loggedInUser.map(u => Set(Messages("navigation.organisations"))).getOrElse(Set.empty) ++
+                               loggedInUser.map(u => Set(Messages("navigation.users"))).getOrElse(Set.empty) ++
+                			   activeOrg.map(u => Set(Messages("navigation.factories"))).getOrElse(Set.empty) /*   
+
                                   Messages("navigation.instructions"),
-                                  Messages("navigation.issues") */)
+                                  Messages("navigation.issues") */
 
                 if(activeOrg.isDefined) {
                     navigationBar(activeOrg.get.name, navLinks, navTexts, loggedInUser)
@@ -79,7 +83,7 @@
                                     val titles = List(Messages("user.fullName"),
                                                       Messages("organisation.activeOrganisation"),
                                                       Messages("application.versionText"))
-                                    val descriptions = List(loggedInUser.get.fullName,
+                                    val descriptions = List(loggedInUser.get.name,
                                         if(activeOrg.isDefined) {
                                             activeOrg.get.name
                                         } else {

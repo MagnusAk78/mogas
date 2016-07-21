@@ -8,6 +8,7 @@ import models.User
 import play.api.mvc.Request
 import com.mohiva.play.silhouette.api.actions.UserAwareRequest
 import com.mohiva.play.silhouette.api.Authenticator
+import models.Factory
 
 package object actions {
    
@@ -26,7 +27,7 @@ package object actions {
   case class MyUserAwareRequest[A]( 
       request: SilhouetteUserAwareRequest[A]) extends WrappedRequest[A](request) {
     def identity: Option[User] = request.identity
-  }  
+  }
        
   case class UserRequest[A](user: User, request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
     lazy val identity: User = request.identity
@@ -34,6 +35,11 @@ package object actions {
   }  
   
   case class OrganisationRequest[A](organisation: Organisation, request: MySecuredRequest[A]) extends WrappedRequest[A](request){
+    lazy val identity: User = request.identity
+    lazy val activeOrganisation = request.activeOrganisation
+  }
+  
+  case class FactoryRequest[A](factory: Factory, request: MySecuredRequest[A]) extends WrappedRequest[A](request){
     lazy val identity: User = request.identity
     lazy val activeOrganisation = request.activeOrganisation
   }

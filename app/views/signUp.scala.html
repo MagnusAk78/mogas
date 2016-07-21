@@ -5,18 +5,20 @@
 @import templates._
 
 @main(Messages("signUp"), loggedInUser, activeOrg) {
-    @rowMainSecondary() {
-        @title(loggedInUser.map(s => Messages("user")).getOrElse(Messages("signUp")), 
-        	loggedInUser.map(s => Some(Messages("function.edit"))).getOrElse(None)
-        )
-    }{
-        @button(routes.SignInController.view, Messages("signIn"))
-    }	
-    <hr>
+	@rowMainSecondary() {
+		@title(loggedInUser.map(s => Messages("user")).getOrElse(Messages("signUp")), 
+        	loggedInUser.map(s => Some(Messages("function.edit"))).getOrElse(None))
+	}{
+		@if(loggedInUser.isDefined) {
+    		@backButton(routes.ApplicationController.index)
+   		} else {
+   			@button(routes.SignInController.view, Messages("signIn"))
+   		}
+	}
 	@rowColumnCenter() {
 		@formNormal(loggedInUser match { 
-        		case Some(user) => routes.SignUpController.editSubmit(user.uuid)
-        		case None => routes.SignUpController.submit
+        		case Some(user) => routes.SignUpController.submitEdit(user.uuid)
+        		case None => routes.SignUpController.submitSignUp
        		}, Messages("signUp")) {
             @b3.text(signUpForm("firstName"), '_hiddenLabel -> Messages("first.name"), 'placeholder -> Messages("first.name"), 'class -> "form-control input-lg")
             @b3.text(signUpForm("lastName"), '_hiddenLabel -> Messages("last.name"), 'placeholder -> Messages("last.name"), 'class -> "form-control input-lg")
@@ -25,7 +27,7 @@
         }
         @if(loggedInUser.isDefined) {
         	<hr>
-        	@formFileUpload(routes.FileController.submitImage(loggedInUser.get.uuid, models.Types.UserType.stringValue))
+        	@formImageFileUpload(routes.FileController.submitImage(loggedInUser.get.uuid, models.Types.UserType.stringValue))
         }
     }
     @if(loggedInUser.isDefined) {

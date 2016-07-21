@@ -1,0 +1,14 @@
+@(linkList: List[Call], textList: List[String])(implicit flash: Flash, messages: Messages)
+
+@import templates._
+
+<ol class="breadcrumb">
+    @for(i <- 0 to (linkList.size-1)) {
+        <li>
+            @link(linkList(i)) {
+                @textList(i)
+            }
+        </li>
+    }
+</ol>
+

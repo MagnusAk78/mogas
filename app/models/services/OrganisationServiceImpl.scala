@@ -15,18 +15,14 @@ import utils.PaginateData
 
 class OrganisationServiceImpl @Inject() (override val dao: OrganisationDAO, userService: UserService)(implicit val ec: ExecutionContext) extends OrganisationService {
 
-  implicit val joWrites: OWrites[Organisation] = Organisation.organisationFormat
-
-  implicit val joReads: Reads[Organisation] = Organisation.organisationFormat
-
   override def remove(organisation: Organisation, loggedInUserUuid: String): Future[RemoveResult] = {
     if (organisation.allowedUsers.size != 1 || organisation.allowedUsers.headOption.get != loggedInUserUuid) {
       Future.successful(RemoveResult(false, Some("Remove all other users from the organisation first")))
     } else {
       val responses = for {
-        usersWithThisActive <- userService.count(User.activeOrganisationQuery(organisation.uuid))
+        usersWithThisActive <- userService.count(User.queryByActiveOrganisation(organisation.uuid))
         result <- if (usersWithThisActive == 0) {
-          dao.remove(organisation.uuidQuery).map(success => if (success) {
+          dao.remove(organisation).map(success => if (success) {
             RemoveResult(true, None)
           } else {
             RemoveResult(false, Some("DAO refused to remove organisation: " + organisation.uuid))
@@ -43,14 +39,13 @@ class OrganisationServiceImpl @Inject() (override val dao: OrganisationDAO, user
   }
 
   override def getOrganisationList(page: Int, allowedUserUuid: String): Future[ModelListData[Organisation]] = {
-    val selector = Organisation.allowedUserQuery(allowedUserUuid)
+    val selector = Organisation.queryByAllowedUser(allowedUserUuid)
     for {
       organisationList <- find(selector, page, utils.DefaultValues.DefaultPageLength)
       organisationCount <- count(selector)
-    } yield new ModelListData[Organisation] { 
+    } yield new ModelListData[Organisation] {
       override val list = organisationList
       override val paginateData = PaginateData(page, organisationCount)
     }
   }
-
 }

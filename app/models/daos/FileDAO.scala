@@ -24,6 +24,8 @@ trait FileDAO {
   
   def save(enumerator: Enumerator[Array[Byte]], fileToSave: JSONFileToSave): Future[JSONReadFile]
   
+  def updateMetadata(fileUuid:String, metadata: JsObject): Future[Boolean]
+  
   def withAsyncGfs[T](func: (GridFS[JSONSerializationPack.type] => Future[T])): Future[T]
   
   def withSyncGfs[T](func: (GridFS[JSONSerializationPack.type] => T)): T

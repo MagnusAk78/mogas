@@ -1,0 +1,24 @@
+package models
+
+import play.api.libs.json.JsObject
+import play.api.libs.json._
+
+/**
+ * A DbModel is a model that is represented in the database.
+ */
+trait DbModel {
+  val uuid: String
+
+  def asJsObject: JsObject
+}
+
+object DbModel {
+
+  private val KeyUUID = "uuid"
+
+  def queryByUuid(uuid: String): JsObject = Json.obj(KeyUUID -> JsString(uuid))
+
+  def queryBySetOfUuids(uuids: Set[String]): JsObject = Json.obj(KeyUUID -> Json.obj("$in" -> Json.toJson(uuids)))
+
+  def getUpdateObject(dbModel: DbModel): JsObject = Json.obj("$set" -> dbModel.asJsObject)
+}

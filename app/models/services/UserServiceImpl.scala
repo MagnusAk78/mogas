@@ -16,7 +16,7 @@ import models.daos.UserDAO
 import play.api.libs.json.Reads
 import play.api.libs.json.OWrites
 import utils.PaginateData
-import models.BaseModel
+import models.DbModel
 
 /**
  * Handles actions to users.
@@ -24,19 +24,19 @@ import models.BaseModel
  * @param userDAO The user DAO implementation.
  */
 class UserServiceImpl @Inject() (val dao: UserDAO, implicit override val ec: ExecutionContext) extends UserService {
-  
-  implicit val joWrites: OWrites[User] = User.userFormat 
-  
+
+  implicit val joWrites: OWrites[User] = User.userFormat
+
   implicit val joReads: Reads[User] = User.userFormat
-  
+
   override def getUserList(page: Int, uuidSet: Set[String]): Future[ModelListData[User]] = {
-   for {
-        userList <- find(BaseModel.uuidInSetQuery(uuidSet), page, utils.DefaultValues.DefaultPageLength)
-        userCount <- count(BaseModel.uuidInSetQuery(uuidSet))
-      } yield new ModelListData[User] { 
+    for {
+      userList <- find(DbModel.queryBySetOfUuids(uuidSet), page, utils.DefaultValues.DefaultPageLength)
+      userCount <- count(DbModel.queryBySetOfUuids(uuidSet))
+    } yield new ModelListData[User] {
       override val list = userList
       override val paginateData = PaginateData(page, userCount)
-    } 
+    }
   }
 
   /**
@@ -45,7 +45,7 @@ class UserServiceImpl @Inject() (val dao: UserDAO, implicit override val ec: Exe
    * @param loginInfo The login info to retrieve a user.
    * @return The retrieved user or None if no user could be retrieved for the given login info.
    */
-  override def retrieve(loginInfo: LoginInfo): Future[Option[User]] = find(User.loginInfoQuery(loginInfo)).map { _.headOption }
+  override def retrieve(loginInfo: LoginInfo): Future[Option[User]] = find(User.queryByLoginInfo(loginInfo)).map { _.headOption }
 
   /*
   override def save(user: User): Future[Option[User]] = {
@@ -106,7 +106,7 @@ class UserServiceImpl @Inject() (val dao: UserDAO, implicit override val ec: Exe
   override def save(profile: CommonSocialProfile): Future[Option[User]] = {
 
     Logger.info("UserServiceImpl save (profile): " + profile)
-    
+
     retrieve(profile.loginInfo).flatMap { optionUser =>
       optionUser match {
         case Some(user) => { // Update user with profile
@@ -114,20 +114,22 @@ class UserServiceImpl @Inject() (val dao: UserDAO, implicit override val ec: Exe
             loginInfo = profile.loginInfo,
             firstName = profile.firstName.getOrElse(user.firstName),
             lastName = profile.lastName.getOrElse(user.lastName),
-            fullName = profile.fullName.getOrElse(user.fullName),
+            name = profile.fullName.getOrElse(user.name),
             email = profile.email.getOrElse(user.email),
             avatarURL = Some(profile.avatarURL.getOrElse(user.avatarURL.getOrElse(""))))
-          update(updatedUser.uuidQuery, updatedUser.updateQuery) flatMap { _ match {
-            case true => findOne(user.uuidQuery)
-            case false => Future.successful(None)
-          }}
+          update(updatedUser) flatMap {
+            _ match {
+              case true => findOne(DbModel.queryByUuid(user.uuid))
+              case false => Future.successful(None)
+            }
+          }
         }
         case None => { // Insert a new user
           val newUser = User.create(
             loginInfo = profile.loginInfo,
             firstName = profile.firstName.getOrElse(""),
             lastName = profile.lastName.getOrElse(""),
-            fullName = profile.fullName.getOrElse(""),
+            name = profile.fullName.getOrElse(""),
             email = profile.email.getOrElse(""),
             avatarURL = profile.avatarURL)
           insert(newUser)

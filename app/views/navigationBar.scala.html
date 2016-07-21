@@ -1,4 +1,4 @@
-@(brandText: String, navLinks: Array[play.api.mvc.Call], navTexts: Array[String], loggedInUser: Option[User])(implicit flash: Flash, messages: Messages)
+@(brandText: String, navLinks: Set[play.api.mvc.Call], navTexts: Set[String], loggedInUser: Option[User])(implicit flash: Flash, messages: Messages)
 
 <nav class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -16,14 +16,12 @@
         </div>
         <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
-                @loggedInUser.map { u =>
-                    @for(i <- 0 to (navLinks.size - 1)) {
+                @for((link, text) <- (navLinks zip navTexts)) { 
                     <li>
-                        <a href="@navLinks(i)">
-                            @navTexts(i)
+                        <a href="@link">
+                            @text
                         </a>
                     </li>
-                    }
                 }
             </ul>
             <ul class="nav navbar-nav navbar-right">

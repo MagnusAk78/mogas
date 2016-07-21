@@ -6,10 +6,6 @@ import scala.concurrent.Future
 
 import org.joda.time.DateTime
 
-import com.mohiva.play.silhouette.api.Silhouette
-import com.sksamuel.scrimage.Image
-import com.sksamuel.scrimage.writer
-
 import akka.stream.Materializer
 import forms.OrganisationForm
 import forms.OrganisationForm.fromOrganisationToData
@@ -110,7 +106,7 @@ class OrganisationController @Inject() (
         val responses = for {
           updateResult <- {
             val updateOrg = organisationRequest.organisation.copy(name = formData.name)
-            organisationService.update(updateOrg.uuidQuery, updateOrg.updateQuery)
+            organisationService.update(updateOrg)
           }
         } yield updateResult match {
           case true =>
@@ -149,12 +145,12 @@ class OrganisationController @Inject() (
           } else {
             mySecuredRequest.identity.copy(activeOrganisation = uuid)
           }
-          userService.update(updateUser.uuidQuery, updateUser.updateQuery)
+          userService.update(updateUser)
         }
         optNewLoggedInUser <- userService.findOneByUuid(mySecuredRequest.identity.uuid)
         otpNewActiveOrg <- optNewLoggedInUser match {
           case Some(newLoggedInUser) => organisationService.findOneByUuid(newLoggedInUser.activeOrganisation)
-          case None                  => Future.failed(new Exception("No new user found after update"))
+          case None => Future.failed(new Exception("No new user found after update"))
         }
       } yield Ok(views.html.organisations.editActivateOrganisation(organisationListData.list,
         organisationListData.paginateData, optNewLoggedInUser, otpNewActiveOrg))
@@ -182,7 +178,7 @@ class OrganisationController @Inject() (
       (organisationRequest.organisation.allowedUsers.contains(organisationRequest.identity.uuid))
 
       val newOrganisation = organisationRequest.organisation.copy(allowedUsers = organisationRequest.organisation.allowedUsers.contains(userUuid) match {
-        case true  => organisationRequest.organisation.allowedUsers - userUuid
+        case true => organisationRequest.organisation.allowedUsers - userUuid
         case false => organisationRequest.organisation.allowedUsers + userUuid
       })
 
@@ -195,7 +191,7 @@ class OrganisationController @Inject() (
       } else {
         val responses = for {
           //Update the organisation
-          updateSuccess <- organisationService.update(newOrganisation.uuidQuery, newOrganisation.updateQuery)
+          updateSuccess <- organisationService.update(newOrganisation)
         } yield if (updateSuccess) {
           Redirect(routes.OrganisationController.editAllowedUsers(newOrganisation.uuid, page)).flashing("success" -> Messages("db.success.update", organisationRequest.organisation.name))
         } else {

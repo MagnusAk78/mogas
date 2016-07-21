@@ -6,33 +6,23 @@ import play.api.libs.json._
 
 case class Organisation(
     override val uuid: String,
-    val name: String,
-    val allowedUsers: Set[String]) extends BaseModel {
+    override val name: String,
+    val allowedUsers: Set[String]) extends DbModel with NamedModel {
 
-    override def updateQuery: JsObject = {
-      val sequence: Seq[JsField] = Seq[JsField]() ++
-        Organisation.getKeyValueSet(this)
-        
-      Json.obj("$set" -> JsObject(sequence))
-    }
+  override def asJsObject: JsObject = {
+    NamedModel.asJsObject(this) ++
+      Json.obj(Organisation.KeyAllowedUsers -> Json.toJson(allowedUsers))
+  }
 }
-    
+
 object Organisation {
-  
+
   implicit val organisationFormat = Json.format[Organisation]
-    
-  private val KeyName = "name"
+
   private val KeyAllowedUsers = "allowedUsers"
 
   def create(name: String, allowedUsers: Set[String] = Set.empty, imageReadFileId: String = UuidNotSet) =
     Organisation(uuid = UUID.randomUUID.toString, name = name, allowedUsers = allowedUsers)
-    
-  def nameQuery(name: String): JsObject = Json.obj(KeyName -> JsString(name))
-  
-  def allowedUserQuery(allowedUser: String): JsObject = Json.obj(KeyAllowedUsers -> JsString(allowedUser))
-  
-  def getKeyValueSet(organisation: Organisation): Seq[JsField] = {
-      Seq(KeyName -> JsString(organisation.name)) ++
-      Seq(KeyAllowedUsers -> Json.toJson(organisation.allowedUsers))
-  }
+
+  def queryByAllowedUser(allowedUser: String): JsObject = Json.obj(KeyAllowedUsers -> JsString(allowedUser))
 }

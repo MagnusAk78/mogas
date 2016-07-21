@@ -6,5 +6,4 @@ import models.User
 import scala.concurrent.Future
 
 trait UserDAO extends BaseModelDAO[User] {
-  
 }

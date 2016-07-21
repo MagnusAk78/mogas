@@ -4,14 +4,14 @@
 
 @import templates._
 
-@main(Messages("user.details", user.fullName), loggedInUser, activeOrg) {
+@main(Messages("user.details", user.name), loggedInUser, activeOrg) {
 	@titleArea(Messages("user"), Some(Messages("info.details")), 
 		Some(controllers.routes.UserController.list(1)))
     @rowColumnCenter() {
         @{
             val titles = List(Messages("user.username"), Messages("user.firstName"),
                 Messages("user.lastName"), Messages("user.email"))
-            val descriptions = List(user.fullName, user.firstName, user.lastName, user.email)
+            val descriptions = List(user.name, user.firstName, user.lastName, user.email)
 
             descriptionList(titles, descriptions)
         }

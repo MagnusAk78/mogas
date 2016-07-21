@@ -1,0 +1,30 @@
+@(factories: List[Factory], paginateData: utils.PaginateData, loggedInUser: Option[User],
+	activeOrg: Option[Organisation])(implicit flash: Flash,
+    request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
+
+@import templates._
+
+@main(Messages("factories"), loggedInUser, activeOrg) {
+	@titleArea(Messages("factories"), Some(Messages("function.list")), None)
+    @rowColumnCenter() {
+        @paginate(paginateData, controllers.routes.FactoryController.list(_))
+
+        @{            
+            val mediaList = factories.map{ factory =>
+            	routes.FileController.getThumbnailImage(factory.uuid, models.Types.FactoryType.stringValue)
+            }
+            
+            val linkList = factories.map(factory =>
+                controllers.routes.FactoryController.factory(factory.uuid, 1))
+                
+            val headingList = factories.map(_.name)
+            val textList = factories.map(_.name)
+
+            mediaListWithOneLink(mediaList, linkList, headingList, textList)
+        }
+    }
+    <hr>
+    @rowColumnCenter() {
+        @createButton(controllers.routes.FactoryController.create)
+    }
+}

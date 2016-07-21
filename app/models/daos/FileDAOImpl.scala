@@ -23,10 +23,13 @@ import play.modules.reactivemongo.JSONFileToSave
 import reactivemongo.api.gridfs.ReadFile
 import play.api.Logger
 import reactivemongo.api.commands.WriteResult
+import models.AmlFiles
+import reactivemongo.play.json.collection.JSONCollection
+
 
 class FileDAOImpl @Inject() (val reactiveMongoApi: ReactiveMongoApi)(implicit exec: ExecutionContext) 
   extends FileDAO with ReactiveMongoComponents {
-    
+      
   private val asyncGridFS = reactiveMongoApi.asyncGridFS
   
   private def syncGridFS = Await.result(asyncGridFS, Duration("5s"))
@@ -39,6 +42,11 @@ class FileDAOImpl @Inject() (val reactiveMongoApi: ReactiveMongoApi)(implicit ex
     
   override def find(uuid: String): Future[Cursor[JSONReadFile]] = 
     asyncGridFS.map(_.find[JsObject, JSONReadFile](Json.obj("_id" -> JsString(uuid))))
+    
+  override def updateMetadata(fileUuid:String, metadata: JsObject): Future[Boolean] = 
+    asyncGridFS.flatMap(_.files.update(Json.obj("_id" -> JsString(fileUuid)), 
+        Json.obj("$set" -> Json.obj(AmlFiles.KeyMetadata -> metadata))).map(ur => ur.ok))
+               
     
   override def save(enumerator: Enumerator[Array[Byte]], fileToSave: JSONFileToSave): Future[JSONReadFile] = {
     asyncGridFS.flatMap(_.save(enumerator, fileToSave))

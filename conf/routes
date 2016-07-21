@@ -10,7 +10,7 @@ GET     /language/:languageString                   		controllers.ApplicationCon
 # Authentication actions
 GET     /authentication/signOut                             controllers.ApplicationController.signOut
 POST    /authentication/authenticate/:provider              controllers.SocialAuthController.authenticate(provider)
-POST    /authentication/signUp                              controllers.SignUpController.submit
+POST    /authentication/signUp                              controllers.SignUpController.submitSignUp
 POST    /authentication/signIn								controllers.SignInController.submit
 GET     /authentication/signIn                              controllers.SignInController.view
 GET     /authentication/signUp                              controllers.SignUpController.view
@@ -26,26 +26,43 @@ GET     /organisation/:uuid/editAllowedUsers/:usersPage                   	contr
 GET     /organisation/:uuid/delete                                        	controllers.OrganisationController.delete(uuid: String)
 
 
-GET     /organisations/list                                             	controllers.OrganisationController.list(organisationsPage: Int=1)
-GET     /organisations/list/:organisationsPage                          	controllers.OrganisationController.list(organisationsPage: Int)
+GET     /organisations/list                                             	controllers.OrganisationController.list(page: Int=1)
+GET     /organisations/list/:page                          					controllers.OrganisationController.list(page: Int)
 GET     /organisations/editActivateOrganisation                         	controllers.OrganisationController.editActiveOrganisation(page:Int=1)
 GET     /organisations/editActivateOrganisation/:page                   	controllers.OrganisationController.editActiveOrganisation(page:Int)
 GET     /organisations/setActivateOrganisation/:uuid                      	controllers.OrganisationController.setActiveOrganisation(uuid: String, page:Int=1)
 GET     /organisations/setActivateOrganisation/:uuid/:page                	controllers.OrganisationController.setActiveOrganisation(uuid: String, page:Int)
 
 # User actions
-POST    /user/:uuid/submit                                   			    controllers.SignUpController.editSubmit(uuid: String)
+POST    /user/:uuid/submit                                   			    controllers.SignUpController.submitEdit(uuid: String)
 GET     /user/:uuid/edit                               			            controllers.SignUpController.edit(uuid: String)
+GET     /user/:uuid/show                               						controllers.UserController.show(uuid: String, page: Int=1)
+GET     /user/:uuid/show/:page                         						controllers.UserController.show(uuid: String, page: Int)
 
-GET     /user/:uuid/show                               			controllers.UserController.show(uuid: String, page: Int=1)
-GET     /user/:uuid/show/:page                         			controllers.UserController.show(uuid: String, page: Int)
-GET     /users/list                                  			controllers.UserController.list(page: Int=1)
-GET     /users/list/:page                            			controllers.UserController.list(page: Int)
+GET     /users/list                                  						controllers.UserController.list(page: Int=1)
+GET     /users/list/:page                            						controllers.UserController.list(page: Int)
+
+# Factory actions
+POST    /factory/submit                               						controllers.FactoryController.submitCreate
+GET     /factory/create                                            			controllers.FactoryController.create
+POST    /factory/:uuid/submit                               				controllers.FactoryController.submitEdit(uuid: String)
+GET     /factory/:uuid/edit                           						controllers.FactoryController.edit(uuid: String)
+GET     /factory/:uuid/delete                         						controllers.FactoryController.delete(uuid: String)
+
+GET     /factory/:uuid/list                           						controllers.FactoryController.factory(uuid: String, page: Int=1)
+GET     /factory/:uuid/list/:page                           				controllers.FactoryController.factory(uuid: String, page: Int)
+
+GET		/factory/:uuid/parseAmlFiles										controllers.FactoryController.parseAmlFiles(uuid: String)
+
+GET     /factories/list                                             		controllers.FactoryController.list(organisationsPage: Int=1)
+GET     /factories/list/:page												controllers.FactoryController.list(page: Int)
+
 
 #File stuff
 GET     /image/:uuid/standard/:modelType						controllers.FileController.getStandardImage(uuid: String, modelType: String)
 GET     /image/:uuid/thumbnail/:modelType 						controllers.FileController.getThumbnailImage(uuid: String, modelType: String)
 POST    /image/:uuid/submitImage/:modelType   					controllers.FileController.submitImage(uuid: String, modelType: String)
+POST	/factory/:uuid/submitAmlFile							controllers.FileController.submitAmlFile(uuid: String)
 
 # Map static resources from the /public folder to the /assets URL path
 #GET     /assets/*file               		controllers.Assets.versioned(path="/public", file: Asset)

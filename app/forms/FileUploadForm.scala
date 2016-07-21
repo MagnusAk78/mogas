@@ -11,6 +11,5 @@ object FileUploadForm {
     )(Data.apply)(Data.unapply)
   )
     
-  case class Data(
-    file: String)
+  case class Data(file: String)
 }

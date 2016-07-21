@@ -28,6 +28,8 @@ class FileServiceImpl @Inject()(override val dao: FileDAO)(implicit val ec: Exec
   override def find(uuid: String): Future[Cursor[JSONReadFile]] = dao.find(uuid)
   
   override def save(enumerator: Enumerator[Array[Byte]], fileToSave: JSONFileToSave): Future[JSONReadFile] = dao.save(enumerator, fileToSave)
+  
+  override def updateMetadata(fileUuid:String, metadata: JsObject): Future[Boolean] = dao.updateMetadata(fileUuid, metadata)
     
   override def withAsyncGfs[T](func: (GridFS[JSONSerializationPack.type] => Future[T])): Future[T] = dao.withAsyncGfs(func)
   

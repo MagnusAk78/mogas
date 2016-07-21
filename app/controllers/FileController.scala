@@ -49,6 +49,7 @@ import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import reactivemongo.api.Cursor
 import play.api.mvc.WrappedRequest
 import controllers.actions.GeneralActions
+import models.AmlFiles
 
 @Singleton
 class FileController @Inject() (
@@ -109,6 +110,8 @@ class FileController @Inject() (
               
               //Future.successful(Redirect(routes.Assets.at("images/organisation-default.png")).as("image/png"))
             case models.Types.UserType => Future.successful(Redirect(routes.Assets.at("images/user-default.png")).as("image/png"))
+            case models.Types.FactoryType => Future.successful(Redirect(routes.Assets.at("images/factory-default.png")).as("image/png"))
+            case models.Types.HierarchyType => Future.successful(Redirect(routes.Assets.at("images/hierarchy-default.png")).as("image/png"))
             case models.Types.UnknownType => Future.successful(NotFound)
           }
         }
@@ -225,6 +228,10 @@ class FileController @Inject() (
 		} yield Types.fromString(modelType) match {
 		  case Types.OrganisationType => Redirect(routes.OrganisationController.edit(uuid)).flashing("success" -> Messages("db.success.imageUpload"))
 		  case Types.UserType => Redirect(routes.SignUpController.edit(uuid)).flashing("success" -> Messages("db.success.imageUpload"))
+		  case Types.FactoryType => Redirect(routes.FactoryController.edit(uuid)).flashing("success" -> Messages("db.success.imageUpload"))
+		  //TODO: Change hierarchy (should this even exisits?
+		  case Types.HierarchyType => Redirect(routes.FactoryController.edit(uuid)).flashing("success" -> Messages("db.success.imageUpload"))
+		  case Types.UnknownType => Redirect(routes.OrganisationController.list(1)).flashing("error" -> Messages("error.unknownType")) 
 		}
 
 		responses recover {
@@ -235,4 +242,58 @@ class FileController @Inject() (
 		}
 		}
 	}  
+	
+	def submitAmlFile(factoryUuid: String) = {
+
+		//Create the parser using the GridFS collection from FileService
+		val gdfsParser = fileService.withSyncGfs[BodyParser[MultipartFormData[Future[FileDAO.JSONReadFile]]]] { gfs => gridFSBodyParser(gfs) }
+
+		(generalActions.MySecuredAction andThen generalActions.RequireActiveOrganisation andThen
+		  generalActions.FactoryAction(factoryUuid)).async(gdfsParser) { implicit factoryRequest =>
+
+		//A list of the existing aml files
+		val futureExistingAmlFileList = fileService.findByQuery(AmlFiles.getQueryAllAmlFiles(factoryUuid)).flatMap(cursor => cursor.collect[List](0, true))
+
+		val futureOptFileRef = factoryRequest.body.file(forms.AmlFileKeyString) match {
+		  case Some(file) => file.ref.map(Some(_))
+		  case None       => Future.successful(None)
+		}
+				
+		val responses = for {
+		  optFileRef <- futureOptFileRef
+		} yield optFileRef match {
+		  case Some(file) => {
+		    if (file.contentType.isEmpty ||
+					file.contentType.get != AmlFiles.OctetStreamContentType ||
+					file.filename.isEmpty || !file.filename.get.endsWith("aml") ||
+					file.length < utils.DefaultValues.MinimumImageSize) {
+
+				  //File is not ok, remove it
+				  val result = fileService.remove(file.id.as[String])
+
+				  //And return with error
+			    Future.successful(Redirect(routes.FactoryController.edit(factoryUuid)).flashing("error" -> Messages("amlFile.not.ok")))
+			  } else {
+				  Logger.info("Aml file uploaded correctly")
+			
+				  fileService.updateMetadata(file.id.as[String], AmlFiles.getAmlFileMetadata(factoryUuid)).map { success => 
+				    Redirect(routes.FactoryController.edit(factoryUuid)).flashing("success" -> ("success: " + success)) }
+		    }
+		  }
+		  case None => {
+		    Future.successful(Redirect(routes.FactoryController.edit(factoryUuid)).flashing("error" -> Messages("amlFile.upload.failed")))
+		  }
+		}
+		
+		responses.flatMap { r => 
+		
+		r recover {
+		case e => {
+			Logger.error("recover e.getStackTrace: " + e.getStackTrace)
+			InternalServerError(e.getMessage())
+		}
+		} 
+		}
+  	}  	
+	}
 }

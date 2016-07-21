@@ -7,7 +7,7 @@ import com.mohiva.play.silhouette.api.Silhouette
 
 import javax.inject.Inject
 import javax.inject.Singleton
-import models.BaseModel
+import models.DbModel
 import models.Organisation
 import models.User
 import models.services.OrganisationService

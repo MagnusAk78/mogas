@@ -15,7 +15,7 @@
                 routes.FileController.getThumbnailImage(user.uuid, models.Types.UserType.stringValue)
             }            
             val linkList = users.map((user: User) => controllers.routes.OrganisationController.changeAllowedUser(organisation.uuid, user.uuid, paginateData.page))
-            val headingList = users.map(_.fullName)
+            val headingList = users.map(_.name)
             val textList = users.map(_.email)
             val activatedList = users.map((user: User) => organisation.allowedUsers.contains(user.uuid))
 
