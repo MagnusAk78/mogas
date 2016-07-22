@@ -24,6 +24,12 @@ import java.io.ByteArrayInputStream
 import models.FactoryPart
 import models.HierarchyPart
 import models.NamedModel
+import play.api.libs.streams.Streams
+import akka.stream.scaladsl.Source
+import play.modules.reactivemongo.JSONFileToSave
+import play.api.libs.iteratee.Iteratee
+import models.Images
+import java.io.BufferedInputStream
 
 class FactoryServiceImpl @Inject() (
   override val dao: FactoryDAO,
@@ -66,27 +72,20 @@ class FactoryServiceImpl @Inject() (
         fileList.foreach { file =>
           fileService.withSyncGfs { gfs =>
 
-            Logger.info("parseAmlFiles, genereate output stream")
+            val fileIterator = fileService.withAsyncGfs[Array[Byte]] { gfs =>
+              gfs.enumerate(file).
+                run(Iteratee.consume[Array[Byte]]())
+            }
 
-            val out = new ByteArrayOutputStream(1024)
+            val futureAmlHandledResult = fileIterator.flatMap {
+              bytes =>
+                {
+                  val inputStream = new BufferedInputStream(new ByteArrayInputStream(bytes))
+                  updateAmlHierarchies(factory, AmlHelper.generateFromStream(inputStream))
+                }
+            }
 
-            Logger.info("parseAmlFiles, ask gridFS to fill the buffer")
-
-            //Writes the file to out
-            val futureFileWrite = Await.result(gfs.readToOutputStream(file, out), Duration("20s"))
-
-            Logger.info("parseAmlFiles, genereate input stream")
-
-            val in = new ByteArrayInputStream(out.toByteArray())
-
-            Logger.info("parseAmlFiles, parse xml from input stream")
-
-            //Reads the stream
-            val futureFileRead = updateAmlHierarchies(factory, AmlHelper.generateFromStream(in))
-
-            Logger.info("parseAmlFiles, update database")
-
-            hierarchies = hierarchies ::: Await.result(futureFileRead, Duration("20s"))
+            hierarchies = hierarchies ::: Await.result(futureAmlHandledResult, Duration("20s"))
           }
         }
 

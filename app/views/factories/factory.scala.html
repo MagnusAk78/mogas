@@ -1,15 +1,11 @@
-	@(factory: Factory, factoryHierarchies: List[Hierarchy], paginateData: utils.PaginateData, 
-	loggedInUser: Option[User], activeOrg: Option[Organisation])(implicit flash: Flash,
-    request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
+@(factory: Factory, hierarchies: List[Hierarchy], paginateData: utils.PaginateData, loggedInUser: Option[User], 
+	activeOrg: Option[Organisation])(implicit flash: Flash, request: RequestHeader, messages: Messages, lang: Lang, 
+	webJarAssets: WebJarAssets)
 
 @import templates._
 
 @main(Messages("factory.hierarchies"), loggedInUser, activeOrg) {
-    @rowMainSecondary() {
-        @title(factory.name, Some(Messages("function.details")))
-    }{
-        @backButton(controllers.routes.FactoryController.list(1))
-    }
+	@titleArea(factory.name, Some(Messages("function.details")), Some(controllers.routes.FactoryController.list(1)))
     @rowMainSecondary() {
     }{
         @editButton(controllers.routes.FactoryController.edit(factory.uuid))
@@ -21,15 +17,15 @@
         @paginate(paginateData, controllers.routes.FactoryController.factory(factory.uuid, _))
 
         @{
-			val mediaList = factoryHierarchies.map{ factoryHierarchy =>
+			val mediaList = hierarchies.map{ factoryHierarchy =>
             	routes.FileController.getThumbnailImage(factoryHierarchy.uuid, models.Types.HierarchyType.stringValue)
             }                
                 
-            val linkList = factoryHierarchies.map((hierarchy: Hierarchy) =>
-                controllers.routes.FactoryController.factory(factory.uuid, 1))
+            val linkList = hierarchies.map((hierarchy: Hierarchy) =>
+                controllers.routes.FactoryController.hierarchy(hierarchy.uuid, 1))
                 
-            val headingList = factoryHierarchies.map(_.name)
-            val textList = factoryHierarchies.map(_.name)
+            val headingList = hierarchies.map(_.name)
+            val textList = hierarchies.map(_.name)
 
             mediaListWithOneLink(mediaList, linkList, headingList, textList)
         }

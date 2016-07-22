@@ -1,0 +1,33 @@
+@(factory: Factory, hierarchy: Hierarchy, internalElements: List[InternalElement], paginateData: utils.PaginateData,
+    loggedInUser: Option[User], activeOrg: Option[Organisation])(implicit flash: Flash, request: RequestHeader, 
+    messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
+
+@import templates._
+
+@main(Messages("factory.hierarchies"), loggedInUser, activeOrg) {
+	@titleArea(hierarchy.name, Some(Messages("function.details")), 
+		Some(controllers.routes.FactoryController.factory(factory.uuid, 1)))
+    @rowColumnCenter(){
+        @{
+            val linkList = List(controllers.routes.FactoryController.factory(factory.uuid, 1),
+                controllers.routes.FactoryController.hierarchy(hierarchy.uuid, 1))
+            val textList = List(factory.name, hierarchy.name)
+            breadcrumb(linkList, textList)
+        }
+    }
+    @rowColumnCenter() {
+        @paginate(paginateData, controllers.routes.FactoryController.hierarchy(hierarchy.uuid, _))
+
+        @{
+            val mediaList = internalElements.map((ie: InternalElement) =>
+            	routes.FileController.getThumbnailImage(ie.uuid, models.Types.InternalElementType.stringValue))
+
+            val linkList = internalElements.map((ie: InternalElement) =>
+                controllers.routes.FactoryController.element(ie.uuid, 1, 1))
+            val headingList = internalElements.map(_.name)
+            val textList = internalElements.map(_.name)
+
+            mediaListWithOneLink(mediaList, linkList, headingList, textList)
+        }
+    }
+}

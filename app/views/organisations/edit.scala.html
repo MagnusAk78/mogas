@@ -11,36 +11,40 @@
 @main(Messages("organisations"), loggedInUser, activeOrg) {
 	@titleArea(Messages("organisation"), uuidToEdit.map(s => Some(Messages("function.edit"))).getOrElse(Some(Messages("function.create"))), 
 		Some(controllers.routes.OrganisationController.list(1)))
-    @rowColumnCenter() {
-    	@if(uuidToEdit.isDefined) {
-    		@formNormal(routes.OrganisationController.submitEdit(uuidToEdit.get), updateNewText(true)) {
-        		@b3.text(organisationForm("name"), '_label -> Messages("organisation.name"))
-        	}
-        	
-        	<hr>
-        
-        	@formImageFileUpload(routes.FileController.submitImage(uuidToEdit.get, models.Types.OrganisationType.stringValue))
-        	
-        	<hr>
-        	
-        	@editButton(controllers.routes.OrganisationController.editAllowedUsers(
-        		uuidToEdit.get, 1), Some(Messages("organisation.changeAllowedUsers")))
-        	<hr>
-        	@deleteButton(controllers.routes.OrganisationController.delete(uuidToEdit.get))
-        
-    	} else {
-    		@formNormal(routes.OrganisationController.submitCreate, updateNewText(false)) {
-        		@b3.text(organisationForm("name"), '_label -> Messages("organisation.name"))
-        	}
-        }    
-    }
     @if(uuidToEdit.isDefined) {
     	@rowColumnCenter() {
+    		@formNormal(routes.OrganisationController.submitEdit(uuidToEdit.get), updateNewText(true)) {
+    			@b3.text(organisationForm("name"), '_label -> Messages("organisation.name"))
+    		}
+       	}
+        	
+     	<hr>
+     	@rowColumnCenter() {
+     		@editButton(controllers.routes.OrganisationController.editAllowedUsers(
+     			uuidToEdit.get, 1), Some(Messages("organisation.changeAllowedUsers")))
+     	}
+        	
+     	@rowColumnCenter() {
     		@imageOrVideo(Some(routes.FileController.getStandardImage(uuidToEdit.get, models.Types.OrganisationType.stringValue)),
     			Some(routes.FileController.getThumbnailImage(uuidToEdit.get, models.Types.OrganisationType.stringValue)), 
     			None)
     	}
-    }
+    		
+    	@rowColumnCenter() {	
+    		@changeImageButton(uuidToEdit.get, models.Types.OrganisationType)
+    	}
+    		
+    	<hr>
+    	@rowColumnCenter() {
+    		@deleteButton(controllers.routes.OrganisationController.delete(uuidToEdit.get))
+    	}
+    } else {
+    	@rowColumnCenter() {
+    		@formNormal(routes.OrganisationController.submitCreate, updateNewText(false)) {
+        		@b3.text(organisationForm("name"), '_label -> Messages("organisation.name"))
+        	}
+        }
+	}    
 }
 
 

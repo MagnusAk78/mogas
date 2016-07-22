@@ -1,0 +1,82 @@
+@(factory: Factory, hierarchy: Hierarchy, elementChain: List[InternalElement],
+    internalElements: List[InternalElement], elementPaginateData: utils.PaginateData, 
+    externalInterfaces: List[ExternalInterface], interfacePaginateData: utils.PaginateData, loggedInUser: Option[User], 
+    activeOrg: Option[Organisation])(implicit flash: Flash, request: RequestHeader, messages: Messages, lang: Lang, 
+    webJarAssets: WebJarAssets)
+
+@import b3.vertical.fieldConstructor  // Declares a vertical field constructor as default
+@import templates._
+
+@main(Messages("factory.hierarchies"), loggedInUser, activeOrg) {
+	@titleArea(elementChain.last.name, Some(Messages("function.details")), 
+		Some(controllers.routes.FactoryController.hierarchy(hierarchy.uuid, 1)))
+		
+    @rowColumnCenter() {
+        @{
+            var linkList = List(controllers.routes.FactoryController.factory(factory.uuid, 1),
+                controllers.routes.FactoryController.hierarchy(hierarchy.uuid, 1))
+            var textList = List(factory.name, hierarchy.name)
+            
+            for(element <- elementChain) {
+                linkList = (controllers.routes.FactoryController.element(element.uuid, 1, 1)
+                                :: linkList.reverse).reverse
+
+                textList = (element.name :: textList.reverse).reverse
+
+            }
+
+            breadcrumb(linkList, textList)
+        }
+    }
+
+    <hr>
+    
+        @rowColumnCenter() {
+        @imageOrVideo(
+            Some(routes.FileController.getStandardImage(elementChain.last.uuid, 
+            	models.Types.InternalElementType.stringValue))
+            ,
+            Some(routes.FileController.getThumbnailImage(elementChain.last.uuid, 
+            	models.Types.InternalElementType.stringValue)),
+            None)
+    }
+    
+    <hr>
+
+    @rowColumnCenter() {
+        @paginate(elementPaginateData, controllers.routes.FactoryController.element(elementChain.last.uuid, _, 
+        	interfacePaginateData.page))
+
+        @{
+            val mediaList = internalElements.map((ie: InternalElement) => routes.FileController.
+            	getThumbnailImage(elementChain.last.uuid, models.Types.InternalElementType.stringValue)
+            )
+            val linkList = internalElements.map((ie: InternalElement) =>
+                controllers.routes.FactoryController.element(ie.uuid, elementPaginateData.page, 
+                	interfacePaginateData.page))
+                
+            val headingList = internalElements.map(_.name)
+            val textList = internalElements.map(_.name)
+
+            mediaListWithOneLink(mediaList, linkList, headingList, textList)
+        }
+    }
+    @rowColumnCenter() {    
+        @paginate(interfacePaginateData, controllers.routes.FactoryController.element(elementChain.last.uuid, 
+        	elementPaginateData.page, _))
+
+        @{
+            val mediaList = externalInterfaces.map((ei: ExternalInterface) => routes.FileController.
+            	getThumbnailImage(ei.uuid, models.Types.ExternalInterfaceType.stringValue))
+                
+            val linkList = externalInterfaces.map((ei: ExternalInterface) =>
+                controllers.routes.FactoryController.interface(ei.uuid))
+                
+            val headingList = externalInterfaces.map(_.name)
+            val textList = externalInterfaces.map(_.name)
+
+            mediaListWithOneLink(mediaList, linkList, headingList, textList)
+        }
+    }
+    <hr>
+}

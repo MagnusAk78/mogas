@@ -4,15 +4,16 @@ import java.util.UUID
 import play.api.libs.json._
 
 case class InternalElement(
-    override val uuid: String,
-    override val factory: String,
-    override val amlId: String,
-    override val parent: String,
-    override val orderNumber: Int,
-    override val name: String,
-    parentIsHierarchy: Boolean,
-    internalElements: Set[String],
-    externalInterfaces: Set[String]) extends DbModel with FactoryPart with HierarchyPart with NamedModel with OrderedModel {
+  override val uuid: String,
+  override val factory: String,
+  override val amlId: String,
+  override val parent: String,
+  override val orderNumber: Int,
+  override val name: String,
+  parentIsHierarchy: Boolean,
+  internalElements: Set[String],
+  externalInterfaces: Set[String]) extends DbModel with FactoryPart with HierarchyPart with NamedModel
+    with OrderedModel with AmlParent {
 
   override def asJsObject: JsObject =
     FactoryPart.asJsObject(this) ++

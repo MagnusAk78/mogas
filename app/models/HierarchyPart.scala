@@ -5,6 +5,8 @@ import play.api.libs.json.JsString
 import play.api.libs.json.Json
 import play.api.libs.json.JsNumber
 
+trait AmlParent extends DbModel
+
 trait HierarchyPart {
   val amlId: String
   val parent: String
@@ -17,7 +19,7 @@ object HierarchyPart {
 
   def queryByAmlId(amlId: String): JsObject = Json.obj(KeyAmlId -> JsString(amlId))
 
-  def queryByParent(parent: String): JsObject = Json.obj(KeyParent -> JsString(parent))
+  def queryByParent(parent: AmlParent): JsObject = Json.obj(KeyParent -> JsString(parent.uuid))
 
   def asJsObject(hierarchyPart: HierarchyPart): JsObject =
     Json.obj(KeyAmlId -> JsString(hierarchyPart.amlId),

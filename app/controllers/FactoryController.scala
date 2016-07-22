@@ -39,6 +39,8 @@ import models.services.RemoveResult
 import forms.FactoryForm
 import models.Factory
 import models.services.HierarchyService
+import models.services.InternalElementService
+import models.services.ExternalInterfaceService
 
 @Singleton
 class FactoryController @Inject() (
@@ -47,6 +49,8 @@ class FactoryController @Inject() (
   val userService: UserService,
   val organisationService: OrganisationService,
   val hierarchyService: HierarchyService,
+  val internalElementService: InternalElementService,
+  val externalInterfaceService: ExternalInterfaceService,
   val factoryService: FactoryService,
   implicit val webJarAssets: WebJarAssets)(implicit exec: ExecutionContext, materialize: Materializer)
     extends Controller with I18nSupport {
@@ -63,7 +67,6 @@ class FactoryController @Inject() (
       }
     }
 
-  //TODO: Implmement show
   def factory(uuid: String, page: Int) =
     (generalActions.MySecuredAction andThen generalActions.RequireActiveOrganisation andThen
       generalActions.FactoryAction(uuid)).async { implicit factoryRequest =>
@@ -78,8 +81,48 @@ class FactoryController @Inject() (
         }
       }
 
-  def parseAmlFiles(uuid: String) = (generalActions.MySecuredAction andThen generalActions.RequireActiveOrganisation andThen
-    generalActions.FactoryAction(uuid)).async { implicit factoryRequest =>
+  def hierarchy(uuid: String, page: Int) =
+    (generalActions.MySecuredAction andThen generalActions.RequireActiveOrganisation andThen
+      generalActions.HierarchyAction(uuid)).async { implicit hierarchyRequest =>
+
+        val responses = for {
+          elementListData <- internalElementService.getInternalElementList(page, hierarchyRequest.hierarchy)
+        } yield Ok(views.html.factories.hierarchy(hierarchyRequest.factory, hierarchyRequest.hierarchy,
+          elementListData.list, elementListData.paginateData, Some(hierarchyRequest.identity),
+          hierarchyRequest.activeOrganisation))
+
+        responses recover {
+          case e => InternalServerError(e.getMessage())
+        }
+      }
+
+  def element(uuid: String, elementPage: Int, interfacePage: Int) =
+    (generalActions.MySecuredAction andThen generalActions.RequireActiveOrganisation andThen
+      generalActions.ElementAction(uuid)).async { implicit elementRequest =>
+
+        val responses = for {
+          elementListData <- internalElementService.getInternalElementList(elementPage, elementRequest.elementChain.last)
+          interfaceListData <- externalInterfaceService.getExternalInterfaceList(interfacePage, elementRequest.elementChain.last)
+        } yield Ok(views.html.factories.element(elementRequest.factory, elementRequest.hierarchy,
+          elementRequest.elementChain, elementListData.list, elementListData.paginateData, interfaceListData.list,
+          interfaceListData.paginateData, Some(elementRequest.identity), elementRequest.activeOrganisation))
+
+        responses recover {
+          case e => InternalServerError(e.getMessage())
+        }
+      }
+
+  def interface(uuid: String) =
+    (generalActions.MySecuredAction andThen generalActions.RequireActiveOrganisation andThen
+      generalActions.InterfaceAction(uuid)) { implicit interfaceRequest =>
+        Ok(views.html.factories.interface(interfaceRequest.factory, interfaceRequest.hierarchy,
+          interfaceRequest.elementChain, interfaceRequest.interface, Some(interfaceRequest.identity),
+          interfaceRequest.activeOrganisation))
+      }
+
+  def parseAmlFiles(uuid: String) = (generalActions.MySecuredAction andThen
+    generalActions.RequireActiveOrganisation andThen generalActions.FactoryAction(uuid)).
+    async { implicit factoryRequest =>
 
       factoryService.parseAmlFiles(factoryRequest.factory).map { success =>
         success match {

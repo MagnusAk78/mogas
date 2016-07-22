@@ -8,7 +8,7 @@ case class Hierarchy(
     override val factory: String,
     override val name: String,
     override val orderNumber: Int,
-    internalElements: Set[String]) extends DbModel with FactoryPart with NamedModel with OrderedModel {
+    internalElements: Set[String]) extends DbModel with FactoryPart with NamedModel with OrderedModel with AmlParent {
 
   override def asJsObject: JsObject = {
     FactoryPart.asJsObject(this) ++

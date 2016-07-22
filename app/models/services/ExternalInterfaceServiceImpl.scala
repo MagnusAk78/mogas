@@ -15,10 +15,10 @@ import models.HierarchyPart
 class ExternalInterfaceServiceImpl @Inject() (override val dao: ExternalInterfaceDAO)(implicit val ec: ExecutionContext)
     extends ExternalInterfaceService {
 
-  def getExternalInterfaceList(page: Int, parentInternalElement: String): Future[ModelListData[ExternalInterface]] = {
+  def getExternalInterfaceList(page: Int, parent: InternalElement): Future[ModelListData[ExternalInterface]] = {
     for {
-      externalInterfaceList <- find(HierarchyPart.queryByParent(parentInternalElement), page, utils.DefaultValues.DefaultPageLength)
-      externalInterfaceCount <- count(HierarchyPart.queryByParent(parentInternalElement))
+      externalInterfaceList <- find(HierarchyPart.queryByParent(parent), page, utils.DefaultValues.DefaultPageLength)
+      externalInterfaceCount <- count(HierarchyPart.queryByParent(parent))
     } yield new ModelListData[ExternalInterface] {
       override val list = externalInterfaceList
       override val paginateData = PaginateData(page, externalInterfaceCount)

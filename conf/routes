@@ -57,10 +57,21 @@ GET		/factory/:uuid/parseAmlFiles										controllers.FactoryController.parseAm
 GET     /factories/list                                             		controllers.FactoryController.list(organisationsPage: Int=1)
 GET     /factories/list/:page												controllers.FactoryController.list(page: Int)
 
+#Hierarchies
+GET		/factories/hierarchy/:uuid											controllers.FactoryController.hierarchy(uuid: String, page: Int=1)
+GET		/factories/hierarchy/:uuid/:page									controllers.FactoryController.hierarchy(uuid: String, page: Int)
+
+GET		/factories/element/:uuid											controllers.FactoryController.element(uuid: String, elementPage: Int=1, interfacePage: Int=1)
+GET		/factories/element/:uuid/:elementPage								controllers.FactoryController.element(uuid: String, elementPage: Int, interfacePage: Int=1)
+GET		/factories/element/:uuid/:elementPage/:interfacePage				controllers.FactoryController.element(uuid: String, elementPage: Int, interfacePage: Int)
+
+GET		/factories/interface/:uuid											controllers.FactoryController.interface(uuid: String)
+
 
 #File stuff
 GET     /image/:uuid/standard/:modelType						controllers.FileController.getStandardImage(uuid: String, modelType: String)
 GET     /image/:uuid/thumbnail/:modelType 						controllers.FileController.getThumbnailImage(uuid: String, modelType: String)
+GET     /image/upload/:uuid/:modelType							controllers.FileController.uploadImage(uuid: String, modelType: String)
 POST    /image/:uuid/submitImage/:modelType   					controllers.FileController.submitImage(uuid: String, modelType: String)
 POST	/factory/:uuid/submitAmlFile							controllers.FileController.submitAmlFile(uuid: String)
 

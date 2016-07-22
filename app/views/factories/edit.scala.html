@@ -1,5 +1,6 @@
-@(factoryForm: Form[forms.FactoryForm.Data], uuidToEdit: Option[String], loggedInUser: Option[models.User], activeOrg: Option[models.Organisation])(implicit flash: Flash,
-    request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
+@(factoryForm: Form[forms.FactoryForm.Data], uuidToEdit: Option[String], loggedInUser: Option[models.User], 
+	activeOrg: Option[models.Organisation])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
+	lang: Lang, webJarAssets: WebJarAssets)
 
 @import b3.vertical.fieldConstructor  // Declares a vertical field constructor as default
 @import templates._
@@ -11,36 +12,42 @@
 @main(Messages("factories"), loggedInUser, activeOrg) {
 	@titleArea(Messages("factory"), uuidToEdit.map(s => Some(Messages("function.edit"))).getOrElse(Some(Messages("function.create"))), 
 		Some(controllers.routes.FactoryController.list(1)))
-    @rowColumnCenter() {
-    	@if(uuidToEdit.isDefined) {
+		
+    @if(uuidToEdit.isDefined) {
+    	@rowColumnCenter() {
     		@formNormal(routes.FactoryController.submitEdit(uuidToEdit.get), updateNewText(true)) {
         		@b3.text(factoryForm("name"), '_label -> Messages("factory.name"))
         	}
+        }
         	
+        @rowColumnCenter() {
         	@formAmlFileUpload(routes.FileController.submitAmlFile(uuidToEdit.get))
-        	
-        	<hr>
-        	
+        }
+        
+        @rowColumnCenter() {	
         	@button(controllers.routes.FactoryController.parseAmlFiles(uuidToEdit.get), Messages("parseAmlFiles"))
+        }
         	
-        	<hr>
-        
-        	@formImageFileUpload(routes.FileController.submitImage(uuidToEdit.get, models.Types.FactoryType.stringValue))
-        	
-        	<hr>
-        	@deleteButton(controllers.routes.FactoryController.delete(uuidToEdit.get))
-        
-    	} else {
-    		@formNormal(routes.FactoryController.submitCreate, updateNewText(false)) {
-        		@b3.text(factoryForm("name"), '_label -> Messages("factory.name"))
-        	}
-        }    
-    }
-    @if(uuidToEdit.isDefined) {
     	@rowColumnCenter() {
     		@imageOrVideo(Some(routes.FileController.getStandardImage(uuidToEdit.get, models.Types.FactoryType.stringValue)),
     			Some(routes.FileController.getThumbnailImage(uuidToEdit.get, models.Types.FactoryType.stringValue)), 
     			None)
-    	}
+	    }
+    	
+    	@rowColumnCenter() {	
+    		@changeImageButton(uuidToEdit.get, models.Types.FactoryType)
+	    }        	
+        
+        @rowColumnCenter() {	        	
+        	<hr>
+        	@deleteButton(controllers.routes.FactoryController.delete(uuidToEdit.get))
+        }
+        
+    } else {
+    	@rowColumnCenter() {
+    		@formNormal(routes.FactoryController.submitCreate, updateNewText(false)) {
+        		@b3.text(factoryForm("name"), '_label -> Messages("factory.name"))
+        	}
+        }    
     }
 }

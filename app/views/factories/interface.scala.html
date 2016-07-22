@@ -1,0 +1,44 @@
+@(factory: Factory, hierarchy: Hierarchy, elementChain: List[InternalElement], 
+	externalInterface: ExternalInterface, loggedInUser: Option[User], 
+	activeOrg: Option[Organisation])(implicit flash: Flash, request: RequestHeader, messages: Messages, lang: Lang, 
+	webJarAssets: WebJarAssets)
+
+@import templates._
+
+@main(Messages("factory.hierarchies"), loggedInUser, activeOrg) {
+	@titleArea(externalInterface.name, Some(Messages("function.details")), 
+		Some(controllers.routes.FactoryController.element(elementChain.last.uuid, 1, 1)))
+
+    @rowColumnCenter(){
+        @{
+            var linkList = List(controllers.routes.FactoryController.factory(factory.uuid, 1),
+                controllers.routes.FactoryController.hierarchy(hierarchy.uuid, 1))
+                
+            var textList = List(factory.name, hierarchy.name)
+
+            for(element <- elementChain) {
+                linkList = (controllers.routes.FactoryController.element(element.uuid, 1, 1)
+                                :: linkList.reverse).reverse
+
+                textList = (element.name :: textList.reverse).reverse
+
+            }
+
+            linkList = (controllers.routes.FactoryController.interface(externalInterface.uuid) ::
+                linkList.reverse).reverse
+
+            breadcrumb(linkList, (externalInterface.name :: textList.reverse).reverse)
+        }
+    }
+    
+    <hr>
+    @rowColumnCenter() {
+        @imageOrVideo(
+            Some(routes.FileController.getStandardImage(externalInterface.uuid, 
+            	models.Types.ExternalInterfaceType.stringValue))
+            ,
+            Some(routes.FileController.getThumbnailImage(externalInterface.uuid, 
+            	models.Types.ExternalInterfaceType.stringValue)),
+            None)
+    }        
+}

@@ -29,6 +29,7 @@ home = Welcome
 home.welcome = Welcome {0} {1}
 
 link.video = Watch video
+change.image = Change image
 
 function.list = List
 function.create = Create new

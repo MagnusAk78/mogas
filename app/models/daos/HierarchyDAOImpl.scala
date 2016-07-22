@@ -16,5 +16,5 @@ class HierarchyDAOImpl @Inject() (val reactiveMongoApi: ReactiveMongoApi)(implic
     extends HierarchyDAO {
 
   protected override def collection: Future[JSONCollection] = reactiveMongoApi.database.
-    map(_.collection[JSONCollection]("factoryHierarchies"))
+    map(_.collection[JSONCollection]("hierarchies"))
 }

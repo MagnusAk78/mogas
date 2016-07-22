@@ -1,6 +1,7 @@
 package models.services
 
 import java.io.InputStream
+import play.api.Logger
 
 case class AmlHierarchy(
   name: String,
@@ -22,29 +23,18 @@ case class AmlExternalInterface(
 object AmlHelper {
 
   import scala.xml.{ Node, Elem }
+
+  import scala.xml.parsing.ConstructingParser
   import scala.xml.pull._
   import scala.io.Source
 
   val amlIdKey = "amlId"
 
-  def generateFromStream(amlStream: InputStream) = {
-
-    /*
-     * This can be looked into to achieve streaming, the XML.load loads the entire file in memory.
-     * 
-    val src = Source.fromInputStream(amlStream)
-    
-    val er = new XMLEventReader(src)
-    
-    while (er.hasNext)
-      Console.println(er.next)
-      * 
-      */
-
+  def generateFromStream(amlStream: InputStream): List[AmlHierarchy] = {
     findInstanceHierarchies(scala.xml.XML.load(amlStream))
   }
 
-  private def findInstanceHierarchies(aml: Elem): List[AmlHierarchy] = {
+  private def findInstanceHierarchies(aml: Node): List[AmlHierarchy] = {
     val hierarchyNumbers = Stream.iterate(0)(_ + 1).iterator
     (aml \ "InstanceHierarchy")
       .map(instance => {

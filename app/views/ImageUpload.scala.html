@@ -1,0 +1,13 @@
+@(uuid: String, modelType: models.Types.ModelType, loggedInUser: Option[models.User], 
+	activeOrg: Option[models.Organisation])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
+	lang: Lang, webJarAssets: WebJarAssets)
+
+@import b3.vertical.fieldConstructor
+@import templates._
+
+@main(Messages("organisations"), loggedInUser, activeOrg) {
+	@titleArea(Messages("image.upload"), None)
+    @rowColumnCenter() {
+    	@formImageFileUpload(routes.FileController.submitImage(uuid, modelType.stringValue))
+    }
+}
