@@ -1,0 +1,31 @@
+@(user: User, signUpForm: Form[models.formdata.SignUpForm.Data], loggedInUser: Option[User], 
+	activeOrg: Option[Organisation])(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, 
+	flash: Flash)
+
+@import b4.inline.fieldConstructor
+@import templates._
+@import forms._
+@import components.buttons._
+@import components.media._
+
+@main(Messages("signUp"), loggedInUser, activeOrg) {
+	@title(user.name)
+			
+	@rowContentButtons() {	
+		@rowEvenColumns() {
+    		@formNormal(routes.SignUpController.submitEdit(user.uuid), Messages("update")) {
+    			@b4.text(signUpForm("firstName"), '_hiddenLabel -> Messages("first.name"), 'placeholder -> Messages("first.name"), 'class -> "form-control input-lg")
+            	@b4.text(signUpForm("lastName"), '_hiddenLabel -> Messages("last.name"), 'placeholder -> Messages("last.name"), 'class -> "form-control input-lg")
+            	@b4.text(signUpForm("email"), '_hiddenLabel -> Messages("email"), 'placeholder -> Messages("email"), 'class -> "form-control input-lg")
+            	@b4.password(signUpForm("password"), '_hiddenLabel -> Messages("password"), 'placeholder -> Messages("password"), 'class -> "form-control input-lg")
+    		}
+        }{	
+    		@imageOrVideo(Some(routes.FileController.getStandardImage(loggedInUser.get.uuid, models.Types.UserType.stringValue)),
+    			Some(routes.FileController.getThumbnailImage(loggedInUser.get.uuid, models.Types.UserType.stringValue)), 
+    			None)
+    	}		
+	}{
+		@backButton(controllers.routes.UserController.show(user.uuid, 1))
+		@changeImageButton(user.uuid, models.Types.UserType)	
+	}
+}

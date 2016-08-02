@@ -1,0 +1,11 @@
+@(navLinks: Set[play.api.mvc.Call], navTexts: Set[String])(implicit flash: Flash, messages: Messages)
+
+<ul class="nav nav-pills nav-stacked">
+	@for((link, text) <- (navLinks zip navTexts)) { 
+		<li class="nav-item">
+			<a class="nav-link" href="@link">
+            	@text
+            </a>
+        </li>
+    }	
+</ul>

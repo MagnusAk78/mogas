@@ -21,8 +21,8 @@ import play.api.Logger
 import java.io.ByteArrayOutputStream
 import java.io.BufferedOutputStream
 import java.io.ByteArrayInputStream
-import models.FactoryPart
-import models.HierarchyPart
+import models.ChildOf
+import models.AmlObject
 import models.NamedModel
 import play.api.libs.streams.Streams
 import akka.stream.scaladsl.Source
@@ -30,6 +30,7 @@ import play.modules.reactivemongo.JSONFileToSave
 import play.api.libs.iteratee.Iteratee
 import models.Images
 import java.io.BufferedInputStream
+import models.Organisation
 
 class FactoryServiceImpl @Inject() (
   override val dao: FactoryDAO,
@@ -40,14 +41,8 @@ class FactoryServiceImpl @Inject() (
   externalInterfaceService: ExternalInterfaceService)(implicit val ec: ExecutionContext)
     extends FactoryService {
 
-  override def getFactoryList(page: Int, organisation: String): Future[ModelListData[Factory]] = {
-    for {
-      factoryList <- find(Factory.queryByOrganisation(organisation), page, utils.DefaultValues.DefaultPageLength)
-      factoryCount <- count(Factory.queryByOrganisation(organisation))
-    } yield new ModelListData[Factory] {
-      override val list = factoryList
-      override val paginateData = PaginateData(page, factoryCount)
-    }
+  override def getFactoryList(page: Int, organisation: Organisation): Future[ModelListData[Factory]] = {
+    findMany(Factory.queryByParent(organisation), page, utils.DefaultValues.DefaultPageLength)
   }
 
   override def remove(factory: Factory, loggedInUserUuid: String): Future[RemoveResult] = {
@@ -89,7 +84,7 @@ class FactoryServiceImpl @Inject() (
           }
         }
 
-        update(factory.copy(factoryHierachies = hierarchies.toSet))
+        update(factory.copy(hierachies = hierarchies.toSet))
       }
     } yield updateResult
   }
@@ -104,12 +99,12 @@ class FactoryServiceImpl @Inject() (
 
   private def updateAmlHierarchy(factory: Factory, amlHierarchy: AmlHierarchy): Future[String] = {
     for {
-      optionalOldHierarchy <- hierarchyService.findOne(FactoryPart.
-        queryByFactory(factory) ++ NamedModel.queryByName(amlHierarchy.name))
+      optionalOldHierarchy <- hierarchyService.findOne(Hierarchy.queryByParent(factory) ++
+        Hierarchy.queryByName(amlHierarchy.name))
       existingHierarchy <- optionalOldHierarchy match {
         case Some(h) => Future.successful(h)
         case None => hierarchyService.insert(Hierarchy.
-          create(factory = factory.uuid, name = amlHierarchy.name, orderNumber = amlHierarchy.orderNumber)).
+          create(parentFactory = factory.uuid, name = amlHierarchy.name, orderNumber = amlHierarchy.orderNumber)).
           map(h => h.get)
       }
       internalElements <- updateInternalElements(factory, existingHierarchy.uuid, true,
@@ -135,7 +130,7 @@ class FactoryServiceImpl @Inject() (
 
     for {
       optionalOldIE <- {
-        val query = HierarchyPart.queryByAmlId(amlInternalElement.amlId) ++ FactoryPart.queryByFactory(factory)
+        val query = InternalElement.queryByAmlId(amlInternalElement.amlId) ++ InternalElement.queryByConnectionTo(factory)
         internalElementService.findOne(query)
       }
 
@@ -179,20 +174,20 @@ class FactoryServiceImpl @Inject() (
                                       amlExternalInterface: AmlExternalInterface): Future[String] = {
     for {
       existingExternalInterface <- {
-        val query = HierarchyPart.queryByAmlId(amlExternalInterface.amlId) ++ FactoryPart.queryByFactory(factory)
+        val query = ExternalInterface.queryByAmlId(amlExternalInterface.amlId) ++ ExternalInterface.queryByConnectionTo(factory)
         externalInterfaceService.findOne(query)
       }
       updatedOrNewUuid <- existingExternalInterface match {
         case Some(fei) =>
           //This was an existing external interface, update it in the db
-          val updatedExternalInterface = fei.copy(name = amlExternalInterface.name, factory = factory.uuid,
+          val updatedExternalInterface = fei.copy(name = amlExternalInterface.name, connectionTo = factory.uuid,
             orderNumber = amlExternalInterface.orderNumber, parent = parentInternalElement)
 
           externalInterfaceService.update(updatedExternalInterface).map(s => updatedExternalInterface.uuid)
         case None =>
           //This was a new external interface, insert it in the db
           val newExternalInterface = ExternalInterface.create(
-            factory = factory.uuid,
+            connectionToFactory = factory.uuid,
             name = amlExternalInterface.name,
             orderNumber = amlExternalInterface.orderNumber,
             amlId = amlExternalInterface.amlId,

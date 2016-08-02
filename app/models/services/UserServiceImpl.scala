@@ -30,13 +30,7 @@ class UserServiceImpl @Inject() (val dao: UserDAO, implicit override val ec: Exe
   implicit val joReads: Reads[User] = User.userFormat
 
   override def getUserList(page: Int, uuidSet: Set[String]): Future[ModelListData[User]] = {
-    for {
-      userList <- find(DbModel.queryBySetOfUuids(uuidSet), page, utils.DefaultValues.DefaultPageLength)
-      userCount <- count(DbModel.queryBySetOfUuids(uuidSet))
-    } yield new ModelListData[User] {
-      override val list = userList
-      override val paginateData = PaginateData(page, userCount)
-    }
+    findMany(User.queryBySetOfUuids(uuidSet), page, utils.DefaultValues.DefaultPageLength)
   }
 
   /**
@@ -45,7 +39,7 @@ class UserServiceImpl @Inject() (val dao: UserDAO, implicit override val ec: Exe
    * @param loginInfo The login info to retrieve a user.
    * @return The retrieved user or None if no user could be retrieved for the given login info.
    */
-  override def retrieve(loginInfo: LoginInfo): Future[Option[User]] = find(User.queryByLoginInfo(loginInfo)).map { _.headOption }
+  override def retrieve(loginInfo: LoginInfo): Future[Option[User]] = findOne(User.queryByLoginInfo(loginInfo))
 
   /*
   override def save(user: User): Future[Option[User]] = {
@@ -119,7 +113,7 @@ class UserServiceImpl @Inject() (val dao: UserDAO, implicit override val ec: Exe
             avatarURL = Some(profile.avatarURL.getOrElse(user.avatarURL.getOrElse(""))))
           update(updatedUser) flatMap {
             _ match {
-              case true => findOne(DbModel.queryByUuid(user.uuid))
+              case true => findOne(User.queryByUuid(user.uuid))
               case false => Future.successful(None)
             }
           }

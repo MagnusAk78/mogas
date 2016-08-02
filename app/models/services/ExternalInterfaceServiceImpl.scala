@@ -10,18 +10,13 @@ import scala.concurrent.Future
 import play.api.libs.json.Json
 import models.InternalElement
 import models.ExternalInterface
-import models.HierarchyPart
+import models.AmlObject
+import models.ChildOf
 
 class ExternalInterfaceServiceImpl @Inject() (override val dao: ExternalInterfaceDAO)(implicit val ec: ExecutionContext)
     extends ExternalInterfaceService {
 
   def getExternalInterfaceList(page: Int, parent: InternalElement): Future[ModelListData[ExternalInterface]] = {
-    for {
-      externalInterfaceList <- find(HierarchyPart.queryByParent(parent), page, utils.DefaultValues.DefaultPageLength)
-      externalInterfaceCount <- count(HierarchyPart.queryByParent(parent))
-    } yield new ModelListData[ExternalInterface] {
-      override val list = externalInterfaceList
-      override val paginateData = PaginateData(page, externalInterfaceCount)
-    }
+    findMany(ExternalInterface.queryByParent(parent), page, utils.DefaultValues.DefaultPageLength)
   }
 }

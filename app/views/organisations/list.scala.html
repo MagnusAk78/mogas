@@ -3,37 +3,31 @@
 	webJarAssets: WebJarAssets)
 
 @import templates._
+@import components.media._
+@import components.utils._
+@import components.buttons._
 
 @main(Messages("organisations"), loggedInUser, activeOrg) {
-	@titleArea(Messages("organisations"), Some(Messages("function.list")), None)
-    @rowColumnCenter() {
-        @paginate(paginateData, controllers.routes.OrganisationController.list(_))
-        @{
+	@title(Messages("organisations"))
+	@rowContentButtons() {
+    	@{
             val mediaList = organisations.map{ organisation =>
             	routes.FileController.getThumbnailImage(organisation.uuid, models.Types.OrganisationType.stringValue)
             }
 
             val linkList = organisations.map((organisation: Organisation) => 
             	controllers.routes.OrganisationController.edit(organisation.uuid))
+            	
             val headingList = organisations.map(_.name)
             val textList = organisations.map(_.name)
-            val activatedList = if(activeOrg.isDefined) {
-                organisations.map((organisation: Organisation) =>
-                    (organisation.uuid == activeOrg.get.uuid))
-            } else {
-                List()
-            }
 
-            mediaListWithOneLink(mediaList, linkList, headingList, textList, activatedList)
-        }
-    }
-    <hr>
-    @rowColumnCenter() {
-        @editButton(controllers.routes.OrganisationController.editActiveOrganisation(paginateData.page),
-            Some(Messages("organisations.select.active")))
-    }
-    <hr>
-    @rowColumnCenter() {
+            displayPaginatedList(mediaList, linkList, headingList, textList, List(),
+            	paginateData, controllers.routes.OrganisationController.list(_))
+    	}
+    }{
+		@editButton(controllers.routes.OrganisationController.editActiveOrganisation(paginateData.page),
+            Some(Messages("selectActiveOrganisation")))
+   
         @createButton(controllers.routes.OrganisationController.create)
     }
 }

@@ -1,0 +1,21 @@
+@(submitTo: play.api.mvc.Call, btnText: String, btnType: String = "btn-primary",
+    icon: Option[String] = Some("fa fa-check-circle fa-fw"))(content: Html = new Html(""))(implicit flash: Flash, request: RequestHeader, messages: Messages)
+
+@import b4.vertical.fieldConstructor
+@import components.buttons._
+
+<fieldset>
+    @b4.form(submitTo) {
+    @helper.CSRF.formField
+
+    <div class="form-group">
+    	@content
+    </div>
+
+    <div class="form-group">
+    	<div>
+    	@submitButton(btnText, btnType, icon)
+    	</div>
+	</div>
+	}
+</fieldset>

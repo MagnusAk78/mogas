@@ -30,12 +30,18 @@ import models.services.InternalElementService
 import models.services.ExternalInterfaceService
 import models.services.ExternalInterfaceServiceImpl
 import models.services.InternalElementServiceImpl
+import models.daos.InstructionDAO
+import models.daos.InstructionDAOImpl
+import models.daos.InstructionPartDAOImpl
+import models.daos.InstructionPartDAO
+import models.services.InstructionServiceImpl
+import models.services.InstructionService
 
 /**
  * This class is a Guice module that tells Guice how to bind several
  * different types. This Guice module is created when the Play
  * application starts.
-
+ *
  * Play will automatically use any class called `Module` that is in
  * the root package. You can create modules in other locations by
  * adding `play.modules.enabled` settings to the `application.conf`
@@ -44,13 +50,13 @@ import models.services.InternalElementServiceImpl
 class Module extends AbstractModule {
 
   override def configure() = {
-    
+
     //Filters
     bind(classOf[LoggingFilter]).to(classOf[LoggingFilterImpl]).asEagerSingleton()
-    
+
     //Actions
     bind(classOf[GeneralActions]).to(classOf[GeneralActionsImpl]).asEagerSingleton()
-        
+
     //DAOs
     bind(classOf[UserDAO]).to(classOf[UserDAOImpl]).asEagerSingleton()
     bind(classOf[OrganisationDAO]).to(classOf[OrganisationDAOImpl]).asEagerSingleton()
@@ -59,6 +65,8 @@ class Module extends AbstractModule {
     bind(classOf[HierarchyDAO]).to(classOf[HierarchyDAOImpl]).asEagerSingleton()
     bind(classOf[InternalElementDAO]).to(classOf[InternalElementDAOImpl]).asEagerSingleton()
     bind(classOf[ExternalInterfaceDAO]).to(classOf[ExternalInterfaceDAOImpl]).asEagerSingleton()
+    bind(classOf[InstructionDAO]).to(classOf[InstructionDAOImpl]).asEagerSingleton()
+    bind(classOf[InstructionPartDAO]).to(classOf[InstructionPartDAOImpl]).asEagerSingleton()
 
     //Services, User service is in Silhouette module
     bind(classOf[OrganisationService]).to(classOf[OrganisationServiceImpl])
@@ -67,7 +75,7 @@ class Module extends AbstractModule {
     bind(classOf[HierarchyService]).to(classOf[HierarchyServiceImpl]).asEagerSingleton()
     bind(classOf[InternalElementService]).to(classOf[InternalElementServiceImpl]).asEagerSingleton()
     bind(classOf[ExternalInterfaceService]).to(classOf[ExternalInterfaceServiceImpl]).asEagerSingleton()
-    
+    bind(classOf[InstructionService]).to(classOf[InstructionServiceImpl]).asEagerSingleton()
   }
 
 }

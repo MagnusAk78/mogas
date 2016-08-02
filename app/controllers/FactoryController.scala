@@ -7,8 +7,8 @@ import scala.concurrent.Future
 import org.joda.time.DateTime
 
 import akka.stream.Materializer
-import forms.OrganisationForm
-import forms.OrganisationForm.fromOrganisationToData
+import models.formdata.OrganisationForm
+import models.formdata.OrganisationForm.fromOrganisationToData
 import javax.inject.Inject
 import javax.inject.Singleton
 import models.Organisation
@@ -36,7 +36,7 @@ import play.api.mvc.ActionBuilder
 import play.api.mvc.Flash
 import controllers.actions._
 import models.services.RemoveResult
-import forms.FactoryForm
+import models.formdata.FactoryForm
 import models.Factory
 import models.services.HierarchyService
 import models.services.InternalElementService
@@ -58,7 +58,7 @@ class FactoryController @Inject() (
   def list(page: Int) =
     (generalActions.MySecuredAction andThen generalActions.RequireActiveOrganisation).async { implicit mySecuredRequest =>
       val responses = for {
-        factoryListData <- factoryService.getFactoryList(page, mySecuredRequest.activeOrganisation.get.uuid)
+        factoryListData <- factoryService.getFactoryList(page, mySecuredRequest.activeOrganisation.get)
       } yield Ok(views.html.factories.list(factoryListData.list, factoryListData.paginateData,
         Some(mySecuredRequest.identity), mySecuredRequest.activeOrganisation))
 
@@ -133,18 +133,18 @@ class FactoryController @Inject() (
     }
 
   def create = (generalActions.MySecuredAction andThen generalActions.RequireActiveOrganisation) { implicit mySecuredRequest =>
-    Ok(views.html.factories.edit(FactoryForm.form, None, Some(mySecuredRequest.identity), mySecuredRequest.activeOrganisation))
+    Ok(views.html.factories.create(FactoryForm.form, Some(mySecuredRequest.identity), mySecuredRequest.activeOrganisation))
   }
 
   def submitCreate = (generalActions.MySecuredAction andThen generalActions.RequireActiveOrganisation).async { implicit mySecuredRequest =>
     FactoryForm.form.bindFromRequest().fold(
       formWithErrors => {
-        Future.successful(BadRequest(views.html.factories.edit(formWithErrors, None, Some(mySecuredRequest.identity),
+        Future.successful(BadRequest(views.html.factories.create(formWithErrors, Some(mySecuredRequest.identity),
           mySecuredRequest.activeOrganisation)))
       },
       formData => {
         val responses = for {
-          optSavedFactory <- factoryService.insert(Factory.create(name = formData.name, organisation = mySecuredRequest.activeOrganisation.get.uuid))
+          optSavedFactory <- factoryService.insert(Factory.create(name = formData.name, parentOrganisation = mySecuredRequest.activeOrganisation.get.uuid))
         } yield optSavedFactory match {
           case Some(newFactory) =>
             Redirect(routes.FactoryController.edit(newFactory.uuid)).
@@ -164,16 +164,16 @@ class FactoryController @Inject() (
     (generalActions.MySecuredAction andThen generalActions.RequireActiveOrganisation andThen
       generalActions.FactoryAction(uuid)) { implicit factoryRequest =>
 
-        Ok(views.html.factories.edit(FactoryForm.form.fill(factoryRequest.factory), Some(uuid), Some(factoryRequest.identity),
-          factoryRequest.activeOrganisation))
+        Ok(views.html.factories.edit(factoryRequest.factory, FactoryForm.form.fill(factoryRequest.factory),
+          Some(factoryRequest.identity), factoryRequest.activeOrganisation))
       }
 
   def submitEdit(uuid: String) = (generalActions.MySecuredAction andThen generalActions.RequireActiveOrganisation andThen
     generalActions.FactoryAction(uuid)).async { implicit factoryRequest =>
       FactoryForm.form.bindFromRequest().fold(
         formWithErrors => {
-          Future.successful(BadRequest(views.html.factories.edit(formWithErrors, None, Some(factoryRequest.identity),
-            factoryRequest.activeOrganisation)))
+          Future.successful(BadRequest(views.html.factories.edit(factoryRequest.factory, formWithErrors,
+            Some(factoryRequest.identity), factoryRequest.activeOrganisation)))
         },
         formData => {
           val responses = for {

@@ -40,12 +40,6 @@ class OrganisationServiceImpl @Inject() (override val dao: OrganisationDAO, user
 
   override def getOrganisationList(page: Int, allowedUserUuid: String): Future[ModelListData[Organisation]] = {
     val selector = Organisation.queryByAllowedUser(allowedUserUuid)
-    for {
-      organisationList <- find(selector, page, utils.DefaultValues.DefaultPageLength)
-      organisationCount <- count(selector)
-    } yield new ModelListData[Organisation] {
-      override val list = organisationList
-      override val paginateData = PaginateData(page, organisationCount)
-    }
+    findMany(selector, page, utils.DefaultValues.DefaultPageLength)
   }
 }

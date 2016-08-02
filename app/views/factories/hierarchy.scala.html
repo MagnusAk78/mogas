@@ -3,22 +3,21 @@
     messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
 
 @import templates._
+@import components.buttons._
+@import components.media._
+@import components.utils._
 
-@main(Messages("factory.hierarchies"), loggedInUser, activeOrg) {
-	@titleArea(hierarchy.name, Some(Messages("function.details")), 
-		Some(controllers.routes.FactoryController.factory(factory.uuid, 1)))
-    @rowColumnCenter(){
+@main(Messages("hierarchies"), loggedInUser, activeOrg) {
+	
+	@title(hierarchy.name)
+	@rowContentButtons() {
         @{
             val linkList = List(controllers.routes.FactoryController.factory(factory.uuid, 1),
                 controllers.routes.FactoryController.hierarchy(hierarchy.uuid, 1))
             val textList = List(factory.name, hierarchy.name)
             breadcrumb(linkList, textList)
-        }
-    }
-    @rowColumnCenter() {
-        @paginate(paginateData, controllers.routes.FactoryController.hierarchy(hierarchy.uuid, _))
-
-        @{
+        }		
+    	@{
             val mediaList = internalElements.map((ie: InternalElement) =>
             	routes.FileController.getThumbnailImage(ie.uuid, models.Types.InternalElementType.stringValue))
 
@@ -27,7 +26,11 @@
             val headingList = internalElements.map(_.name)
             val textList = internalElements.map(_.name)
 
-            mediaListWithOneLink(mediaList, linkList, headingList, textList)
-        }
+            displayPaginatedList(mediaList, linkList, headingList, textList, List(),
+            	paginateData, controllers.routes.FactoryController.hierarchy(hierarchy.uuid, _))
+    	}
+    }{
+    	@backButton(controllers.routes.FactoryController.factory(factory.uuid, 1))
+        @createButton(controllers.routes.FactoryController.create)
     }
 }

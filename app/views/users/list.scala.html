@@ -2,13 +2,14 @@
     messages: Messages, request: RequestHeader, webJarAssets: WebJarAssets)
 
 @import templates._
+@import components.utils._
+@import components.media._
 
 @main(Messages("users"), loggedInUser, activeOrg) {
-	@titleArea(Messages("users"), Some(Messages("function.list")), None)
-    @rowColumnCenter() {
-        @paginate(paginateData, controllers.routes.UserController.list(_))
-
-        @{
+	
+	@title(Messages("users"))
+	@rowContentButtons() {
+    	@{
 			val mediaList = users.map{ user =>
                 routes.FileController.getThumbnailImage(user.uuid, models.Types.UserType.stringValue)
             }
@@ -17,7 +18,9 @@
             val headingList = users.map(_.name)
             val textList = users.map(_.email)
 
-            mediaListWithOneLink(mediaList, linkList, headingList, textList)
-        }
-    }
+            displayPaginatedList(mediaList, linkList, headingList, textList, List(),
+            	paginateData, controllers.routes.UserController.list(_))
+    	}
+    }{
+    }	
 }

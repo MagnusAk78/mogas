@@ -1,0 +1,12 @@
+@(linkList: List[Call], textList: List[String])(implicit flash: Flash, messages: Messages)
+
+<ol class="breadcrumb">
+	@for((link, text) <- (linkList zip textList)) { 
+        <li>
+            <a href="@link">
+                @text
+            </a>
+        </li>
+    }
+</ol>
+

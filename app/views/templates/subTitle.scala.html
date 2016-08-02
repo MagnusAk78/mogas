@@ -1,8 +1,0 @@
-@(mainTitle: String, secondaryTitle: Option[String] = None, user: Option[models.User] = None)(implicit flash: Flash, messages: Messages)
-
-<h4>
-    @mainTitle
-    @if(secondaryTitle.isDefined) {
-        <small>@secondaryTitle.get</small>
-    }
-</h4>

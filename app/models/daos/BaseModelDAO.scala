@@ -12,24 +12,30 @@ import reactivemongo.api.commands.WriteResult
 import reactivemongo.play.json.JSONSerializationPack
 import play.modules.reactivemongo.json._
 import reactivemongo.api.QueryOpts
+import models.DbModelComp
+import models.DbModel
 
 abstract class BaseModelDAO[M <: DbModel](implicit exec: ExecutionContext, implicit val joWrites: OWrites[M],
                                           implicit val joReads: Reads[M]) {
 
   protected def collection: Future[JSONCollection]
 
+  protected val companionObject: DbModelComp[M]
+
   final def insert(model: M): Future[WriteResult] = collection.flatMap { collection => collection.insert(model) }
 
   final def update(model: M): Future[WriteResult] = collection.flatMap(collection => {
-    val query = DbModel.queryByUuid(model.uuid)
+    val query = companionObject.queryByUuid(model.uuid)
 
-    collection.update(query, DbModel.getUpdateObject(model))
+    collection.update(query, companionObject.getUpdateObject(model))
   })
 
-  final def remove(model: M): Future[Boolean] = collection.flatMap(_.remove(DbModel.queryByUuid(model.uuid)).
+  final def remove(model: M): Future[Boolean] = collection.flatMap(_.remove(companionObject.queryByUuid(model.uuid)).
     map { wr => wr.ok })
 
   final def count(query: JsObject): Future[Int] = collection.flatMap(_.count(Some(query)))
+
+  final def findOneByUuid(uuid: String): Future[Option[M]] = find(companionObject.queryByUuid(uuid), 1, 1).map(_.headOption)
 
   final def find(query: JsObject, page: Int, pageSize: Int): Future[List[M]] =
     collection.flatMap(_.find(query).options(QueryOpts((page - 1) * pageSize, pageSize)).cursor[M]().

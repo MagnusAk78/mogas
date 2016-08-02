@@ -1,33 +1,42 @@
-@(user: User, organisations: List[Organisation], paginateData:utils.PaginateData,
+@(user: User, organisations: List[Organisation], paginateData: utils.PaginateData,
     loggedInUser: Option[User], activeOrg: Option[Organisation])(implicit flash: Flash, request: RequestHeader, messages: Messages,
     webJarAssets: WebJarAssets)
 
 @import templates._
+@import components.utils._
+@import components.buttons._
+@import components.media._
 
 @main(Messages("user.details", user.name), loggedInUser, activeOrg) {
-	@titleArea(Messages("user"), Some(Messages("info.details")), 
-		Some(controllers.routes.UserController.list(1)))
-    @rowColumnCenter() {
-        @{
-            val titles = List(Messages("user.username"), Messages("user.firstName"),
-                Messages("user.lastName"), Messages("user.email"))
-            val descriptions = List(user.name, user.firstName, user.lastName, user.email)
 
-            descriptionList(titles, descriptions)
-        }
-    }
-    <hr>
-    @rowColumnCenter() {
-        @title(Messages("user.allowed.organisations"))
-    }
-    @rowColumnCenter() {
-        @paginate(paginateData, controllers.routes.UserController.show(user.uuid, _))
-
-        @unstyledList(organisations.map(_.name))
-    }
-   	@rowColumnCenter() {
-    	@imageOrVideo(Some(routes.FileController.getStandardImage(user.uuid, models.Types.UserType.stringValue)),
-    		Some(routes.FileController.getThumbnailImage(user.uuid, models.Types.UserType.stringValue)), 
-    		None)
-    }
+	@title(user.name)
+			
+	@rowContentButtons() {	
+		@rowEvenColumns() {
+			<div class="card card-block text-xs-center">
+				<h6 class="card-subtitle text-muted">@Messages("details")</h6>
+				<p class="card-text">@user.email</p>
+			</div>
+			<div class="card card-block text-xs-center">
+				<h6 class="card-subtitle text-muted">@Messages("organisations")</h6>
+        		@paginate(paginateData, controllers.routes.UserController.show(user.uuid, _))
+		    	<ul class="list-unstyled">
+    				@for(name <- organisations.map(_.name)) {
+    				<li>
+        				@name
+    				</li>
+    				}
+				</ul>
+		    </div>
+        }{	
+    		@imageOrVideo(Some(routes.FileController.getStandardImage(user.uuid, models.Types.UserType.stringValue)),
+    			Some(routes.FileController.getThumbnailImage(user.uuid, models.Types.UserType.stringValue)), 
+    			None)
+    	}		
+	}{
+		@backButton(controllers.routes.UserController.list(1))
+		@if(loggedInUser.isDefined && loggedInUser.get.uuid == user.uuid) {
+			@editButton(routes.SignUpController.edit(user.uuid), Some(Messages("edit")))
+		}	
+	}
 }

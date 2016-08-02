@@ -9,98 +9,86 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
+        
         <title>@titleString</title>
-        <link href="//fonts.googleapis.com/css?family=Roboto|Montserrat:400,700|Open+Sans:400,300,600" rel="stylesheet">
-        <link href="//cdnjs.cloudflare.com/ajax/libs/ionicons/1.5.2/css/ionicons.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="@routes.WebJarAssets.at(webJarAssets.locate("bootstrap.min.css"))">
-        <link rel="stylesheet" href="@routes.WebJarAssets.at(webJarAssets.locate("bootstrap-theme.min.css"))">
-        <link rel="stylesheet" href="@routes.Assets.at("styles/main.css")">
-            <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
-            <!--[if lt IE 9]>
-            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-            <![endif]-->
+        
+        <link rel="stylesheet" href="@routes.WebJarAssets.at(webJarAssets.locate("bootstrap.min.css"))" />
+        <link rel="stylesheet" href="@routes.Assets.at("font-awesome-4.6.3/css/font-awesome.min.css")" />
+        <link rel="stylesheet" href="@routes.Assets.at("styles/b4d-styles.css")" />
+        <link rel="stylesheet" href="@routes.Assets.at("styles/main.css")" />
+            
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+        
     </head>
     <body>
 
-            @{
-                val navLinks = Set() ++
-                			   loggedInUser.map(u => Set(routes.OrganisationController.list(1))).getOrElse(Set.empty) ++ 
-                			   loggedInUser.map(u => Set(routes.UserController.list(1))).getOrElse(Set.empty) ++ 
-                			   activeOrg.map(u => Set(routes.FactoryController.list(1))).getOrElse(Set.empty) /*
+    	@if(activeOrg.isDefined) {
+        	@navigationBar(activeOrg.get.name, loggedInUser)
+		} else {
+        	@navigationBar(Messages("not.applicable"), loggedInUser)
+		}
 
-                                  routes.InstructionController.list(1),
-                                  routes.IssueController.list("MyResponsability", 1) */
 
-                val navTexts = Set() ++
-                			   loggedInUser.map(u => Set(Messages("navigation.organisations"))).getOrElse(Set.empty) ++
-                               loggedInUser.map(u => Set(Messages("navigation.users"))).getOrElse(Set.empty) ++
-                			   activeOrg.map(u => Set(Messages("navigation.factories"))).getOrElse(Set.empty) /*   
+<div class="container-fluid" id="main">
+	<div class="row row-offcanvas row-offcanvas-left">
+		<div class="col-md-3 col-lg-2 sidebar-offcanvas" id="sidebar" role="navigation">
+            
+    	@{
+        	val navLinks = Set() ++
+            	loggedInUser.map(u => Set(routes.OrganisationController.list(1))).getOrElse(Set.empty) ++ 
+                loggedInUser.map(u => Set(routes.UserController.list(1))).getOrElse(Set.empty) ++ 
+                activeOrg.map(u => Set(routes.FactoryController.list(1))).getOrElse(Set.empty) /*
 
-                                  Messages("navigation.instructions"),
-                                  Messages("navigation.issues") */
+                routes.InstructionController.list(1),
+                routes.IssueController.list("MyResponsability", 1) */
 
-                if(activeOrg.isDefined) {
-                    navigationBar(activeOrg.get.name, navLinks, navTexts, loggedInUser)
-                } else {
-                    navigationBar(Messages("not.applicable"), navLinks, navTexts, loggedInUser)
-                }
+            val navTexts = Set() ++
+                loggedInUser.map(u => Set(Messages("organisations"))).getOrElse(Set.empty) ++
+                loggedInUser.map(u => Set(Messages("users"))).getOrElse(Set.empty) ++
+                activeOrg.map(u => Set(Messages("factories"))).getOrElse(Set.empty) /*   
+
+                Messages("instructions"),
+                Messages("issues") */
+
+            if(activeOrg.isDefined) {
+            	navigation(navLinks, navTexts)
             }
+        }
+            	
+        </div>
+        <div class="col-md-9 col-lg-10 main">
 
-            <div class="container">
+        	<!--toggle sidebar button-->
+            <p class="hidden-md-up">
+            	<button type="button" class="btn btn-primary-outline btn-sm" data-toggle="offcanvas">
+                	<i class="fa fa-chevron-left"></i> @Messages("menu")
+               	</button>
+            </p>            	
 
-                @if(flash.get("success").isDefined){
-                    <div class="alert alert-success">
-                        @flash.get("success")
-                    </div>
-                }
+            @if(flash.get("success").isDefined){
+            	<div class="alert alert-success" role="alert">
+                	@flash.get("success")
+	            </div>
+    	    }                
+                
+            @if(flash.get("error").isDefined){
+            	<div class="alert alert-danger" role="alert">
+                	@flash.get("error")
+	            </div>
+    	    }
 
-                @if(flash.get("error").isDefined){
-                    <div class="alert alert-danger">
-                        @flash.get("error")
-                    </div>
-                }
-
-                @row() {
-                    @mainContentColumn() {
-                        @content
-                    }
-                }
-
-                @row() {
-                    @mainContentColumn() {
-                        <hr>
-                    }
-                }
-
-                @row() {
-                    @mainContentColumn() {
-                        @if(loggedInUser.isDefined){
-                            <footer>
-                                @{
-                                    val titles = List(Messages("user.fullName"),
-                                                      Messages("organisation.activeOrganisation"),
-                                                      Messages("application.versionText"))
-                                    val descriptions = List(loggedInUser.get.name,
-                                        if(activeOrg.isDefined) {
-                                            activeOrg.get.name
-                                        } else {
-                                            Messages("not.set")
-                                        },
-                                        Messages("application.version")
-                                    )
-
-                                    descriptionList(titles, descriptions)
-                                }
-                            </footer>
-                        }
-                    }
-                }
-
-            </div><!-- container -->
-        <script type="text/javascript" src="@routes.WebJarAssets.at(webJarAssets.locate("jquery.min.js"))"></script>
-        <script type="text/javascript" src="@routes.WebJarAssets.at(webJarAssets.locate("bootstrap.min.js"))"></script>
-    </body>
+           	@content
+        </div>
+    </div>
+</div><!-- container -->
+<script type="text/javascript" src="@routes.WebJarAssets.at(webJarAssets.locate("jquery.min.js"))"></script>
+<script type="text/javascript" src="@routes.WebJarAssets.at(webJarAssets.locate("bootstrap.min.js"))"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/b4d-scripts.js")"></script>
+</body>
 </html>

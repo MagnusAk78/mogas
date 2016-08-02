@@ -10,6 +10,8 @@ import play.api.libs.json.JsObject
 import play.api.libs.json.OWrites
 import play.api.libs.json.Reads
 import models.DbModel
+import models.DbModelComp
+import utils.PaginateData
 
 trait BaseModelService[M <: DbModel] {
 
@@ -23,21 +25,29 @@ trait BaseModelService[M <: DbModel] {
 
   final def count(query: JsObject): Future[Int] = dao.count(query)
 
-  final def findOneByUuid(uuid: String): Future[Option[M]] = findOne(DbModel.queryByUuid(uuid))
+  final def findOneByUuid(uuid: String): Future[Option[M]] = dao.findOneByUuid(uuid)
 
-  final def findOne(query: JsObject): Future[Option[M]] = find(query, 1, 1).map(_.headOption)
+  final def findOne(query: JsObject): Future[Option[M]] = dao.find(query, 1, 1).map(_.headOption)
 
-  final def find(query: JsObject, page: Int = 1,
-                 pageSize: Int = utils.DefaultValues.DefaultPageLength): Future[List[M]] = {
-
-    Logger.info("BaseModelService.find query: " + query)
-    Logger.info("BaseModelService.find page: " + page)
-    Logger.info("BaseModelService.find pageSize: " + pageSize)
-
-    dao.find(query, page, pageSize)
+  final def findMany(query: JsObject, page: Int = 1,
+                     pageSize: Int = utils.DefaultValues.DefaultPageLength): Future[ModelListData[M]] = {
+    for {
+      theList <- dao.find(query, page, utils.DefaultValues.DefaultPageLength)
+      count <- count(query)
+    } yield new ModelListData[M] {
+      override val list = theList
+      override val paginateData = PaginateData(page, count)
+    }
   }
 
-  final def findAndSort(query: JsObject, sort: JsObject, page: Int = 1,
-                        pageSize: Int = utils.DefaultValues.DefaultPageLength): Future[List[M]] =
-    dao.findAndSort(query, sort, page, pageSize)
+  final def findManySorted(query: JsObject, sort: JsObject, page: Int = 1,
+                           pageSize: Int = utils.DefaultValues.DefaultPageLength): Future[ModelListData[M]] = {
+    for {
+      theList <- dao.findAndSort(query, sort, page, utils.DefaultValues.DefaultPageLength)
+      count <- count(query)
+    } yield new ModelListData[M] {
+      override val list = theList
+      override val paginateData = PaginateData(page, count)
+    }
+  }
 }

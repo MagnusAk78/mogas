@@ -1,23 +1,21 @@
-@(signInForm: Form[forms.SignInForm.Data], socialProviders: com.mohiva.play.silhouette.impl.providers.SocialProviderRegistry)(implicit request: RequestHeader, messages: Messages, 
+@(signInForm: Form[models.formdata.SignInForm.Data], socialProviders: com.mohiva.play.silhouette.impl.providers.SocialProviderRegistry)(implicit request: RequestHeader, messages: Messages, 
 	webJarAssets: WebJarAssets, lang: Lang, flash: Flash)
 
 @import com.mohiva.play.silhouette.impl.providers.oauth2.ClefProvider
-@import b3.vertical.fieldConstructor
+@import b4.vertical.fieldConstructor
 @import templates._
+@import forms._
+@import components.buttons._
 
 @main(Messages("signIn"), None, None) {
-    @rowMainSecondary() {
-        @title(Messages("signIn"), None)
-    }{
-        @button(routes.SignUpController.view, Messages("signUp"))
-    }
-	@rowColumnCenter() {
+	@title(Messages("signIn"))
+	
+	@rowContentButtons() {
 		@formNormal(routes.SignInController.submit(), Messages("signIn")) {
-        	@b3.email(signInForm("email"), '_hiddenLabel -> Messages("email"), 'placeholder -> Messages("email"), 'class -> "form-control input-lg")
-            @b3.password(signInForm("password"), '_hiddenLabel -> Messages("password"), 'placeholder -> Messages("password"), 'class -> "form-control input-lg")
-            @b3.checkbox(signInForm("rememberMe"), '_text -> Messages("remember.me"), 'checked -> true)
+        	@b4.email(signInForm("email"), '_hiddenLabel -> Messages("email"), 'placeholder -> Messages("email"), 'class -> "form-control input-lg")
+            @b4.password(signInForm("password"), '_hiddenLabel -> Messages("password"), 'placeholder -> Messages("password"), 'class -> "form-control input-lg")
+            @b4.checkbox(signInForm("rememberMe"), '_text -> Messages("remember.me"), 'checked -> true)
         }
-        <hr>
 		
         @if(socialProviders.providers.nonEmpty) {
             <div class="social-providers">
@@ -34,5 +32,7 @@
                 }
             </div>
         }
+    } {
+    	@button(routes.SignUpController.view, Messages("signUp"))
     }
 }

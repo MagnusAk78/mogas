@@ -1,3 +1,0 @@
-@(link: play.api.mvc.Call, text: Option[String] = None)(implicit flash: Flash, messages: Messages)
-
-@button(link, if(text.isDefined) { text.get } else { Messages("command.edit") }, "btn-primary", Some("glyphicon-pencil"))

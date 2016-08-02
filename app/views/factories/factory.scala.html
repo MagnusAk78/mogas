@@ -3,22 +3,18 @@
 	webJarAssets: WebJarAssets)
 
 @import templates._
+@import components.buttons._
+@import components.media._
+@import components.utils._
 
-@main(Messages("factory.hierarchies"), loggedInUser, activeOrg) {
-	@titleArea(factory.name, Some(Messages("function.details")), Some(controllers.routes.FactoryController.list(1)))
-    @rowMainSecondary() {
-    }{
-        @editButton(controllers.routes.FactoryController.edit(factory.uuid))
-    }
-    @rowColumnCenter(){
-        @breadcrumb(List(controllers.routes.FactoryController.factory(factory.uuid, 1)), List(factory.name))
-    }
-    @rowColumnCenter() {
-        @paginate(paginateData, controllers.routes.FactoryController.factory(factory.uuid, _))
-
-        @{
-			val mediaList = hierarchies.map{ factoryHierarchy =>
-            	routes.FileController.getThumbnailImage(factoryHierarchy.uuid, models.Types.HierarchyType.stringValue)
+@main(Messages("hierarchies"), loggedInUser, activeOrg) {
+	
+	@title(factory.name)
+	@rowContentButtons() {
+		@breadcrumb(List(controllers.routes.FactoryController.factory(factory.uuid, 1)), List(factory.name))
+    	@{
+			val mediaList = hierarchies.map{ hierarchy =>
+            	routes.FileController.getThumbnailImage(hierarchy.uuid, models.Types.HierarchyType.stringValue)
             }                
                 
             val linkList = hierarchies.map((hierarchy: Hierarchy) =>
@@ -27,12 +23,15 @@
             val headingList = hierarchies.map(_.name)
             val textList = hierarchies.map(_.name)
 
-            mediaListWithOneLink(mediaList, linkList, headingList, textList)
-        }
-    }
-    @rowColumnCenter() {
-    	@imageOrVideo(Some(routes.FileController.getStandardImage(factory.uuid, models.Types.OrganisationType.stringValue)),
-    		Some(routes.FileController.getThumbnailImage(factory.uuid, models.Types.OrganisationType.stringValue)), 
-    		None)
-    }    
+            displayPaginatedList(mediaList, linkList, headingList, textList, List(),
+            	paginateData, controllers.routes.FactoryController.factory(factory.uuid, _))
+    	}
+    	
+    	@showImage(routes.FileController.getStandardImage(factory.uuid, models.Types.FactoryType.stringValue))
+    }{
+    	@backButton(controllers.routes.FactoryController.list(1))
+    	@changeImageButton(factory.uuid, models.Types.FactoryType)
+    	@editButton(controllers.routes.FactoryController.edit(factory.uuid))
+        @createButton(controllers.routes.FactoryController.create)
+    }  
 }

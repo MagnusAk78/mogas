@@ -10,23 +10,18 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import play.api.libs.json.Json
 import models.InternalElement
-import models.HierarchyPart
-import models.AmlParent
+import models.AmlObject
+import models.InternalElementParent
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import play.api.Logger
+import models.ChildOf
 
 class InternalElementServiceImpl @Inject() (override val dao: InternalElementDAO,
                                             externalInterfaceService: ExternalInterfaceService)(implicit val ec: ExecutionContext) extends InternalElementService {
 
-  override def getInternalElementList(page: Int, parent: AmlParent): Future[ModelListData[InternalElement]] = {
-    for {
-      internalElementList <- find(HierarchyPart.queryByParent(parent), page, utils.DefaultValues.DefaultPageLength)
-      internalElementCount <- count(HierarchyPart.queryByParent(parent))
-    } yield new ModelListData[InternalElement] {
-      override val list = internalElementList
-      override val paginateData = PaginateData(page, internalElementCount)
-    }
+  override def getInternalElementList(page: Int, parent: InternalElementParent): Future[ModelListData[InternalElement]] = {
+    findMany(InternalElement.queryByParent(parent), page, utils.DefaultValues.DefaultPageLength)
   }
 
   override def getElementChain(uuid: String): Future[List[InternalElement]] = {

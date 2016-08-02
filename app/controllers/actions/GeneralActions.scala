@@ -105,7 +105,7 @@ class GeneralActionsImpl @Inject() (
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
         optionHierarchy <- hierarchyService.findOneByUuid(uuid)
-        optionFactory <- factoryService.findOneByUuid(optionHierarchy.get.factory)
+        optionFactory <- factoryService.findOneByUuid(optionHierarchy.get.parent)
       } yield optionFactory.map(factory => HierarchyRequest(optionFactory.get, optionHierarchy.get, mySecuredRequest))
         .toRight(NotFound)
     }
@@ -116,7 +116,7 @@ class GeneralActionsImpl @Inject() (
       for {
         elements <- internalElementService.getElementChain(uuid)
         optionHierarchy <- hierarchyService.findOneByUuid(elements.head.parent)
-        optionFactory <- factoryService.findOneByUuid(optionHierarchy.get.factory)
+        optionFactory <- factoryService.findOneByUuid(optionHierarchy.get.parent)
       } yield optionFactory.map(factory => ElementRequest(optionFactory.get, optionHierarchy.get, elements,
         mySecuredRequest)).toRight(NotFound)
     }
@@ -128,7 +128,7 @@ class GeneralActionsImpl @Inject() (
         interface <- externalInterfaceService.findOneByUuid(uuid)
         elements <- internalElementService.getElementChain(interface.get.parent)
         optionHierarchy <- hierarchyService.findOneByUuid(elements.head.parent)
-        optionFactory <- factoryService.findOneByUuid(optionHierarchy.get.factory)
+        optionFactory <- factoryService.findOneByUuid(optionHierarchy.get.parent)
       } yield optionFactory.map(factory => InterfaceRequest(optionFactory.get, optionHierarchy.get, elements,
         interface.get, mySecuredRequest)).toRight(NotFound)
     }

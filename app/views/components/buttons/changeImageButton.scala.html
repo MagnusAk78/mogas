@@ -1,0 +1,4 @@
+@(uuid: String, modelType: models.Types.ModelType)(implicit flash: Flash, messages: Messages)
+
+@button(routes.FileController.uploadImage(uuid, modelType.stringValue), 
+	Messages("changeImage") ,"btn-secondary", Some("fa fa-photo fa-fw"))

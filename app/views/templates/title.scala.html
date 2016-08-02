@@ -1,8 +1,12 @@
-@(mainTitle: String, secondaryTitle: Option[String] = None, user: Option[models.User] = None)(implicit flash: Flash, messages: Messages)
+@(title: String)(implicit flash: Flash, messages: Messages)
 
-<h3>
-    @mainTitle
-    @if(secondaryTitle.isDefined) {
-        <small>@secondaryTitle.get</small>
-    }
-</h3>
+<div class="row">
+	<div class="col-xs-12 col-sm-12 col-md-12 col-lg-8 col-xl-8 text-xs-center">
+		<h2 class="text-xs-center hidden-sm-down">
+			@title
+		</h2>
+		<h4 class="text-xs-center hidden-md-up">
+			@title
+		</h4>
+	</div>
+</div>

@@ -7,8 +7,8 @@ import scala.concurrent.Future
 import org.joda.time.DateTime
 
 import akka.stream.Materializer
-import forms.OrganisationForm
-import forms.OrganisationForm.fromOrganisationToData
+import models.formdata.OrganisationForm
+import models.formdata.OrganisationForm.fromOrganisationToData
 import javax.inject.Inject
 import javax.inject.Singleton
 import models.Organisation
@@ -60,13 +60,14 @@ class OrganisationController @Inject() (
     }
 
   def create = generalActions.MySecuredAction { implicit mySecuredRequest =>
-    Ok(views.html.organisations.edit(OrganisationForm.form, None, Some(mySecuredRequest.identity), mySecuredRequest.activeOrganisation))
+    Ok(views.html.organisations.create(OrganisationForm.form, Some(mySecuredRequest.identity),
+      mySecuredRequest.activeOrganisation))
   }
 
   def submitCreate = generalActions.MySecuredAction.async { implicit mySecuredRequest =>
     OrganisationForm.form.bindFromRequest().fold(
       formWithErrors => {
-        Future.successful(BadRequest(views.html.organisations.edit(formWithErrors, None, Some(mySecuredRequest.identity),
+        Future.successful(BadRequest(views.html.organisations.create(formWithErrors, Some(mySecuredRequest.identity),
           mySecuredRequest.activeOrganisation)))
       },
       formData => {
@@ -92,36 +93,38 @@ class OrganisationController @Inject() (
     (generalActions.MySecuredAction andThen
       generalActions.OrganisationAction(uuid)) { implicit myOrganisationRequest =>
 
-        Ok(views.html.organisations.edit(OrganisationForm.form.fill(myOrganisationRequest.organisation), Some(uuid), Some(myOrganisationRequest.identity),
+        Ok(views.html.organisations.edit(myOrganisationRequest.organisation,
+          OrganisationForm.form.fill(myOrganisationRequest.organisation), Some(myOrganisationRequest.identity),
           myOrganisationRequest.activeOrganisation))
       }
 
-  def submitEdit(uuid: String) = (generalActions.MySecuredAction andThen generalActions.OrganisationAction(uuid)).async { implicit organisationRequest =>
-    OrganisationForm.form.bindFromRequest().fold(
-      formWithErrors => {
-        Future.successful(BadRequest(views.html.organisations.edit(formWithErrors, None, Some(organisationRequest.identity),
-          organisationRequest.activeOrganisation)))
-      },
-      formData => {
-        val responses = for {
-          updateResult <- {
-            val updateOrg = organisationRequest.organisation.copy(name = formData.name)
-            organisationService.update(updateOrg)
+  def submitEdit(uuid: String) = (generalActions.MySecuredAction andThen
+    generalActions.OrganisationAction(uuid)).async { implicit myOrganisationRequest =>
+      OrganisationForm.form.bindFromRequest().fold(
+        formWithErrors => {
+          Future.successful(BadRequest(views.html.organisations.edit(myOrganisationRequest.organisation, formWithErrors,
+            Some(myOrganisationRequest.identity), myOrganisationRequest.activeOrganisation)))
+        },
+        formData => {
+          val responses = for {
+            updateResult <- {
+              val updateOrg = myOrganisationRequest.organisation.copy(name = formData.name)
+              organisationService.update(updateOrg)
+            }
+          } yield updateResult match {
+            case true =>
+              Redirect(routes.OrganisationController.edit(uuid)).
+                flashing("success" -> Messages("db.success.update", formData.name))
+            case false =>
+              Redirect(routes.OrganisationController.edit(uuid)).
+                flashing("failure" -> Messages("db.failure.update", formData.name))
           }
-        } yield updateResult match {
-          case true =>
-            Redirect(routes.OrganisationController.list(1)).
-              flashing("success" -> Messages("db.success.update", formData.name))
-          case false =>
-            Redirect(routes.OrganisationController.edit(uuid)).
-              flashing("failure" -> Messages("db.failure.update", formData.name))
-        }
 
-        responses recover {
-          case e => InternalServerError(e.getMessage())
-        }
-      })
-  }
+          responses recover {
+            case e => InternalServerError(e.getMessage())
+          }
+        })
+    }
 
   def editActiveOrganisation(page: Int) =
     generalActions.MySecuredAction.async { implicit mySecuredRequest =>
@@ -184,18 +187,22 @@ class OrganisationController @Inject() (
 
       if (newOrganisation.allowedUsers.isEmpty) {
         //This is not ok, some user must be allowed to see/change it
-        Future.successful(Redirect(routes.OrganisationController.list(1)).flashing("error" -> Messages("organisation.minimum.one.user")))
+        Future.successful(Redirect(routes.OrganisationController.editAllowedUsers(uuid, page)).
+          flashing("error" -> Messages("thereMustBeAtLeastOneAllowedUser")))
       } else if (newOrganisation.allowedUsers.contains(organisationRequest.identity.uuid) == false) {
         //This is not ok, the logged in user must be part of the organisation.
-        Future.successful(Redirect(routes.OrganisationController.list(1)).flashing("error" -> Messages("organisation.remove.self.not.allowed")))
+        Future.successful(Redirect(routes.OrganisationController.editAllowedUsers(uuid, page)).
+          flashing("error" -> Messages("accessDenied")))
       } else {
         val responses = for {
           //Update the organisation
           updateSuccess <- organisationService.update(newOrganisation)
         } yield if (updateSuccess) {
-          Redirect(routes.OrganisationController.editAllowedUsers(newOrganisation.uuid, page)).flashing("success" -> Messages("db.success.update", organisationRequest.organisation.name))
+          Redirect(routes.OrganisationController.editAllowedUsers(newOrganisation.uuid, page)).
+            flashing("success" -> Messages("db.success.update", organisationRequest.organisation.name))
         } else {
-          Redirect(routes.OrganisationController.editAllowedUsers(newOrganisation.uuid, page)).flashing("error" -> Messages("db.failure.update"))
+          Redirect(routes.OrganisationController.editAllowedUsers(newOrganisation.uuid, page)).
+            flashing("error" -> Messages("db.failure.update"))
         }
 
         responses recover {

@@ -1,0 +1,19 @@
+@(image: Option[Call], thumbnail: Option[Call], video: Option[(Call, String)])(implicit flash: Flash, messages: Messages)
+
+@if(video.isDefined) {
+    <video class="hidden-xs" width="320" controls>
+        <source src="@video.get._1" type="@video.get._2">
+        Your browser does not support the video tag.
+    </video>
+}
+@if(image.isDefined) {
+    <a href="@image.get">
+        @if(thumbnail.isDefined) {
+            <img class="img-fluid img-thumbnail" src="@thumbnail.get"/>
+        } else {
+            <img class="img-fluid img-thumbnail" src="@image.get"/>
+        }
+    </a>
+}
+
+

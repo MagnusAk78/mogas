@@ -1,0 +1,15 @@
+@(loggedInUser: Option[User], activeOrg: Option[Organisation])(implicit flash: Flash, request: RequestHeader, 
+	messages: Messages, webJarAssets: WebJarAssets)
+
+@import templates._
+@import components.media._
+@import components.utils._
+@import components.buttons._
+
+@main(Messages("welcome"), loggedInUser, activeOrg) {
+	<h3 class="display-1 hidden-xs-down">
+    	@Messages("welcome") 
+    </h3>
+	<p class="lead">@loggedInUser.map(_.name).getOrElse("")</p>	
+	
+}

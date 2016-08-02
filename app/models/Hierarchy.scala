@@ -4,26 +4,26 @@ import java.util.UUID
 import play.api.libs.json._
 
 case class Hierarchy(
-    override val uuid: String,
-    override val factory: String,
-    override val name: String,
-    override val orderNumber: Int,
-    internalElements: Set[String]) extends DbModel with FactoryPart with NamedModel with OrderedModel with AmlParent {
+  override val uuid: String,
+  override val parent: String,
+  override val name: String,
+  override val orderNumber: Int,
+  override val internalElements: Set[String]) extends DbModel with ChildOf[Factory] with InternalElementParent
+    with NamedModel with OrderedModel {
 
   override def asJsObject: JsObject = {
-    FactoryPart.asJsObject(this) ++
-      OrderedModel.asJsObject(this) ++
-      NamedModel.asJsObject(this) ++ Json.obj(Hierarchy.KeyInternalElements -> Json.toJson(internalElements))
+    Hierarchy.childOfJsObject(this) ++
+      Hierarchy.internalElementParentJsObject(this) ++
+      Hierarchy.namedModelJsObject(this) ++ Hierarchy.orderedModelJsObject(this)
   }
 }
 
-object Hierarchy {
+object Hierarchy extends DbModelComp[Hierarchy] with ChildOfComp[Factory] with InternalElementParentComp
+    with NamedModelComp with OrderedModelComp {
   implicit val hierarchyFormat = Json.format[Hierarchy]
 
-  private val KeyInternalElements = "internalElements"
-
-  def create(name: String, factory: String, orderNumber: Int, internalElements: Set[String] = Set.empty) =
-    Hierarchy(uuid = UUID.randomUUID.toString, name = name, factory = factory, orderNumber = orderNumber,
+  def create(name: String, parentFactory: String, orderNumber: Int, internalElements: Set[String] = Set.empty) =
+    Hierarchy(uuid = UUID.randomUUID.toString, name = name, parent = parentFactory, orderNumber = orderNumber,
       internalElements = internalElements)
 }
 

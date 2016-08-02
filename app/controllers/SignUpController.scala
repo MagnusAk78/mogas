@@ -11,7 +11,7 @@ import com.mohiva.play.silhouette.api.util.PasswordHasher
 import com.mohiva.play.silhouette.impl.providers._
 import com.sksamuel.scrimage.Image
 
-import forms.SignUpForm
+import models.formdata.SignUpForm
 import javax.inject.Inject
 import models.Organisation
 import models.Images
@@ -76,7 +76,7 @@ class SignUpController @Inject() (
    * @return The result to display.
    */
   def view = silhouette.UnsecuredAction.async { implicit request =>
-    Future.successful(Ok(views.html.signUp(SignUpForm.form, None, None)))
+    Future.successful(Ok(views.html.signUp(SignUpForm.form)))
   }
 
   def edit(uuid: String) = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
@@ -89,7 +89,7 @@ class SignUpController @Inject() (
       case Some(user) => {
         if (user.uuid == request.identity.uuid) {
           //TODO: Use sign up form and edit
-          Ok(views.html.signUp(SignUpForm.form.fill(user), Some(request.identity), activeOrgOpt))
+          Ok(views.html.users.edit(user, SignUpForm.form.fill(user), Some(request.identity), activeOrgOpt))
         } else {
           Redirect(routes.UserController.list(1))
         }
@@ -110,7 +110,7 @@ class SignUpController @Inject() (
    */
   def submitSignUp = silhouette.UnsecuredAction.async { implicit request =>
     SignUpForm.form.bindFromRequest.fold(
-      errorForm => Future.successful(BadRequest(views.html.signUp(errorForm, None, None))),
+      errorForm => Future.successful(BadRequest(views.html.signUp(errorForm))),
       data => {
         val loginInfo = LoginInfo(CredentialsProvider.ID, data.email)
         userService.retrieve(loginInfo).flatMap {
@@ -141,36 +141,29 @@ class SignUpController @Inject() (
       })
   }
 
-  def submitEdit(uuid: String) = generalActions.MySecuredAction.async { implicit request =>
-    SignUpForm.form.bindFromRequest.fold(
-      errorForm => Future.successful(BadRequest(views.html.signUp(errorForm, Some(request.identity), None))),
-      data => {
-        val loginInfo = LoginInfo(CredentialsProvider.ID, data.email)
-        userService.retrieve(loginInfo).flatMap {
-          case Some(user) =>
-            Future.successful(Redirect(routes.SignUpController.view()).flashing("error" -> Messages("user.exists")))
-          case None =>
-            val authInfo = passwordHasher.hash(data.password)
-            val newUser = User.create(
-              loginInfo = loginInfo,
-              firstName = data.firstName,
-              lastName = data.lastName,
-              name = data.firstName + " " + data.lastName,
-              email = data.email)
-            for {
-              avatar <- avatarService.retrieveURL(data.email)
-              user <- userService.insert(newUser.copy(avatarURL = avatar))
-              authInfo <- authInfoRepository.add(loginInfo, authInfo)
-              authenticator <- silhouette.env.authenticatorService.create(loginInfo)
-              value <- silhouette.env.authenticatorService.init(authenticator)
-              result <- silhouette.env.authenticatorService.embed(value, Redirect(routes.ApplicationController.index))
-            } yield {
-              //ugly. no error handling for .get method
-              silhouette.env.eventBus.publish(SignUpEvent(user.get, request))
-              silhouette.env.eventBus.publish(LoginEvent(user.get, request))
-              result
-            }
-        }
-      })
-  }
+  def submitEdit(uuid: String) = (generalActions.MySecuredAction andThen
+    generalActions.UserAction(uuid)).async { implicit userRequest =>
+      SignUpForm.form.bindFromRequest.fold(
+        errorForm => Future.successful(BadRequest(views.html.users.edit(userRequest.user, errorForm,
+          Some(userRequest.identity), None))),
+        data => {
+
+          val newLoginInfo = LoginInfo(CredentialsProvider.ID, data.email)
+          val newUser = userRequest.user.copy(loginInfo = newLoginInfo, firstName = data.firstName,
+            lastName = data.lastName, email = data.email)
+
+          val newAuthInfo = passwordHasher.hash(data.password)
+
+          for {
+            avatar <- avatarService.retrieveURL(data.email)
+            userUpdateResult <- userService.update(newUser.copy(avatarURL = avatar))
+            authInfo <- authInfoRepository.add(newLoginInfo, newAuthInfo)
+            authenticator <- silhouette.env.authenticatorService.create(newLoginInfo)
+            value <- silhouette.env.authenticatorService.init(authenticator)
+            result <- silhouette.env.authenticatorService.embed(value, Redirect(routes.ApplicationController.index))
+          } yield {
+            Redirect(routes.SignUpController.edit(uuid))
+          }
+        })
+    }
 }

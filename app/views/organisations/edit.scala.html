@@ -1,50 +1,33 @@
-@(organisationForm: Form[forms.OrganisationForm.Data], uuidToEdit: Option[String], loggedInUser: Option[models.User], activeOrg: Option[models.Organisation])(implicit flash: Flash,
+@(organisation: Organisation, organisationForm: Form[models.formdata.OrganisationForm.Data], 
+	loggedInUser: Option[models.User], activeOrg: Option[models.Organisation])(implicit flash: Flash,
     request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
 
-@import b3.vertical.fieldConstructor
+@import b4.inline.fieldConstructor
 @import templates._
-
-@updateNewText(update: Boolean) = @{
-    if (uuidToEdit.isDefined) Messages("command.update") else Messages("command.add")
-}
+@import components.buttons._
+@import components.media._
+@import forms._
 
 @main(Messages("organisations"), loggedInUser, activeOrg) {
-	@titleArea(Messages("organisation"), uuidToEdit.map(s => Some(Messages("function.edit"))).getOrElse(Some(Messages("function.create"))), 
-		Some(controllers.routes.OrganisationController.list(1)))
-    @if(uuidToEdit.isDefined) {
-    	@rowColumnCenter() {
-    		@formNormal(routes.OrganisationController.submitEdit(uuidToEdit.get), updateNewText(true)) {
-    			@b3.text(organisationForm("name"), '_label -> Messages("organisation.name"))
+	@title(organisation.name)
+			
+	@rowContentButtons() {	
+		@rowEvenColumns() {
+    		@formNormal(routes.OrganisationController.submitEdit(organisation.uuid), Messages("update")) {
+    			@b4.text(organisationForm("name"), '_label -> Messages("name"))
     		}
-       	}
-        	
-     	<hr>
-     	@rowColumnCenter() {
-     		@editButton(controllers.routes.OrganisationController.editAllowedUsers(
-     			uuidToEdit.get, 1), Some(Messages("organisation.changeAllowedUsers")))
-     	}
-        	
-     	@rowColumnCenter() {
-    		@imageOrVideo(Some(routes.FileController.getStandardImage(uuidToEdit.get, models.Types.OrganisationType.stringValue)),
-    			Some(routes.FileController.getThumbnailImage(uuidToEdit.get, models.Types.OrganisationType.stringValue)), 
+        }{	
+    		@imageOrVideo(Some(routes.FileController.getStandardImage(organisation.uuid, models.Types.OrganisationType.stringValue)),
+    			Some(routes.FileController.getThumbnailImage(organisation.uuid, models.Types.OrganisationType.stringValue)), 
     			None)
-    	}
-    		
-    	@rowColumnCenter() {	
-    		@changeImageButton(uuidToEdit.get, models.Types.OrganisationType)
-    	}
-    		
-    	<hr>
-    	@rowColumnCenter() {
-    		@deleteButton(controllers.routes.OrganisationController.delete(uuidToEdit.get))
-    	}
-    } else {
-    	@rowColumnCenter() {
-    		@formNormal(routes.OrganisationController.submitCreate, updateNewText(false)) {
-        		@b3.text(organisationForm("name"), '_label -> Messages("organisation.name"))
-        	}
-        }
-	}    
+    	}		
+	}{
+		@backButton(controllers.routes.OrganisationController.list(1))
+		@changeImageButton(organisation.uuid, models.Types.OrganisationType)
+		@editButton(controllers.routes.OrganisationController.editAllowedUsers(organisation.uuid, 1), 
+			Some(Messages("changeAllowedUsers")))
+		@deleteButton(controllers.routes.OrganisationController.delete(organisation.uuid))	
+	}     
 }
 
 

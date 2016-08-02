@@ -12,7 +12,7 @@ trait DbModel {
   def asJsObject: JsObject
 }
 
-object DbModel {
+trait DbModelComp[M <: DbModel] {
 
   private val KeyUUID = "uuid"
 
@@ -20,5 +20,5 @@ object DbModel {
 
   def queryBySetOfUuids(uuids: Set[String]): JsObject = Json.obj(KeyUUID -> Json.obj("$in" -> Json.toJson(uuids)))
 
-  def getUpdateObject(dbModel: DbModel): JsObject = Json.obj("$set" -> dbModel.asJsObject)
+  def getUpdateObject(model: M): JsObject = Json.obj("$set" -> model.asJsObject)
 }

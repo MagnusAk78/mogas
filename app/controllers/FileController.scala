@@ -12,8 +12,9 @@ import com.sksamuel.scrimage.Image
 import com.sksamuel.scrimage.writer
 
 import akka.stream.Materializer
-import forms.OrganisationForm
-import forms.OrganisationForm.fromOrganisationToData
+import models.formdata
+import models.formdata.OrganisationForm
+import models.formdata.OrganisationForm.fromOrganisationToData
 import javax.inject.Inject
 import javax.inject.Singleton
 import models.Organisation
@@ -77,11 +78,10 @@ class FileController @Inject() (
           case NotFound => {
             val modelType = models.Types.fromString(modelTypeString)
 
-            Future.successful(Ok(views.html.ImageUpload(uuid, modelType, Some(request.identity),
-              request.activeOrganisation)))
+            //Future.successful(Ok(views.html.ImageUpload(uuid, modelType, Some(request.identity),
+            // request.activeOrganisation)))
 
             //No image found, we need to send default image depending type
-            /*
             modelType match {
               case models.Types.OrganisationType => Future.successful(Redirect(routes.Assets.at("images/organisation-default.png")).as("image/png"))
               case models.Types.UserType => Future.successful(Redirect(routes.Assets.at("images/user-default.png")).as("image/png"))
@@ -91,8 +91,6 @@ class FileController @Inject() (
               case models.Types.ExternalInterfaceType => Future.successful(Redirect(routes.Assets.at("images/interface-default.png")).as("image/png"))
               case models.Types.UnknownType => Future.successful(NotFound)
             }
-            * 
-            */
           }
           case _ => serveResult
         }
@@ -117,12 +115,7 @@ class FileController @Inject() (
           //No image found, we need to send default image depending type
           val modelType = models.Types.fromString(modelTypeString)
           modelType match {
-            case models.Types.OrganisationType =>
-              Logger.info("Trying to send organisation-default")
-              Future.successful(Redirect(routes.Assets.at("images/organisation-default.png")).as("image/png"))
-            //Future.successful(Ok.sendFile(new File("/public/images/organisation-default.png"), true).as("image/png"))
-
-            //Future.successful(Redirect(routes.Assets.at("images/organisation-default.png")).as("image/png"))
+            case models.Types.OrganisationType => Future.successful(Redirect(routes.Assets.at("images/organisation-default.png")).as("image/png"))
             case models.Types.UserType => Future.successful(Redirect(routes.Assets.at("images/user-default.png")).as("image/png"))
             case models.Types.FactoryType => Future.successful(Redirect(routes.Assets.at("images/factory-default.png")).as("image/png"))
             case models.Types.HierarchyType => Future.successful(Redirect(routes.Assets.at("images/hierarchy-default.png")).as("image/png"))
@@ -150,7 +143,7 @@ class FileController @Inject() (
       //A list of the old images that now has to be removed
       val futureOldImageFileList = fileService.findByQuery(Images.getQueryAllImages(uuid)).flatMap(cursor => cursor.collect[List](0, true))
 
-      val futureOptFileRef = request.body.file(forms.ImageFileKeyString) match {
+      val futureOptFileRef = request.body.file(models.formdata.ImageFileKeyString) match {
         case Some(file) => file.ref.map(Some(_))
         case None => Future.successful(None)
       }
@@ -271,7 +264,7 @@ class FileController @Inject() (
         //A list of the existing aml files
         val futureExistingAmlFileList = fileService.findByQuery(AmlFiles.getQueryAllAmlFiles(factoryUuid)).flatMap(cursor => cursor.collect[List](0, true))
 
-        val futureOptFileRef = factoryRequest.body.file(forms.AmlFileKeyString) match {
+        val futureOptFileRef = factoryRequest.body.file(models.formdata.AmlFileKeyString) match {
           case Some(file) => file.ref.map(Some(_))
           case None => Future.successful(None)
         }

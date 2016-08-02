@@ -1,0 +1,9 @@
+@(mediaList: List[Call], linkList: List[Call], headingList: List[String], textList: List[String],
+    activatedList: List[Boolean]=Nil, paginateData: utils.PaginateData, route: Int => Call)(implicit flash: Flash, 
+    messages: Messages)
+
+@import components.media._
+@import components.utils._ 
+    
+@paginate(paginateData, route)
+@mediaListWithOneLink(mediaList, linkList, headingList, textList, activatedList)

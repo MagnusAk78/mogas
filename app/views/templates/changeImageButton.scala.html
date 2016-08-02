@@ -1,4 +1,0 @@
-@(uuid: String, modelType: models.Types.ModelType)(implicit flash: Flash, messages: Messages)
-
-@button(routes.FileController.uploadImage(uuid, modelType.stringValue), 
-	Messages("change.image") ,"btn-default", Some("glyphicon-camera"))

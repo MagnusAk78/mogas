@@ -23,8 +23,7 @@ libraryDependencies ++= Seq(
   //Reactive mongo
   "org.reactivemongo" %% "play2-reactivemongo" % "0.11.14",
   //Play with bootstrap
-  //"com.adrianhurt" %% "play-bootstrap" % "1.0-P25-B3",
-  "com.adrianhurt" %% "play-bootstrap" % "1.1-P25-B3-SNAPSHOT",
+  "com.adrianhurt" %% "play-bootstrap" % "1.1-P25-B4-SNAPSHOT",
   //Silhouette for authentication
   "com.mohiva" %% "play-silhouette" % "4.0.0-RC1",
   "com.mohiva" %% "play-silhouette-password-bcrypt" % "4.0.0-RC1",

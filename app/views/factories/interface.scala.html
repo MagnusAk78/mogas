@@ -4,12 +4,14 @@
 	webJarAssets: WebJarAssets)
 
 @import templates._
+@import components.buttons._
+@import components.media._
+@import components.utils._
 
 @main(Messages("factory.hierarchies"), loggedInUser, activeOrg) {
-	@titleArea(externalInterface.name, Some(Messages("function.details")), 
-		Some(controllers.routes.FactoryController.element(elementChain.last.uuid, 1, 1)))
-
-    @rowColumnCenter(){
+	
+	@title(externalInterface.name)
+	@rowContentButtons() {
         @{
             var linkList = List(controllers.routes.FactoryController.factory(factory.uuid, 1),
                 controllers.routes.FactoryController.hierarchy(hierarchy.uuid, 1))
@@ -29,16 +31,11 @@
 
             breadcrumb(linkList, (externalInterface.name :: textList.reverse).reverse)
         }
+    	@showImage(routes.FileController.getStandardImage(externalInterface.uuid, 
+    		models.Types.ExternalInterfaceType.stringValue))        
+    }{
+    	@backButton(controllers.routes.FactoryController.element(elementChain.last.uuid, 1, 1))
+    	@changeImageButton(externalInterface.uuid, models.Types.ExternalInterfaceType)
+        @createButton(controllers.routes.FactoryController.create)
     }
-    
-    <hr>
-    @rowColumnCenter() {
-        @imageOrVideo(
-            Some(routes.FileController.getStandardImage(externalInterface.uuid, 
-            	models.Types.ExternalInterfaceType.stringValue))
-            ,
-            Some(routes.FileController.getThumbnailImage(externalInterface.uuid, 
-            	models.Types.ExternalInterfaceType.stringValue)),
-            None)
-    }        
 }

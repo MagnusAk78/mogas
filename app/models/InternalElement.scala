@@ -5,39 +5,40 @@ import play.api.libs.json._
 
 case class InternalElement(
   override val uuid: String,
-  override val factory: String,
+  override val connectionTo: String,
   override val amlId: String,
   override val parent: String,
   override val orderNumber: Int,
   override val name: String,
+  override val internalElements: Set[String],
   parentIsHierarchy: Boolean,
-  internalElements: Set[String],
-  externalInterfaces: Set[String]) extends DbModel with FactoryPart with HierarchyPart with NamedModel
-    with OrderedModel with AmlParent {
+  externalInterfaces: Set[String]) extends DbModel with AmlObject
+    with ChildOf[InternalElementParent] with InternalElementParent with NamedModel with OrderedModel {
 
   override def asJsObject: JsObject =
-    FactoryPart.asJsObject(this) ++
-      HierarchyPart.asJsObject(this) ++
-      NamedModel.asJsObject(this) ++
-      OrderedModel.asJsObject(this) ++
+    InternalElement.amlObjectJsObject(this) ++
+      InternalElement.childOfJsObject(this) ++
+      InternalElement.internalElementParentJsObject(this) ++
+      InternalElement.namedModelJsObject(this) ++
+      InternalElement.orderedModelJsObject(this) ++
       Json.obj(InternalElement.KeyParentIsHierarchy -> JsBoolean(parentIsHierarchy),
-        InternalElement.KeyInternalElements -> Json.toJson(internalElements),
         InternalElement.KeyExternalInterfaces -> Json.toJson(externalInterfaces))
 }
 
-object InternalElement {
+object InternalElement extends DbModelComp[InternalElement] with ChildOfComp[InternalElementParent] with AmlObjectComp
+    with InternalElementParentComp with NamedModelComp with OrderedModelComp {
 
   implicit val internalElementFormat = Json.format[InternalElement]
 
   private val KeyParentIsHierarchy = "parentIsHierarchy"
-  private val KeyInternalElements = "internalElements"
   private val KeyExternalInterfaces = "externalInterfaces"
 
-  def create(factory: String, name: String, parent: String, parentIsHierarchy: Boolean = false, orderNumber: Int, amlId: String,
-             internalElements: Set[String] = Set.empty, externalInterfaces: Set[String] = Set.empty) =
-    InternalElement(uuid = UUID.randomUUID.toString, factory = factory, name = name, parent = parent, parentIsHierarchy = parentIsHierarchy,
-      orderNumber = orderNumber, amlId = amlId, internalElements = internalElements,
-      externalInterfaces = externalInterfaces)
+  def create(connectionToFactory: String, name: String, parent: String, parentIsHierarchy: Boolean = false,
+             orderNumber: Int, amlId: String, internalElements: Set[String] = Set.empty,
+             externalInterfaces: Set[String] = Set.empty) =
+    InternalElement(uuid = UUID.randomUUID.toString, connectionTo = connectionToFactory, name = name, parent = parent,
+      parentIsHierarchy = parentIsHierarchy, orderNumber = orderNumber, amlId = amlId,
+      internalElements = internalElements, externalInterfaces = externalInterfaces)
 }
 
 /* TODO: Integrate in Service

@@ -2,14 +2,14 @@
     flash: Flash, request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets)
 
 @import templates._
+@import components.media._
+@import components.buttons._
+@import components.utils._
 
 @main(Messages("organisations"), loggedInUser, activeOrg) {
-	@titleArea(Messages("organisations"), Some(Messages("organisations.select.active")), 
-		Some(controllers.routes.OrganisationController.list(paginateData.page)))
-    @rowColumnCenter() {
-        @paginate(paginateData, controllers.routes.OrganisationController.editActiveOrganisation(_))
-
-        @{
+	@title(Messages("chooseActiveOrganisation"))
+	@rowContentButtons() {
+    	@{
             val mediaList = organisations.map{ organisation =>
                     routes.FileController.getThumbnailImage(organisation.uuid, models.Types.OrganisationType.stringValue)
                 }
@@ -26,7 +26,10 @@
                 }
             )
 
-            mediaListToggle(mediaList, linkList, headingList, textList, activatedList)
-        }
+            displayPaginatedList(mediaList, linkList, headingList, textList, activatedList,
+            	paginateData, controllers.routes.OrganisationController.editActiveOrganisation(_))
+    	}
+    }{
+        @backButton(controllers.routes.OrganisationController.list(paginateData.page))
     }
 }

@@ -1,40 +1,22 @@
-@(signUpForm: Form[forms.SignUpForm.Data], loggedInUser: Option[User], activeOrg: Option[Organisation])(implicit request: RequestHeader, messages: Messages, 
-	webJarAssets: WebJarAssets, flash: Flash)
+@(signUpForm: Form[models.formdata.SignUpForm.Data])(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, 
+	flash: Flash)
 
-@import b3.inline.fieldConstructor
+@import b4.inline.fieldConstructor
 @import templates._
+@import forms._
+@import components.buttons._
+@import components.media._
 
-@main(Messages("signUp"), loggedInUser, activeOrg) {
-	@rowMainSecondary() {
-		@title(loggedInUser.map(s => Messages("user")).getOrElse(Messages("signUp")), 
-        	loggedInUser.map(s => Some(Messages("function.edit"))).getOrElse(None))
-	}{
-		@if(loggedInUser.isDefined) {
-    		@backButton(routes.ApplicationController.index)
-   		} else {
-   			@button(routes.SignInController.view, Messages("signIn"))
-   		}
-	}
-	@rowColumnCenter() {
-		@formNormal(loggedInUser match { 
-        		case Some(user) => routes.SignUpController.submitEdit(user.uuid)
-        		case None => routes.SignUpController.submitSignUp
-       		}, Messages("signUp")) {
-            @b3.text(signUpForm("firstName"), '_hiddenLabel -> Messages("first.name"), 'placeholder -> Messages("first.name"), 'class -> "form-control input-lg")
-            @b3.text(signUpForm("lastName"), '_hiddenLabel -> Messages("last.name"), 'placeholder -> Messages("last.name"), 'class -> "form-control input-lg")
-            @b3.text(signUpForm("email"), '_hiddenLabel -> Messages("email"), 'placeholder -> Messages("email"), 'class -> "form-control input-lg")
-            @b3.password(signUpForm("password"), '_hiddenLabel -> Messages("password"), 'placeholder -> Messages("password"), 'class -> "form-control input-lg")
+@main(Messages("signUp"), None, None) {
+	@title(Messages("signUp"))
+	@rowContentButtons() {
+		@formNormal(routes.SignUpController.submitSignUp, Messages("signUp")) {
+            @b4.text(signUpForm("firstName"), '_hiddenLabel -> Messages("first.name"), 'placeholder -> Messages("first.name"), 'class -> "form-control input-lg")
+            @b4.text(signUpForm("lastName"), '_hiddenLabel -> Messages("last.name"), 'placeholder -> Messages("last.name"), 'class -> "form-control input-lg")
+            @b4.text(signUpForm("email"), '_hiddenLabel -> Messages("email"), 'placeholder -> Messages("email"), 'class -> "form-control input-lg")
+            @b4.password(signUpForm("password"), '_hiddenLabel -> Messages("password"), 'placeholder -> Messages("password"), 'class -> "form-control input-lg")
         }
-        @if(loggedInUser.isDefined) {
-        	<hr>
-        	@formImageFileUpload(routes.FileController.submitImage(loggedInUser.get.uuid, models.Types.UserType.stringValue))
-        }
-    }
-    @if(loggedInUser.isDefined) {
-       	@rowColumnCenter() {
-    		@imageOrVideo(Some(routes.FileController.getStandardImage(loggedInUser.get.uuid, models.Types.UserType.stringValue)),
-    			Some(routes.FileController.getThumbnailImage(loggedInUser.get.uuid, models.Types.UserType.stringValue)), 
-    			None)
-    	}
+    } {
+    	@button(routes.SignInController.view, Messages("signIn"))
     }
 }

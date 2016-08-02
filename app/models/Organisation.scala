@@ -10,12 +10,12 @@ case class Organisation(
     val allowedUsers: Set[String]) extends DbModel with NamedModel {
 
   override def asJsObject: JsObject = {
-    NamedModel.asJsObject(this) ++
+    Organisation.namedModelJsObject(this) ++
       Json.obj(Organisation.KeyAllowedUsers -> Json.toJson(allowedUsers))
   }
 }
 
-object Organisation {
+object Organisation extends DbModelComp[Organisation] with NamedModelComp {
 
   implicit val organisationFormat = Json.format[Organisation]
 

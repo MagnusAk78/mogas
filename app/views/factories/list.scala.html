@@ -3,13 +3,14 @@
     request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
 
 @import templates._
+@import components.buttons._
+@import components.media._
+@import components.utils._
 
 @main(Messages("factories"), loggedInUser, activeOrg) {
-	@titleArea(Messages("factories"), Some(Messages("function.list")), None)
-    @rowColumnCenter() {
-        @paginate(paginateData, controllers.routes.FactoryController.list(_))
-
-        @{            
+	@title(Messages("factories"))
+	@rowContentButtons() {
+    	@{
             val mediaList = factories.map{ factory =>
             	routes.FileController.getThumbnailImage(factory.uuid, models.Types.FactoryType.stringValue)
             }
@@ -20,11 +21,10 @@
             val headingList = factories.map(_.name)
             val textList = factories.map(_.name)
 
-            mediaListWithOneLink(mediaList, linkList, headingList, textList)
-        }
-    }
-    <hr>
-    @rowColumnCenter() {
+            displayPaginatedList(mediaList, linkList, headingList, textList, List(),
+            	paginateData, controllers.routes.FactoryController.list(_))
+    	}
+    }{
         @createButton(controllers.routes.FactoryController.create)
-    }
+    }	
 }

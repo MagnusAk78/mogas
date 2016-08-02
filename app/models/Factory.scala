@@ -6,22 +6,21 @@ import play.api.libs.json._
 case class Factory(
     override val uuid: String,
     override val name: String,
-    organisation: String,
-    factoryHierachies: Set[String]) extends DbModel with NamedModel {
+    override val parent: String,
+    hierachies: Set[String]) extends DbModel with NamedModel with ChildOf[Organisation] {
 
   override def asJsObject: JsObject =
-    JsObject(Seq(Factory.KeyOrganisation -> Json.toJson(organisation)) ++
-      Seq(Factory.KeyFactoryHierachies -> Json.toJson(factoryHierachies))) ++ NamedModel.asJsObject(this)
+    JsObject(Seq(Factory.KeyFactoryHierachies -> Json.toJson(hierachies))) ++
+      Factory.namedModelJsObject(this) ++
+      Factory.childOfJsObject(this)
 }
 
-object Factory extends {
+object Factory extends DbModelComp[Factory] with ChildOfComp[Organisation] with NamedModelComp {
   implicit val factoryFormat = Json.format[Factory]
 
-  private val KeyOrganisation = "organisation"
   private val KeyFactoryHierachies = "factoryHierachies"
 
-  def create(name: String, organisation: String, factoryHierachies: Set[String] = Set.empty) =
-    Factory(uuid = UUID.randomUUID.toString, name = name, organisation = organisation, factoryHierachies = factoryHierachies)
-
-  def queryByOrganisation(organisation: String): JsObject = Json.obj(KeyOrganisation -> JsString(organisation))
+  def create(name: String, parentOrganisation: String, hierachies: Set[String] = Set.empty) =
+    Factory(uuid = UUID.randomUUID.toString, name = name, parent = parentOrganisation,
+      hierachies = hierachies)
 }

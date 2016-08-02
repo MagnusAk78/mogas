@@ -40,7 +40,7 @@ class ApplicationController @Inject() (
   val userService: UserService,
   val organisationService: OrganisationService,
   implicit val webJarAssets: WebJarAssets)(implicit exec: ExecutionContext)
-  extends Controller with I18nSupport {
+    extends Controller with I18nSupport {
 
   /**
    * Handles the index action.
@@ -48,12 +48,10 @@ class ApplicationController @Inject() (
    * @return The result to display.
    */
   def index = generalActions.MyUserAwareAction.async { implicit request =>
-    
-    Logger.info("ApplicationController index: " + request.identity)
-    
+
     val responses = for {
       userOpt <- request.identity match {
-        case Some(user) => userService.retrieve(user.loginInfo)
+        case Some(user) => Future.successful(Some(user))
         case None => Future.successful(None)
       }
       activeOrg <- userOpt match {
@@ -61,15 +59,14 @@ class ApplicationController @Inject() (
         case None => Future.successful(None)
       }
     } yield userOpt match {
-      case Some(user) => Redirect(routes.OrganisationController.list(1))
+      case Some(user) => Ok(views.html.welcome(userOpt, activeOrg))
       case None => Redirect(routes.SignInController.view())
     }
-    
+
     responses recover {
       case e => InternalServerError(e.getMessage())
     }
   }
- 
 
   /**
    * Handles the Sign Out action.
@@ -81,7 +78,6 @@ class ApplicationController @Inject() (
     silhouette.env.eventBus.publish(LogoutEvent(request.identity, request))
     silhouette.env.authenticatorService.discard(request.authenticator, result)
   }
-  
 
   def changeLanguage(languageString: String) = generalActions.MyUserAwareAction.async { implicit request =>
     request.identity match {

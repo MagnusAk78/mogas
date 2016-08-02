@@ -1,0 +1,4 @@
+@(link: play.api.mvc.Call, text: Option[String] = None)(implicit flash: Flash,
+    request: RequestHeader, messages: Messages)
+
+@button(link, text.getOrElse(Messages("create")), "btn-primary", Some("fa fa-plus fa-fw"))
