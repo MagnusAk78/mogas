@@ -1,6 +1,6 @@
-@(factory: Factory, hierarchy: Hierarchy, elementChain: List[InternalElement],
-    internalElements: List[InternalElement], elementPaginateData: utils.PaginateData, 
-    externalInterfaces: List[ExternalInterface], interfacePaginateData: utils.PaginateData, loggedInUser: Option[User], 
+@(factory: Factory, hierarchy: Hierarchy, elementChain: List[Element],
+    elements: List[Element], elementPaginateData: utils.PaginateData, 
+    interfaces: List[Interface], interfacePaginateData: utils.PaginateData, loggedInUser: Option[User], 
     activeOrg: Option[Organisation])(implicit flash: Flash, request: RequestHeader, messages: Messages, lang: Lang, 
     webJarAssets: WebJarAssets)
 
@@ -28,37 +28,37 @@
             breadcrumb(linkList, textList)
         }		
     	@{
-            val mediaList = internalElements.map((ie: InternalElement) => routes.FileController.
-            	getThumbnailImage(ie.uuid, models.Types.InternalElementType.stringValue)
+            val mediaList = elements.map((ie: Element) => routes.FileController.
+            	getThumbnailImage(ie.uuid, models.Types.ElementType.stringValue)
             )
-            val linkList = internalElements.map((ie: InternalElement) =>
+            val linkList = elements.map((ie: Element) =>
                 controllers.routes.FactoryController.element(ie.uuid, elementPaginateData.page, 
                 	interfacePaginateData.page))
                 
-            val headingList = internalElements.map(_.name)
-            val textList = internalElements.map(_.name)
+            val headingList = elements.map(_.name)
+            val textList = elements.map(_.name)
 
             displayPaginatedList(mediaList, linkList, headingList, textList, List(), elementPaginateData, 
             	controllers.routes.FactoryController.element(elementChain.last.uuid, _, interfacePaginateData.page))
     	}
     	@{
-            val mediaList = externalInterfaces.map((ei: ExternalInterface) => routes.FileController.
-            	getThumbnailImage(ei.uuid, models.Types.ExternalInterfaceType.stringValue))
+            val mediaList = interfaces.map((ei: Interface) => routes.FileController.
+            	getThumbnailImage(ei.uuid, models.Types.InterfaceType.stringValue))
                 
-            val linkList = externalInterfaces.map((ei: ExternalInterface) =>
+            val linkList = interfaces.map((ei: Interface) =>
                 controllers.routes.FactoryController.interface(ei.uuid))
                 
-            val headingList = externalInterfaces.map(_.name)
-            val textList = externalInterfaces.map(_.name)
+            val headingList = interfaces.map(_.name)
+            val textList = interfaces.map(_.name)
 
             displayPaginatedList(mediaList, linkList, headingList, textList, List(), interfacePaginateData, 
             	controllers.routes.FactoryController.element(elementChain.last.uuid, elementPaginateData.page, _))
     	}
     	@showImage(routes.FileController.getStandardImage(elementChain.last.uuid, 
-    		models.Types.InternalElementType.stringValue))
+    		models.Types.ElementType.stringValue))
     }{
     	@backButton(controllers.routes.FactoryController.hierarchy(hierarchy.uuid, 1))
-    	@changeImageButton(elementChain.last.uuid, models.Types.InternalElementType)
+    	@changeImageButton(elementChain.last.uuid, models.Types.ElementType)
         @createButton(controllers.routes.FactoryController.create)
     }
 }

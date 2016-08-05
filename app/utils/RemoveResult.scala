@@ -1,4 +1,4 @@
-package models.services
+package utils
 
 case class RemoveResult(
     val success: Boolean,

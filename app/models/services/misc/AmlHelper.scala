@@ -1,21 +1,30 @@
-package models.services
+package models.services.misc
 
 import java.io.InputStream
-import play.api.Logger
+
+trait NumericlyOrdered extends Ordered[NumericlyOrdered] {
+  val orderNumber: Int
+
+  def compare(that: NumericlyOrdered) = this.orderNumber - that.orderNumber
+}
+
+object NumericlyOrdered {
+  val orderNumberKey = "orderNumber"
+}
 
 case class AmlHierarchy(
   name: String,
   orderNumber: Int,
-  internalElements: List[AmlInternalElement]) extends NumericlyOrdered
+  elements: List[AmlElement]) extends NumericlyOrdered
 
-case class AmlInternalElement(
+case class AmlElement(
   name: String,
   orderNumber: Int,
   amlId: String,
-  internalElements: List[AmlInternalElement],
-  externalInterfaces: List[AmlExternalInterface]) extends NumericlyOrdered
+  elements: List[AmlElement],
+  interfaces: List[AmlInterface]) extends NumericlyOrdered
 
-case class AmlExternalInterface(
+case class AmlInterface(
   name: String,
   orderNumber: Int,
   amlId: String) extends NumericlyOrdered
@@ -39,24 +48,24 @@ object AmlHelper {
     (aml \ "InstanceHierarchy")
       .map(instance => {
         val name = (instance \ "@Name").text
-        AmlHierarchy(name, hierarchyNumbers.next, findInternalElements(instance))
+        AmlHierarchy(name, hierarchyNumbers.next, findElements(instance))
       }).toList
   }
 
-  private def findInternalElements(node: Node): List[AmlInternalElement] = {
+  private def findElements(node: Node): List[AmlElement] = {
     val elementNumbers = Stream.iterate(0)(_ + 1).iterator
     (node \ "InternalElement")
       .map(ie => {
         val name = (ie \ "@Name").text
         val amlId = (ie \ "@ID").text
-        AmlInternalElement(name, elementNumbers.next, amlId, findInternalElements(ie), findExternalInterfaces(ie))
+        AmlElement(name, elementNumbers.next, amlId, findElements(ie), findInterfaces(ie))
       }).toList
   }
 
-  private def findExternalInterfaces(node: Node): List[AmlExternalInterface] = {
+  private def findInterfaces(node: Node): List[AmlInterface] = {
     val interfaceNumbers = Stream.iterate(0)(_ + 1).iterator
     (node \ "ExternalInterface")
-      .map(ei => AmlExternalInterface((ei \ "@Name").text, interfaceNumbers.next, (ei \ "@ID").text)).toList
+      .map(ei => AmlInterface((ei \ "@Name").text, interfaceNumbers.next, (ei \ "@ID").text)).toList
   }
 }
 

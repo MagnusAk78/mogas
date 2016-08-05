@@ -1,4 +1,4 @@
-@(factory: Factory, hierarchy: Hierarchy, internalElements: List[InternalElement], paginateData: utils.PaginateData,
+@(factory: Factory, hierarchy: Hierarchy, elements: List[Element], paginateData: utils.PaginateData,
     loggedInUser: Option[User], activeOrg: Option[Organisation])(implicit flash: Flash, request: RequestHeader, 
     messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
 
@@ -18,13 +18,13 @@
             breadcrumb(linkList, textList)
         }		
     	@{
-            val mediaList = internalElements.map((ie: InternalElement) =>
-            	routes.FileController.getThumbnailImage(ie.uuid, models.Types.InternalElementType.stringValue))
+            val mediaList = elements.map((ie: Element) =>
+            	routes.FileController.getThumbnailImage(ie.uuid, models.Types.ElementType.stringValue))
 
-            val linkList = internalElements.map((ie: InternalElement) =>
+            val linkList = elements.map((ie: Element) =>
                 controllers.routes.FactoryController.element(ie.uuid, 1, 1))
-            val headingList = internalElements.map(_.name)
-            val textList = internalElements.map(_.name)
+            val headingList = elements.map(_.name)
+            val textList = elements.map(_.name)
 
             displayPaginatedList(mediaList, linkList, headingList, textList, List(),
             	paginateData, controllers.routes.FactoryController.hierarchy(hierarchy.uuid, _))

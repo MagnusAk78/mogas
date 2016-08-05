@@ -35,12 +35,10 @@ import play.api.mvc.ActionTransformer
 import play.api.mvc.ActionBuilder
 import play.api.mvc.Flash
 import controllers.actions._
-import models.services.RemoveResult
+import utils.RemoveResult
 import models.formdata.FactoryForm
 import models.Factory
-import models.services.HierarchyService
-import models.services.InternalElementService
-import models.services.ExternalInterfaceService
+import models.services.AmlObjectService
 
 @Singleton
 class FactoryController @Inject() (
@@ -48,9 +46,7 @@ class FactoryController @Inject() (
   val generalActions: GeneralActions,
   val userService: UserService,
   val organisationService: OrganisationService,
-  val hierarchyService: HierarchyService,
-  val internalElementService: InternalElementService,
-  val externalInterfaceService: ExternalInterfaceService,
+  val amlObjectService: AmlObjectService,
   val factoryService: FactoryService,
   implicit val webJarAssets: WebJarAssets)(implicit exec: ExecutionContext, materialize: Materializer)
     extends Controller with I18nSupport {
@@ -72,7 +68,7 @@ class FactoryController @Inject() (
       generalActions.FactoryAction(uuid)).async { implicit factoryRequest =>
 
         val responses = for {
-          hierarchyListData <- hierarchyService.getHierarchyList(page, factoryRequest.factory)
+          hierarchyListData <- factoryService.getHierarchyList(page, factoryRequest.factory)
         } yield Ok(views.html.factories.factory(factoryRequest.factory, hierarchyListData.list, hierarchyListData.paginateData,
           Some(factoryRequest.identity), factoryRequest.activeOrganisation))
 
@@ -86,7 +82,7 @@ class FactoryController @Inject() (
       generalActions.HierarchyAction(uuid)).async { implicit hierarchyRequest =>
 
         val responses = for {
-          elementListData <- internalElementService.getInternalElementList(page, hierarchyRequest.hierarchy)
+          elementListData <- amlObjectService.getElementList(page, hierarchyRequest.hierarchy)
         } yield Ok(views.html.factories.hierarchy(hierarchyRequest.factory, hierarchyRequest.hierarchy,
           elementListData.list, elementListData.paginateData, Some(hierarchyRequest.identity),
           hierarchyRequest.activeOrganisation))
@@ -101,8 +97,8 @@ class FactoryController @Inject() (
       generalActions.ElementAction(uuid)).async { implicit elementRequest =>
 
         val responses = for {
-          elementListData <- internalElementService.getInternalElementList(elementPage, elementRequest.elementChain.last)
-          interfaceListData <- externalInterfaceService.getExternalInterfaceList(interfacePage, elementRequest.elementChain.last)
+          elementListData <- amlObjectService.getElementList(elementPage, elementRequest.elementChain.last)
+          interfaceListData <- amlObjectService.getInterfaceList(interfacePage, elementRequest.elementChain.last)
         } yield Ok(views.html.factories.element(elementRequest.factory, elementRequest.hierarchy,
           elementRequest.elementChain, elementListData.list, elementListData.paginateData, interfaceListData.list,
           interfaceListData.paginateData, Some(elementRequest.identity), elementRequest.activeOrganisation))
@@ -144,7 +140,7 @@ class FactoryController @Inject() (
       },
       formData => {
         val responses = for {
-          optSavedFactory <- factoryService.insert(Factory.create(name = formData.name, parentOrganisation = mySecuredRequest.activeOrganisation.get.uuid))
+          optSavedFactory <- factoryService.insertFactory(Factory.create(name = formData.name, parentOrganisation = mySecuredRequest.activeOrganisation.get.uuid))
         } yield optSavedFactory match {
           case Some(newFactory) =>
             Redirect(routes.FactoryController.edit(newFactory.uuid)).
@@ -179,7 +175,7 @@ class FactoryController @Inject() (
           val responses = for {
             updateResult <- {
               val updateFactory = factoryRequest.factory.copy(name = formData.name)
-              factoryService.update(updateFactory)
+              factoryService.updateFactory(updateFactory)
             }
           } yield updateResult match {
             case true =>
@@ -199,7 +195,7 @@ class FactoryController @Inject() (
   def delete(uuid: String) = (generalActions.MySecuredAction andThen generalActions.RequireActiveOrganisation andThen
     generalActions.FactoryAction(uuid)).async { implicit factoryRequest =>
       val responses = for {
-        removeResult <- factoryService.remove(factoryRequest.factory, factoryRequest.identity.uuid)
+        removeResult <- factoryService.removeFactory(factoryRequest.factory, factoryRequest.identity.uuid)
       } yield if (removeResult.success) {
         Redirect(routes.FactoryController.list(1)).flashing("success" -> Messages("db.success.remove", factoryRequest.factory.name))
       } else {
@@ -360,7 +356,7 @@ class FactoryController @Inject() (
       case Some(factory) => {
         HierarchyDAO.findOneById(hierarchyIdString) match {
           case Some(hierarchy) => {
-            InternalElementDbHelper.getInternalElements(Left(hierarchy)) match {
+            ElementDbHelper.getElements(Left(hierarchy)) match {
               case Some(elementsCursor) => {
                 val count = elementsCursor.count
                 val elements = DbHelper.paginate(elementsCursor, page, models.defaultPageLength).toList
@@ -389,15 +385,15 @@ class FactoryController @Inject() (
         case Some(factory) => {
           HierarchyDAO.findOneById(hierarchyIdString) match {
             case Some(hierarchy) => {
-              InternalElementDAO.findOneById(elementIdString) match {
-                case Some(internalElement) => {
+              ElementDAO.findOneById(elementIdString) match {
+                case Some(element) => {
 
-                  InternalElementDbHelper.getInternalElements(Right(internalElement)) match {
+                  ElementDbHelper.getElements(Right(element)) match {
                     case Some(elementsCursor) => {
                       val elementsCount = elementsCursor.count
 
-                      val interfacesCursor = ExternalInterfaceDAO.find(DbHelper.queryIdFromIdList(internalElement.
-                        externalInterfaces))
+                      val interfacesCursor = InterfaceDAO.find(DbHelper.queryIdFromIdList(element.
+                        interfaces))
                       val interfacesCount = interfacesCursor.count
 
                       val count = elementsCount + interfacesCount
@@ -405,7 +401,7 @@ class FactoryController @Inject() (
                       val elements = if (elementsCount > ((page - 1) * models.defaultPageLength)) {
                         DbHelper.paginate(elementsCursor, page, models.defaultPageLength).toList
                       } else {
-                        List.empty[InternalElement]
+                        List.empty[Element]
                       }
 
                       val eiPageLength = models.defaultPageLength - elements.size
@@ -419,10 +415,10 @@ class FactoryController @Inject() (
                         }
                         DbHelper.paginate(interfacesCursor, eiPage, eiPageLength).toList
                       } else {
-                        List.empty[ExternalInterface]
+                        List.empty[Interface]
                       }
 
-                      Future.successful(Ok(views.html.factories.element(factory, hierarchy, internalElement,
+                      Future.successful(Ok(views.html.factories.element(factory, hierarchy, element,
                         elements, interfaces, count, page, models.defaultPageLength, Some(request.identity))))
                     }
                     case None => Future.successful(Redirect(routes.FactoryController.list(1)).
@@ -451,14 +447,14 @@ class FactoryController @Inject() (
     SecuredAction(AlwaysAuthorized()).async(parse.multipartFormData) { implicit request =>
       Logger.info("FactoryController.saveElementImage")
 
-      val ieOpt = InternalElementDAO.findOneById(elementIdString)
+      val ieOpt = ElementDAO.findOneById(elementIdString)
 
       if (ieOpt.isEmpty) {
         Future.successful(Redirect(routes.FactoryController.list(1)).
-          flashing("error" -> Messages("db.error.find", "InternalElement", elementIdString)))
+          flashing("error" -> Messages("db.error.find", "Element", elementIdString)))
       } else {
-        val imageFileReps = InternalElement.saveImageFile(request.body.file(models.imageFileKeyString))
-        InternalElementDAO.update(InternalElementParams(_id = Some(ieOpt.get._id)),
+        val imageFileReps = Element.saveImageFile(request.body.file(models.imageFileKeyString))
+        ElementDAO.update(ElementParams(_id = Some(ieOpt.get._id)),
           ieOpt.get.copy(imageFileRep = imageFileReps._1, thumbnailFileRep = imageFileReps._2))
 
         Future.successful(Redirect(routes.FactoryController.element(factoryIdString, hierarchyIdString, elementIdString,
@@ -474,9 +470,9 @@ class FactoryController @Inject() (
         case Some(factory) => {
           HierarchyDAO.findOneById(hierarchyIdString) match {
             case Some(hierarchy) => {
-              InternalElementDAO.findOneById(elementIdString) match {
-                case Some(internalElement) => {
-                  InternalElement.getImageStream(internalElement) match {
+              ElementDAO.findOneById(elementIdString) match {
+                case Some(element) => {
+                  Element.getImageStream(element) match {
                     case Some(imageStream) => {
                       Future.successful(Ok.stream(imageStream))
                     }
@@ -487,7 +483,7 @@ class FactoryController @Inject() (
                 }
                 case None => {
                   Future.successful(Redirect(routes.FactoryController.list(1)).
-                    flashing("error" -> Messages("db.error.find", "InternalElement", elementIdString)))
+                    flashing("error" -> Messages("db.error.find", "Element", elementIdString)))
                 }
               }
             }
@@ -511,9 +507,9 @@ class FactoryController @Inject() (
         case Some(factory) => {
           HierarchyDAO.findOneById(hierarchyIdString) match {
             case Some(hierarchy) => {
-              InternalElementDAO.findOneById(elementIdString) match {
-                case Some(internalElement) => {
-                  InternalElement.getThumbnailFile(internalElement) match {
+              ElementDAO.findOneById(elementIdString) match {
+                case Some(element) => {
+                  Element.getThumbnailFile(element) match {
                     case Some(thumbnailFile) => {
                       Future.successful(Ok.sendFile(content = thumbnailFile, inline = true))
                     }
@@ -524,7 +520,7 @@ class FactoryController @Inject() (
                 }
                 case None => {
                   Future.successful(Redirect(routes.FactoryController.list(1)).
-                    flashing("error" -> Messages("db.error.find", "InternalElement", elementIdString)))
+                    flashing("error" -> Messages("db.error.find", "Element", elementIdString)))
                 }
               }
             }
@@ -546,22 +542,22 @@ class FactoryController @Inject() (
       case Some(factory) => {
         HierarchyDAO.findOneById(hierarchyIdString) match {
           case Some(hierarchy) => {
-            InternalElementDAO.findOneById(elementIdString) match {
-              case Some(internalElement) => {
-                ExternalInterfaceDAO.findOneById(interfaceIdString) match {
-                  case Some(externalInterface) => {
-                    Future.successful(Ok(views.html.factories.interface(factory, hierarchy, internalElement,
-                      externalInterface, Some(request.identity))))
+            ElementDAO.findOneById(elementIdString) match {
+              case Some(element) => {
+                InterfaceDAO.findOneById(interfaceIdString) match {
+                  case Some(interface) => {
+                    Future.successful(Ok(views.html.factories.interface(factory, hierarchy, element,
+                      interface, Some(request.identity))))
                   }
                   case None => {
                     Future.successful(Redirect(routes.FactoryController.list(1)).
-                      flashing("error" -> Messages("db.error.find", "ExternalInterface", interfaceIdString)))
+                      flashing("error" -> Messages("db.error.find", "Interface", interfaceIdString)))
                   }
                 }
               }
               case None =>
                 Future.successful(Redirect(routes.FactoryController.list(1)).
-                  flashing("error" -> Messages("db.error.find", "InternalElement", elementIdString)))
+                  flashing("error" -> Messages("db.error.find", "Element", elementIdString)))
             }
           }
           case None =>

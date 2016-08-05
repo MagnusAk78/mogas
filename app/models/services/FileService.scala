@@ -12,6 +12,7 @@ import play.api.mvc.Result
 import play.modules.reactivemongo.JSONFileToSave
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.JsObject
+import utils.RemoveResult
 
 trait FileService {
   

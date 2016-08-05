@@ -36,7 +36,8 @@ import play.api.mvc.ActionTransformer
 import play.api.mvc.ActionBuilder
 import play.api.mvc.Flash
 import controllers.actions._
-import models.services.RemoveResult
+import utils.RemoveResult
+import models.User
 
 @Singleton
 class OrganisationController @Inject() (
@@ -150,9 +151,9 @@ class OrganisationController @Inject() (
           }
           userService.update(updateUser)
         }
-        optNewLoggedInUser <- userService.findOneByUuid(mySecuredRequest.identity.uuid)
+        optNewLoggedInUser <- userService.findOne(User.queryByUuid(mySecuredRequest.identity.uuid))
         otpNewActiveOrg <- optNewLoggedInUser match {
-          case Some(newLoggedInUser) => organisationService.findOneByUuid(newLoggedInUser.activeOrganisation)
+          case Some(newLoggedInUser) => organisationService.findOne(Organisation.queryByUuid(newLoggedInUser.activeOrganisation))
           case None => Future.failed(new Exception("No new user found after update"))
         }
       } yield Ok(views.html.organisations.editActivateOrganisation(organisationListData.list,

@@ -1,0 +1,29 @@
+@(instructionPart: InstructionPart, instruction: Instruction, page: Int, loggedInUser: Option[User], 
+	activeOrg: Option[Organisation])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
+	webJarAssets: WebJarAssets)
+
+@import b4.inline.fieldConstructor
+@import templates._
+@import components.buttons._
+@import components.media._
+@import components.utils._
+@import forms._
+
+@main(Messages("instructions"), loggedInUser, activeOrg) {
+	
+	@rowContentButtons() {
+		<div class="card">
+			<img class="card-img-top img-responsive m-x-auto" src="@routes.FileController.getStandardImage(instructionPart.uuid, 
+				models.Types.InstructionPartType.stringValue)" alt="instruction part image">
+		
+			<div class="card-block text-left">
+				<h4 class="card-title">@Messages("instructionPart", instructionPart.orderNumber, instruction.name)</h4>
+				<p class="card-text">@instructionPart.text</p>
+			</div>	
+		</div>
+    	
+    }{
+        @backButton(controllers.routes.InstructionController.instruction(instruction.uuid, page))
+        @editButton(controllers.routes.InstructionController.editPart(instructionPart.uuid))
+    }
+}

@@ -12,6 +12,7 @@ import reactivemongo.play.json.JSONSerializationPack
 import play.modules.reactivemongo.JSONFileToSave
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.JsObject
+import utils.RemoveResult
 
 
 class FileServiceImpl @Inject()(override val dao: FileDAO)(implicit val ec: ExecutionContext) extends FileService {

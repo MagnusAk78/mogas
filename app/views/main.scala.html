@@ -31,7 +31,7 @@
     	@if(activeOrg.isDefined) {
         	@navigationBar(activeOrg.get.name, loggedInUser)
 		} else {
-        	@navigationBar(Messages("not.applicable"), loggedInUser)
+        	@navigationBar(Messages("activeOrganisationNotSet"), loggedInUser)
 		}
 
 
@@ -40,23 +40,19 @@
 		<div class="col-md-3 col-lg-2 sidebar-offcanvas" id="sidebar" role="navigation">
             
     	@{
-        	val navLinks = Set() ++
-            	loggedInUser.map(u => Set(routes.OrganisationController.list(1))).getOrElse(Set.empty) ++ 
-                loggedInUser.map(u => Set(routes.UserController.list(1))).getOrElse(Set.empty) ++ 
-                activeOrg.map(u => Set(routes.FactoryController.list(1))).getOrElse(Set.empty) /*
+        	val navLinks = List(loggedInUser.map(u => routes.OrganisationController.list(1)), 
+        		activeOrg.map(o => routes.UserController.list(1)),
+        		activeOrg.map(o => routes.FactoryController.list(1)),
+        		activeOrg.map(o => routes.InstructionController.list("", 1)),
+        		activeOrg.map(o => routes.IssueController.list("", 1))).filter { _.isDefined }.flatten				
 
-                routes.InstructionController.list(1),
-                routes.IssueController.list("MyResponsability", 1) */
+            val navTexts = List(loggedInUser.map(u => Messages("organisations")), 
+        		activeOrg.map(o => Messages("users")),
+        		activeOrg.map(o => Messages("factories")),
+        		activeOrg.map(o => Messages("instructions")),
+        		activeOrg.map(o => Messages("issues"))).filter { _.isDefined }.flatten
 
-            val navTexts = Set() ++
-                loggedInUser.map(u => Set(Messages("organisations"))).getOrElse(Set.empty) ++
-                loggedInUser.map(u => Set(Messages("users"))).getOrElse(Set.empty) ++
-                activeOrg.map(u => Set(Messages("factories"))).getOrElse(Set.empty) /*   
-
-                Messages("instructions"),
-                Messages("issues") */
-
-            if(activeOrg.isDefined) {
+            if(loggedInUser.isDefined) {
             	navigation(navLinks, navTexts)
             }
         }

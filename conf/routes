@@ -54,7 +54,7 @@ GET     /factory/:uuid/list/:page                           				controllers.Fact
 
 GET		/factory/:uuid/parseAmlFiles										controllers.FactoryController.parseAmlFiles(uuid: String)
 
-GET     /factories/list                                             		controllers.FactoryController.list(organisationsPage: Int=1)
+GET     /factories/list                                             		controllers.FactoryController.list(page: Int=1)
 GET     /factories/list/:page												controllers.FactoryController.list(page: Int)
 
 #Hierarchies
@@ -67,6 +67,43 @@ GET		/factories/element/:uuid/:elementPage/:interfacePage				controllers.Factory
 
 GET		/factories/interface/:uuid											controllers.FactoryController.interface(uuid: String)
 
+#Instructions
+POST    /instruction/submit/:amlObjectUuid                     				controllers.InstructionController.submitCreate(amlObjectUuid: String)
+GET     /instruction/create/:amlObjectUuid									controllers.InstructionController.create(amlObjectUuid: String)
+POST    /instruction/:uuid/submitedit                     					controllers.InstructionController.submitEdit(uuid: String)
+GET     /instruction/:uuid/edit												controllers.InstructionController.edit(uuid: String)
+GET     /instruction/:uuid/delete											controllers.InstructionController.delete(uuid: String)
+GET     /instruction/:uuid/show                                             controllers.InstructionController.instruction(uuid: String, page: Int=1)
+GET     /instruction/:uuid/show/:page                                       controllers.InstructionController.instruction(uuid: String, page: Int)
+
+GET     /instructions/list/                                     			controllers.InstructionController.list(factoryUuid: String="", page: Int=1)
+GET     /instructions/list/:page											controllers.InstructionController.list(factoryUuid: String="", page: Int)
+GET     /instructions/list/:page/:factoryUuid/								controllers.InstructionController.list(factoryUuid: String, page: Int)
+
+POST    /instructionpart/submit/:instructionUuid                     		controllers.InstructionController.submitCreatePart(instructionUuid: String)
+GET     /instructionpart/create/:instructionUuid							controllers.InstructionController.createPart(instructionUuid: String)
+POST    /instructionpart/:uuid/submit                                       controllers.InstructionController.submitEditPart(uuid: String)
+GET     /instructionpart/:uuid/edit                                         controllers.InstructionController.editPart(uuid: String)
+GET     /instructionpart/:uuid/delete                                       controllers.InstructionController.deletePart(uuid: String)
+GET     /instructionpart/:uuid/inspect/:page                                controllers.InstructionController.inspectPart(uuid: String, page: Int)
+GET    /instructionpart/:uuid/moveup/:page                                  controllers.InstructionController.movePartUp(uuid: String, page: Int)
+GET    /instructionpart/:uuid/movedown/:page                                controllers.InstructionController.movePartDown(uuid: String, page: Int)
+
+#Issues
+POST    /issue/submit/:amlObjectUuid                     					controllers.IssueController.submitCreate(amlObjectUuid: String)
+GET     /issue/create/:amlObjectUuid										controllers.IssueController.create(amlObjectUuid: String)
+GET     /issue/:uuid/show                                             		controllers.IssueController.issue(uuid: String, page: Int=1)
+GET     /issue/:uuid/show/:page                                       		controllers.IssueController.issue(uuid: String, page: Int)
+
+GET     /issues/list/                                     					controllers.IssueController.list(factoryUuid: String="", page: Int=1)
+GET     /issues/list/:page													controllers.IssueController.list(factoryUuid: String="", page: Int)
+GET     /issues/list/:page/factoryUuid/										controllers.IssueController.list(factoryUuid: String, page: Int)
+
+POST    /issueupdate/submit/:issueUuid                     					controllers.IssueController.submitCreateIssueUpdate(issueUuid: String)
+GET    	/issueupdate/create/:issueUuid										controllers.IssueController.createIssueUpdate(issueUuid: String)
+POST   	/issueupdate/:uuid/submit                                       	controllers.IssueController.submitEditIssueUpdate(uuid: String)
+GET    	/issueupdate/:uuid/edit                                         	controllers.IssueController.editIssueUpdate(uuid: String)
+GET    	/issueupdate/:uuid/inspect/:page                                	controllers.IssueController.inspectIssueUpdate(uuid: String, page: Int)
 
 #File stuff
 GET     /image/:uuid/standard/:modelType						controllers.FileController.getStandardImage(uuid: String, modelType: String)

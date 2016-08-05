@@ -23,9 +23,9 @@ object Instruction extends DbModelComp[Instruction] with ChildOfComp[AmlObject] 
 
   private val KeyCreatedByUser = "createdByUser"
 
-  def create(name: String, connectionToToFactory: String, refersToAmlObject: String, createdBy: String) =
+  def create(name: String, connectionToToFactory: String, parentAmlObject: String, createdBy: String) =
     Instruction(uuid = UUID.randomUUID.toString, name = name, connectionTo = connectionToToFactory,
-      parent = refersToAmlObject, createdBy = createdBy)
+      parent = parentAmlObject, createdBy = createdBy)
 }
 
 /**

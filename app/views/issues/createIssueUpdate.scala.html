@@ -1,0 +1,24 @@
+@(issue: Issue, issueUpdateForm: Form[models.formdata.IssueUpdateForm.Data],   
+	loggedInUser: Option[User], activeOrg: Option[models.Organisation])(implicit flash: Flash, request: RequestHeader, 
+	messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
+
+@import b4.inline.fieldConstructor
+@import templates._
+@import components.buttons._
+@import components.media._
+@import forms._
+
+@main(Messages("issues"), loggedInUser, activeOrg) {
+	@title(Messages("createNewIssueUpdate"))
+			
+	@rowContentButtons() {	
+		@rowEvenColumns() {
+			@formNormal(routes.IssueController.submitCreateIssueUpdate(issue.uuid), Messages("create")) {
+        		@b4.textarea(issueUpdateForm("text"), '_label -> Messages("text"), 'rows -> 5)
+        	}        	
+        }{
+    	}		
+	}{
+		
+	}
+}

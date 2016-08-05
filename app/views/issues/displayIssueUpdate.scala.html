@@ -1,0 +1,22 @@
+@(issueUpdate: IssueUpdate, page: Int)(implicit flash: Flash, request: RequestHeader, messages: Messages, 
+	webJarAssets: WebJarAssets)
+
+@import components.buttons._
+
+<div class="card">
+	<a class="thumbnail" href="@routes.IssueController.inspectIssueUpdate(issueUpdate.uuid, page)">
+  		<img class="card-img-top img-responsive m-x-auto" src="@routes.FileController.getThumbnailImage(issueUpdate.uuid, models.Types.IssueUpdateType.stringValue)" alt="issue part image">
+  	</a>
+	<div class="card-block text-left">
+    	<p class="card-text">
+    		@if(issueUpdate.text.length > 140) {
+    			@{issueUpdate.orderNumber + ": " + issueUpdate.text.take(140)}
+				<button type="button" class="btn btn-secondary btn-sm" data-toggle="modal" data-target="#@issueUpdate.uuid">
+					...
+				</button>
+    		} else {
+    			@{issueUpdate.orderNumber + ": " + issueUpdate.text} 
+    		}
+    	</p>
+	</div>
+</div>

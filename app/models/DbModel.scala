@@ -16,6 +16,8 @@ trait DbModelComp[M <: DbModel] {
 
   private val KeyUUID = "uuid"
 
+  final val queryAll: JsObject = Json.obj()
+
   def queryByUuid(uuid: String): JsObject = Json.obj(KeyUUID -> JsString(uuid))
 
   def queryBySetOfUuids(uuids: Set[String]): JsObject = Json.obj(KeyUUID -> Json.obj("$in" -> Json.toJson(uuids)))

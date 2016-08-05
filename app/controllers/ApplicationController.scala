@@ -55,7 +55,7 @@ class ApplicationController @Inject() (
         case None => Future.successful(None)
       }
       activeOrg <- userOpt match {
-        case Some(user) => organisationService.findOneByUuid(user.activeOrganisation)
+        case Some(user) => organisationService.findOne(Organisation.queryByUuid(user.activeOrganisation))
         case None => Future.successful(None)
       }
     } yield userOpt match {

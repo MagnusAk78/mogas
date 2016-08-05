@@ -1,0 +1,24 @@
+@(instructionForm: Form[models.formdata.InstructionForm.Data], amlObjectUuid: String,  
+	loggedInUser: Option[User], activeOrg: Option[models.Organisation])(implicit flash: Flash, request: RequestHeader, 
+	messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
+
+@import b4.inline.fieldConstructor
+@import templates._
+@import components.buttons._
+@import components.media._
+@import forms._
+
+@main(Messages("instructions"), loggedInUser, activeOrg) {
+	@title(Messages("createNewInstruction"))
+			
+	@rowContentButtons() {	
+		@rowEvenColumns() {
+			@formNormal(routes.InstructionController.submitCreate(amlObjectUuid), Messages("create")) {
+        		@b4.text(instructionForm("name"), '_label -> Messages("name"))
+        	}        	
+        }{	
+    	}		
+	}{
+		
+	}
+}

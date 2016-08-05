@@ -1,0 +1,30 @@
+@(instruction: Instruction, instructionPart: InstructionPart, instructionPartForm: Form[models.formdata.InstructionPartForm.Data], 
+	loggedInUser: Option[models.User], activeOrg: Option[models.Organisation])(implicit flash: Flash,
+    request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
+
+@import b4.inline.fieldConstructor
+@import templates._
+@import components.buttons._
+@import components.media._
+@import forms._
+
+@main(Messages("instructions"), loggedInUser, activeOrg) {
+	@title(Messages("instructionPart", instructionPart.orderNumber, instruction.name))
+			
+	@rowContentButtons() {	
+		@rowEvenColumns() {
+    		@formNormal(routes.InstructionController.submitEditPart(instructionPart.uuid), Messages("update")) {
+    			@b4.textarea(instructionPartForm("text"), '_label -> Messages("text"), 'rows -> 5)
+    		}
+        }{	
+			<img class="img-responsive m-x-auto" src="@routes.FileController.getStandardImage(instructionPart.uuid, 
+				models.Types.InstructionPartType.stringValue)" alt="instruction part image">    			
+    	}		
+	}{
+		@backButton(controllers.routes.InstructionController.instruction(instruction.uuid, 1))
+		@changeImageButton(instructionPart.uuid, models.Types.InstructionPartType)
+		@deleteButton(controllers.routes.InstructionController.deletePart(instructionPart.uuid))	
+	}     
+}
+
+

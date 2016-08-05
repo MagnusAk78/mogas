@@ -1,0 +1,5 @@
+@(amlObjectUuid: String)(implicit flash: Flash,
+    request: RequestHeader, messages: Messages)
+
+@button(routes.IssueController.create(amlObjectUuid), Messages("createIssue"), "btn-primary", 
+	Some("fa fa-plus fa-fw"))

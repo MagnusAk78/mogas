@@ -1,0 +1,31 @@
+@(factoryOpt: Option[Factory], issues: List[Issue], 
+	parentObjectChains: List[utils.AmlObjectChain], paginateData: utils.PaginateData, 
+	loggedInUser: Option[User], activeOrg: Option[Organisation])(implicit flash: Flash, request: RequestHeader, 
+	messages: Messages, lang: Lang, webJarAssets: WebJarAssets)    
+
+@import b4.inline.fieldConstructor
+@import templates._
+@import components.buttons._
+@import components.media._
+@import forms._
+
+@main(Messages("issues"), loggedInUser, activeOrg) {
+	
+	@title(Messages("issues"))
+	@rowContentButtons() {
+    	@{
+            val mediaList = issues.map((issue: Issue) =>
+                routes.FileController.getThumbnailImage(issue.uuid, models.Types.IssueType.stringValue))
+            val linkList = issues.map((issue: Issue) =>
+                controllers.routes.IssueController.issue(issue.uuid, 1))
+            val headingList = issues.map(_.name)
+            val textList = (issues, parentObjectChains).zipped map((issue, objectChain) => 
+            	objectChain.factory.name + " / " + objectChain.hierarchy.name + " / " +
+            	objectChain.amlObjectChain.map(eoi => eoi.fold(_.name, _.name)).mkString(" / "))
+
+            displayPaginatedList(mediaList, linkList, headingList, textList, List(),
+            	paginateData, controllers.routes.IssueController.list(factoryOpt.map(_.uuid).getOrElse(""), _))
+    	}
+    }{
+    }
+}

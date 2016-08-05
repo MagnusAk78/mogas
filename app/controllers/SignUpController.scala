@@ -83,8 +83,8 @@ class SignUpController @Inject() (
     Logger.info("SignUpController.edit")
 
     val responses = for {
-      userOpt <- userService.findOneByUuid(uuid)
-      activeOrgOpt <- organisationService.findOneByUuid(request.identity.activeOrganisation)
+      userOpt <- userService.findOne(User.queryByUuid(uuid))
+      activeOrgOpt <- organisationService.findOne(Organisation.queryByUuid(request.identity.activeOrganisation))
     } yield userOpt match {
       case Some(user) => {
         if (user.uuid == request.identity.uuid) {

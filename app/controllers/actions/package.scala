@@ -10,8 +10,13 @@ import com.mohiva.play.silhouette.api.actions.UserAwareRequest
 import com.mohiva.play.silhouette.api.Authenticator
 import models.Factory
 import models.Hierarchy
-import models.InternalElement
-import models.ExternalInterface
+import models.Element
+import models.Interface
+import models.Instruction
+import models.InstructionPart
+import utils.ElementOrInterface
+import models.IssueUpdate
+import models.Issue
 
 package object actions {
 
@@ -53,14 +58,41 @@ package object actions {
     lazy val activeOrganisation = request.activeOrganisation
   }
 
-  case class ElementRequest[A](factory: Factory, hierarchy: Hierarchy, elementChain: List[InternalElement],
+  case class ElementRequest[A](factory: Factory, hierarchy: Hierarchy, elementChain: List[Element],
                                request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
     lazy val identity: User = request.identity
     lazy val activeOrganisation = request.activeOrganisation
   }
 
-  case class InterfaceRequest[A](factory: Factory, hierarchy: Hierarchy, elementChain: List[InternalElement],
-                                 interface: ExternalInterface, request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
+  case class InterfaceRequest[A](factory: Factory, hierarchy: Hierarchy, elementChain: List[Element],
+                                 interface: Interface, request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
+    lazy val identity: User = request.identity
+    lazy val activeOrganisation = request.activeOrganisation
+  }
+
+  case class AmlObjectRequest[A](elementOrInterface: ElementOrInterface, request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
+    lazy val identity: User = request.identity
+    lazy val activeOrganisation = request.activeOrganisation
+  }
+
+  case class InstructionRequest[A](instruction: Instruction, request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
+    lazy val identity: User = request.identity
+    lazy val activeOrganisation = request.activeOrganisation
+  }
+
+  case class InstructionPartRequest[A](instructionPart: InstructionPart, instruction: Instruction,
+                                       request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
+    lazy val identity: User = request.identity
+    lazy val activeOrganisation = request.activeOrganisation
+  }
+
+  case class IssueRequest[A](issue: Issue, request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
+    lazy val identity: User = request.identity
+    lazy val activeOrganisation = request.activeOrganisation
+  }
+
+  case class IssueUpdateRequest[A](issueUpdate: IssueUpdate, issue: Issue,
+                                   request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
     lazy val identity: User = request.identity
     lazy val activeOrganisation = request.activeOrganisation
   }

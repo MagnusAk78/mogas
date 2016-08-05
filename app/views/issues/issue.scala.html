@@ -1,0 +1,56 @@
+@(issue: Issue, elementOrInterface: utils.ElementOrInterface, factory: Factory, issueUpdates: List[IssueUpdate], 
+	paginateData: utils.PaginateData, loggedInUser: Option[User], 
+	activeOrg: Option[Organisation])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
+	webJarAssets: WebJarAssets)
+
+@import b4.inline.fieldConstructor
+@import templates._
+@import components.buttons._
+@import components.media._
+@import components.utils._
+@import forms._
+
+@main(Messages("issues"), loggedInUser, activeOrg) {
+	
+	@title(issue.name)
+	@rowContentButtons() {
+		@paginate(paginateData, controllers.routes.IssueController.issue(issue.uuid, _))
+		
+		<div class="hidden-lg-down">
+			@for(issueUpdateList <- issueUpdates.grouped(3)) {		
+				<div class="row">
+  					@for(issueUpdate <- issueUpdateList) {
+  						<div class="col-xl-4">
+  							@displayIssueUpdate(issueUpdate, paginateData.page)
+  						</div>
+  					}
+  				</div>
+  			}
+  		</div>
+  		
+  		<div class="hidden-xs-down hidden-xl-up">
+			@for(issueUpdateList <- issueUpdates.grouped(2)) {		
+				<div class="row">
+  						@for(issueUpdate <- issueUpdateList) {
+  							<div class="col-sm-6 col-md-6 col-lg-6">
+  								@displayIssueUpdate(issueUpdate, paginateData.page)
+  							</div>
+  						}
+  				</div>
+  			}
+  		</div>
+  		
+  		<div class="row hidden-sm-up">
+  			@for(issueUpdate <- issueUpdates) {		
+  				@displayIssueUpdate(issueUpdate, paginateData.page)
+  			}  		
+  		</div>  		
+    }{
+        @backButton(controllers.routes.IssueController.list(factory.uuid, 1))
+        @createButton(controllers.routes.IssueController.createIssueUpdate(issue.uuid), Some(Messages("addMore")))
+    }
+    
+	@for(issueUpdate <- issueUpdates) {		
+  		@createModal(issueUpdate)
+  	}    
+}

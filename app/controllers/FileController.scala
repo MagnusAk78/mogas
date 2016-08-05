@@ -78,17 +78,18 @@ class FileController @Inject() (
           case NotFound => {
             val modelType = models.Types.fromString(modelTypeString)
 
-            //Future.successful(Ok(views.html.ImageUpload(uuid, modelType, Some(request.identity),
-            // request.activeOrganisation)))
-
             //No image found, we need to send default image depending type
             modelType match {
               case models.Types.OrganisationType => Future.successful(Redirect(routes.Assets.at("images/organisation-default.png")).as("image/png"))
               case models.Types.UserType => Future.successful(Redirect(routes.Assets.at("images/user-default.png")).as("image/png"))
               case models.Types.FactoryType => Future.successful(Redirect(routes.Assets.at("images/factory-default.png")).as("image/png"))
               case models.Types.HierarchyType => Future.successful(Redirect(routes.Assets.at("images/hierarchy-default.png")).as("image/png"))
-              case models.Types.InternalElementType => Future.successful(Redirect(routes.Assets.at("images/element-default.png")).as("image/png"))
-              case models.Types.ExternalInterfaceType => Future.successful(Redirect(routes.Assets.at("images/interface-default.png")).as("image/png"))
+              case models.Types.ElementType => Future.successful(Redirect(routes.Assets.at("images/element-default.png")).as("image/png"))
+              case models.Types.InterfaceType => Future.successful(Redirect(routes.Assets.at("images/interface-default.png")).as("image/png"))
+              case models.Types.InstructionType => Future.successful(Redirect(routes.Assets.at("images/organisation-default.png")).as("image/png"))
+              case models.Types.InstructionPartType => Future.successful(Redirect(routes.Assets.at("images/organisation-default.png")).as("image/png"))
+              case models.Types.IssueType => Future.successful(Redirect(routes.Assets.at("images/organisation-default.png")).as("image/png"))
+              case models.Types.IssueUpdateType => Future.successful(Redirect(routes.Assets.at("images/organisation-default.png")).as("image/png"))
               case models.Types.UnknownType => Future.successful(NotFound)
             }
           }
@@ -114,14 +115,21 @@ class FileController @Inject() (
         case NotFound => {
           //No image found, we need to send default image depending type
           val modelType = models.Types.fromString(modelTypeString)
+
+          Logger.info("modelType: " + modelType)
+
           modelType match {
-            case models.Types.OrganisationType => Future.successful(Redirect(routes.Assets.at("images/organisation-default.png")).as("image/png"))
-            case models.Types.UserType => Future.successful(Redirect(routes.Assets.at("images/user-default.png")).as("image/png"))
-            case models.Types.FactoryType => Future.successful(Redirect(routes.Assets.at("images/factory-default.png")).as("image/png"))
-            case models.Types.HierarchyType => Future.successful(Redirect(routes.Assets.at("images/hierarchy-default.png")).as("image/png"))
-            case models.Types.InternalElementType => Future.successful(Redirect(routes.Assets.at("images/element-default.png")).as("image/png"))
-            case models.Types.ExternalInterfaceType => Future.successful(Redirect(routes.Assets.at("images/interface-default.png")).as("image/png"))
-            case models.Types.UnknownType => Future.successful(NotFound)
+            case Types.OrganisationType => Future.successful(Redirect(routes.Assets.at("images/organisation-default.png")).as("image/png"))
+            case Types.UserType => Future.successful(Redirect(routes.Assets.at("images/user-default.png")).as("image/png"))
+            case Types.FactoryType => Future.successful(Redirect(routes.Assets.at("images/factory-default.png")).as("image/png"))
+            case Types.HierarchyType => Future.successful(Redirect(routes.Assets.at("images/hierarchy-default.png")).as("image/png"))
+            case Types.ElementType => Future.successful(Redirect(routes.Assets.at("images/element-default.png")).as("image/png"))
+            case Types.InterfaceType => Future.successful(Redirect(routes.Assets.at("images/interface-default.png")).as("image/png"))
+            case Types.InstructionType => Future.successful(Redirect(routes.Assets.at("images/organisation-default.png")).as("image/png"))
+            case Types.InstructionPartType => Future.successful(Redirect(routes.Assets.at("images/organisation-default.png")).as("image/png"))
+            case models.Types.IssueType => Future.successful(Redirect(routes.Assets.at("images/organisation-default.png")).as("image/png"))
+            case models.Types.IssueUpdateType => Future.successful(Redirect(routes.Assets.at("images/organisation-default.png")).as("image/png"))
+            case Types.UnknownType => Future.successful(NotFound)
           }
         }
         case _ => serveResult
@@ -141,7 +149,8 @@ class FileController @Inject() (
       Logger.info("SignUpController: submitImage")
 
       //A list of the old images that now has to be removed
-      val futureOldImageFileList = fileService.findByQuery(Images.getQueryAllImages(uuid)).flatMap(cursor => cursor.collect[List](0, true))
+      val futureOldImageFileList = fileService.findByQuery(Images.getQueryAllImages(uuid)).
+        flatMap(cursor => cursor.collect[List](0, true))
 
       val futureOptFileRef = request.body.file(models.formdata.ImageFileKeyString) match {
         case Some(file) => file.ref.map(Some(_))
@@ -171,7 +180,8 @@ class FileController @Inject() (
               bytes =>
                 {
                   // Create standard image
-                  val enumeratorStandard: Enumerator[Array[Byte]] = Enumerator.fromStream(Image(bytes).bound(Images.Standard.pixels, Images.Standard.pixels).stream)
+                  val enumeratorStandard: Enumerator[Array[Byte]] = Enumerator.
+                    fromStream(Image(bytes).bound(Images.Standard.xPixels, Images.Standard.yPixels).stream)
 
                   val dataImage = JSONFileToSave(
                     filename = file.filename,
@@ -187,7 +197,8 @@ class FileController @Inject() (
             val futureSaveThumbnailResult = iteratorUploaded2.flatMap {
               bytes =>
                 {
-                  val enumeratorThumbnail: Enumerator[Array[Byte]] = Enumerator.fromStream(Image(bytes).bound(Images.Thumbnail.pixels, Images.Thumbnail.pixels).stream)
+                  val enumeratorThumbnail: Enumerator[Array[Byte]] = Enumerator.
+                    fromStream(Image(bytes).fit(Images.Thumbnail.xPixels, Images.Thumbnail.yPixels).stream)
 
                   val dataThumbnail = JSONFileToSave(
                     filename = file.filename,
@@ -222,7 +233,7 @@ class FileController @Inject() (
         }
       })
 
-      val futureActiveOrg = organisationService.findOneByUuid(request.identity.activeOrganisation)
+      val futureActiveOrg = organisationService.findOne(Organisation.queryByUuid(request.identity.activeOrganisation))
 
       val responses = for {
         optFile <- futureOptFile
@@ -239,8 +250,12 @@ class FileController @Inject() (
         case Types.UserType => Redirect(routes.SignUpController.edit(uuid)).flashing("success" -> Messages("db.success.imageUpload"))
         case Types.FactoryType => Redirect(routes.FactoryController.edit(uuid)).flashing("success" -> Messages("db.success.imageUpload"))
         case Types.HierarchyType => Redirect(routes.FactoryController.hierarchy(uuid, 1)).flashing("success" -> Messages("db.success.imageUpload"))
-        case Types.InternalElementType => Redirect(routes.FactoryController.element(uuid, 1, 1)).flashing("success" -> Messages("db.success.imageUpload"))
-        case Types.ExternalInterfaceType => Redirect(routes.FactoryController.interface(uuid)).flashing("success" -> Messages("db.success.imageUpload"))
+        case Types.ElementType => Redirect(routes.FactoryController.element(uuid, 1, 1)).flashing("success" -> Messages("db.success.imageUpload"))
+        case Types.InterfaceType => Redirect(routes.FactoryController.interface(uuid)).flashing("success" -> Messages("db.success.imageUpload"))
+        case Types.InstructionType => Redirect(routes.InstructionController.instruction(uuid, 1)).flashing("success" -> Messages("db.success.imageUpload"))
+        case Types.InstructionPartType => Redirect(routes.InstructionController.inspectPart(uuid, 1)).flashing("success" -> Messages("db.success.imageUpload"))
+        case Types.IssueType => Redirect(routes.IssueController.issue(uuid, 1)).flashing("success" -> Messages("db.success.imageUpload"))
+        case Types.IssueUpdateType => Redirect(routes.IssueController.inspectIssueUpdate(uuid, 1)).flashing("success" -> Messages("db.success.imageUpload"))
         case Types.UnknownType => Redirect(routes.OrganisationController.list(1)).flashing("error" -> Messages("error.unknownType"))
       }
 

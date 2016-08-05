@@ -9,3 +9,5 @@ accessDenied = Access Denied
 editAllowedUsers = Edit allowed users for {0}
 
 thereMustBeAtLeastOneAllowedUser = there must be at least one allowed user
+
+instructionPart = Part {0} of {1}

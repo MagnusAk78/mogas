@@ -14,28 +14,30 @@ import models.daos.UserDAO
 import models.daos.UserDAOImpl
 import models.daos.OrganisationDAO
 import models.daos.OrganisationDAOImpl
-import models.daos.InternalElementDAO
+import models.daos.ElementDAO
 import models.daos.FactoryDAOImpl
 import models.daos.FactoryDAO
-import models.daos.ExternalInterfaceDAOImpl
-import models.daos.ExternalInterfaceDAO
+import models.daos.InterfaceDAOImpl
+import models.daos.InterfaceDAO
 import models.daos.HierarchyDAOImpl
-import models.daos.InternalElementDAOImpl
+import models.daos.ElementDAOImpl
 import models.daos.HierarchyDAO
 import models.services.FactoryService
-import models.services.HierarchyServiceImpl
-import models.services.HierarchyService
 import models.services.FactoryServiceImpl
-import models.services.InternalElementService
-import models.services.ExternalInterfaceService
-import models.services.ExternalInterfaceServiceImpl
-import models.services.InternalElementServiceImpl
 import models.daos.InstructionDAO
 import models.daos.InstructionDAOImpl
 import models.daos.InstructionPartDAOImpl
 import models.daos.InstructionPartDAO
 import models.services.InstructionServiceImpl
 import models.services.InstructionService
+import models.services.AmlObjectServiceImpl
+import models.services.AmlObjectService
+import models.services.IssueService
+import models.services.IssueServiceImpl
+import models.daos.IssueUpdateDAOImpl
+import models.daos.IssueDAOImpl
+import models.daos.IssueDAO
+import models.daos.IssueUpdateDAO
 
 /**
  * This class is a Guice module that tells Guice how to bind several
@@ -63,19 +65,20 @@ class Module extends AbstractModule {
     bind(classOf[FileDAO]).to(classOf[FileDAOImpl]).asEagerSingleton()
     bind(classOf[FactoryDAO]).to(classOf[FactoryDAOImpl]).asEagerSingleton()
     bind(classOf[HierarchyDAO]).to(classOf[HierarchyDAOImpl]).asEagerSingleton()
-    bind(classOf[InternalElementDAO]).to(classOf[InternalElementDAOImpl]).asEagerSingleton()
-    bind(classOf[ExternalInterfaceDAO]).to(classOf[ExternalInterfaceDAOImpl]).asEagerSingleton()
+    bind(classOf[ElementDAO]).to(classOf[ElementDAOImpl]).asEagerSingleton()
+    bind(classOf[InterfaceDAO]).to(classOf[InterfaceDAOImpl]).asEagerSingleton()
     bind(classOf[InstructionDAO]).to(classOf[InstructionDAOImpl]).asEagerSingleton()
     bind(classOf[InstructionPartDAO]).to(classOf[InstructionPartDAOImpl]).asEagerSingleton()
+    bind(classOf[IssueDAO]).to(classOf[IssueDAOImpl]).asEagerSingleton()
+    bind(classOf[IssueUpdateDAO]).to(classOf[IssueUpdateDAOImpl]).asEagerSingleton()
 
     //Services, User service is in Silhouette module
     bind(classOf[OrganisationService]).to(classOf[OrganisationServiceImpl])
-    bind(classOf[FileService]).to(classOf[FileServiceImpl])
     bind(classOf[FactoryService]).to(classOf[FactoryServiceImpl]).asEagerSingleton()
-    bind(classOf[HierarchyService]).to(classOf[HierarchyServiceImpl]).asEagerSingleton()
-    bind(classOf[InternalElementService]).to(classOf[InternalElementServiceImpl]).asEagerSingleton()
-    bind(classOf[ExternalInterfaceService]).to(classOf[ExternalInterfaceServiceImpl]).asEagerSingleton()
+    bind(classOf[AmlObjectService]).to(classOf[AmlObjectServiceImpl]).asEagerSingleton()
     bind(classOf[InstructionService]).to(classOf[InstructionServiceImpl]).asEagerSingleton()
+    bind(classOf[IssueService]).to(classOf[IssueServiceImpl]).asEagerSingleton()
+    bind(classOf[FileService]).to(classOf[FileServiceImpl])
   }
 
 }

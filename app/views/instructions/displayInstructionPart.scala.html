@@ -1,0 +1,24 @@
+@(instructionPart: InstructionPart, page: Int)(implicit flash: Flash, request: RequestHeader, messages: Messages, 
+	webJarAssets: WebJarAssets)
+
+@import components.buttons._
+
+<div class="card">
+	<a class="thumbnail" href="@routes.InstructionController.inspectPart(instructionPart.uuid, page)">
+  		<img class="card-img-top img-responsive m-x-auto" src="@routes.FileController.getThumbnailImage(instructionPart.uuid, models.Types.InstructionPartType.stringValue)" alt="instruction part image">
+  	</a>
+	<div class="card-block text-left">
+    	<p class="card-text">
+    		@if(instructionPart.text.length > 140) {
+    			@{instructionPart.orderNumber + ": " + instructionPart.text.take(140)}
+				<button type="button" class="btn btn-secondary btn-sm" data-toggle="modal" data-target="#@instructionPart.uuid">
+					...
+				</button>
+    		} else {
+    			@{instructionPart.orderNumber + ": " + instructionPart.text} 
+    		}
+    	</p>
+    	@button(routes.InstructionController.movePartUp(instructionPart.uuid, page), Messages("moveUp"))
+    	@button(routes.InstructionController.movePartDown(instructionPart.uuid, page), Messages("moveDown"))
+	</div>
+</div>

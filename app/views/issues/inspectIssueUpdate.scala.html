@@ -1,0 +1,29 @@
+@(issueUpdate: IssueUpdate, issue: Issue, page: Int, loggedInUser: Option[User], 
+	activeOrg: Option[Organisation])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
+	webJarAssets: WebJarAssets)
+
+@import b4.inline.fieldConstructor
+@import templates._
+@import components.buttons._
+@import components.media._
+@import components.utils._
+@import forms._
+
+@main(Messages("issues"), loggedInUser, activeOrg) {
+	
+	@rowContentButtons() {
+		<div class="card">
+			<img class="card-img-top img-responsive m-x-auto" src="@routes.FileController.getStandardImage(issueUpdate.uuid, 
+				models.Types.IssueUpdateType.stringValue)" alt="issue part image">
+		
+			<div class="card-block text-left">
+				<h4 class="card-title">@Messages("issueUpdate", issueUpdate.orderNumber, issue.name)</h4>
+				<p class="card-text">@issueUpdate.text</p>
+			</div>	
+		</div>
+    	
+    }{
+        @backButton(controllers.routes.IssueController.issue(issue.uuid, page))
+        @editButton(controllers.routes.IssueController.editIssueUpdate(issueUpdate.uuid))
+    }
+}

@@ -1,16 +1,18 @@
 package models.services
 
+import scala.concurrent.Future
+
 import com.mohiva.play.silhouette.api.services.IdentityService
 import com.mohiva.play.silhouette.impl.providers.CommonSocialProfile
-import models.User
+import utils.ModelListData
 
-import scala.concurrent.Future
-import utils.PaginateData
+import models.User
+import play.api.libs.json.JsObject
 
 /**
  * Handles actions to users.
  */
-trait UserService extends BaseModelService[User] with IdentityService[User] {
+trait UserService extends IdentityService[User] {
 
   /**
    * Saves the social profile for a user.
@@ -23,4 +25,13 @@ trait UserService extends BaseModelService[User] with IdentityService[User] {
   def save(profile: CommonSocialProfile): Future[Option[User]]
 
   def getUserList(page: Int, uuidSet: Set[String]): Future[ModelListData[User]]
+
+  def insert(model: User): Future[Option[User]]
+
+  def update(model: User): Future[Boolean]
+
+  def findOne(query: JsObject): Future[Option[User]]
+
+  def findMany(query: JsObject, page: Int = 1,
+               pageSize: Int = utils.DefaultValues.DefaultPageLength): Future[ModelListData[User]]
 }

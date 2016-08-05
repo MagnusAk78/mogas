@@ -8,23 +8,23 @@ case class Hierarchy(
   override val parent: String,
   override val name: String,
   override val orderNumber: Int,
-  override val internalElements: Set[String]) extends DbModel with ChildOf[Factory] with InternalElementParent
+  override val elements: Set[String]) extends DbModel with ChildOf[Factory] with ElementParent
     with NamedModel with OrderedModel {
 
   override def asJsObject: JsObject = {
     Hierarchy.childOfJsObject(this) ++
-      Hierarchy.internalElementParentJsObject(this) ++
+      Hierarchy.elementParentJsObject(this) ++
       Hierarchy.namedModelJsObject(this) ++ Hierarchy.orderedModelJsObject(this)
   }
 }
 
-object Hierarchy extends DbModelComp[Hierarchy] with ChildOfComp[Factory] with InternalElementParentComp
+object Hierarchy extends DbModelComp[Hierarchy] with ChildOfComp[Factory] with ElementParentComp
     with NamedModelComp with OrderedModelComp {
   implicit val hierarchyFormat = Json.format[Hierarchy]
 
-  def create(name: String, parentFactory: String, orderNumber: Int, internalElements: Set[String] = Set.empty) =
+  def create(name: String, parentFactory: String, orderNumber: Int, elements: Set[String] = Set.empty) =
     Hierarchy(uuid = UUID.randomUUID.toString, name = name, parent = parentFactory, orderNumber = orderNumber,
-      internalElements = internalElements)
+      elements = elements)
 }
 
 /*
@@ -45,10 +45,10 @@ object Hierarchy {
   val factoryKey = "factory"
 
   private def identifyObjectType(objectIdString: String):
-  Option[Either[InternalElement, ExternalInterface]] = {
-    InternalElementDAO.findOneById(objectIdString) match {
-      case Some(internalElement) => Some(Left(internalElement))
-      case None => ExternalInterfaceDAO.findOneById(objectIdString).map(Right(_))
+  Option[Either[Element, Interface]] = {
+    ElementDAO.findOneById(objectIdString) match {
+      case Some(element) => Some(Left(element))
+      case None => InterfaceDAO.findOneById(objectIdString).map(Right(_))
     }
   }
 
@@ -70,13 +70,13 @@ object Hierarchy {
             .getOrElse(nameList)
 
           //Set the next parent id if it is an internal element
-          currentIdString = element.parentInternalElement.map(_.toString)
+          currentIdString = element.parentElement.map(_.toString)
         },
         (interface) => {
           //Add the interface name to name list
           nameList = interface.name :: nameList
           //Set the next parent id
-          currentIdString = Some(interface.parentInternalElement.toString)
+          currentIdString = Some(interface.parentElement.toString)
         }))
     }
 

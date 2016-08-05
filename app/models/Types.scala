@@ -21,12 +21,28 @@ object Types {
     override val stringValue = "Hierarchy"
   }
 
-  final case object InternalElementType extends ModelType {
-    override val stringValue = "InternalElement"
+  final case object ElementType extends ModelType {
+    override val stringValue = "Element"
   }
 
-  final case object ExternalInterfaceType extends ModelType {
-    override val stringValue = "ExternalInterface"
+  final case object InterfaceType extends ModelType {
+    override val stringValue = "Interface"
+  }
+
+  final case object InstructionType extends ModelType {
+    override val stringValue = "Instruction"
+  }
+
+  final case object InstructionPartType extends ModelType {
+    override val stringValue = "InstructionPart"
+  }
+
+  final case object IssueType extends ModelType {
+    override val stringValue = "Issue"
+  }
+
+  final case object IssueUpdateType extends ModelType {
+    override val stringValue = "IssueUpdate"
   }
 
   final case object UnknownType extends ModelType {
@@ -39,8 +55,12 @@ object Types {
       case UserType.stringValue => UserType
       case FactoryType.stringValue => FactoryType
       case HierarchyType.stringValue => HierarchyType
-      case InternalElementType.stringValue => InternalElementType
-      case ExternalInterfaceType.stringValue => ExternalInterfaceType
+      case ElementType.stringValue => ElementType
+      case InterfaceType.stringValue => InterfaceType
+      case InstructionType.stringValue => InstructionType
+      case InstructionPartType.stringValue => InstructionPartType
+      case IssueType.stringValue => IssueType
+      case IssueUpdateType.stringValue => IssueUpdateType
       case _ => UnknownType
     }
   }

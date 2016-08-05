@@ -1,0 +1,26 @@
+@(instruction: Instruction, instructionForm: Form[models.formdata.InstructionForm.Data], 
+	loggedInUser: Option[User], activeOrg: Option[models.Organisation])(implicit flash: Flash, 
+	request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
+
+@import b4.inline.fieldConstructor
+@import templates._
+@import components.buttons._
+@import components.media._
+@import forms._
+
+@main(Messages("instructions"), loggedInUser, activeOrg) {
+	@title(Messages("editInstruction"))
+			
+	@rowContentButtons() {	
+		@rowEvenColumns() {
+			@formNormal(routes.InstructionController.submitEdit(instruction.uuid), Messages("update")) {
+        		@b4.text(instructionForm("name"), '_label -> Messages("name"))
+        	}        	
+        }{	
+    	}		
+	}{
+		@backButton(controllers.routes.InstructionController.list("", 1))
+		@changeImageButton(instruction.uuid, models.Types.InstructionType)
+		@deleteButton(controllers.routes.InstructionController.delete(instruction.uuid))		
+	}
+}

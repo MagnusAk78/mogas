@@ -20,9 +20,18 @@ import play.api.mvc.ActionTransformer
 import play.api.mvc.Result
 import play.api.mvc.Results.NotFound
 import utils.auth.DefaultEnv
-import models.services.HierarchyService
-import models.services.InternalElementService
-import models.services.ExternalInterfaceService
+import models.services.InstructionService
+import models.User
+import models.Factory
+import models.Interface
+import models.Hierarchy
+import models.Element
+import models.Instruction
+import models.InstructionPart
+import models.services.AmlObjectService
+import models.services.IssueService
+import models.Issue
+import models.IssueUpdate
 
 trait GeneralActions {
 
@@ -43,6 +52,16 @@ trait GeneralActions {
   def ElementAction(uuid: String): ActionRefiner[MySecuredRequest, ElementRequest]
 
   def InterfaceAction(uuid: String): ActionRefiner[MySecuredRequest, InterfaceRequest]
+
+  def AmlObjectAction(uuid: String): ActionRefiner[MySecuredRequest, AmlObjectRequest]
+
+  def InstructionAction(uuid: String): ActionRefiner[MySecuredRequest, InstructionRequest]
+
+  def InstructionPartAction(uuid: String): ActionRefiner[MySecuredRequest, InstructionPartRequest]
+
+  def IssueAction(uuid: String): ActionRefiner[MySecuredRequest, IssueRequest]
+
+  def IssueUpdateAction(uuid: String): ActionRefiner[MySecuredRequest, IssueUpdateRequest]
 }
 
 @Singleton
@@ -50,14 +69,14 @@ class GeneralActionsImpl @Inject() (
     val organisationService: OrganisationService,
     val userService: UserService,
     val factoryService: FactoryService,
-    val hierarchyService: HierarchyService,
-    val internalElementService: InternalElementService,
-    val externalInterfaceService: ExternalInterfaceService,
+    val amlObjectService: AmlObjectService,
+    val instructionService: InstructionService,
+    val issueService: IssueService,
     val silhouette: Silhouette[DefaultEnv])(implicit ec: ExecutionContext) extends GeneralActions {
 
   def ActiveOrganisationAction = new ActionTransformer[SilhouetteSecuredRequest, MySecuredRequest] {
     override def transform[A](request: SilhouetteSecuredRequest[A]) = {
-      organisationService.findOneByUuid(request.identity.activeOrganisation).map { optActiveOrg =>
+      organisationService.findOne(Organisation.queryByUuid(request.identity.activeOrganisation)).map { optActiveOrg =>
         MySecuredRequest(optActiveOrg, request)
       }
     }
@@ -78,7 +97,7 @@ class GeneralActionsImpl @Inject() (
 
   override def UserAction(uuid: String) = new ActionRefiner[MySecuredRequest, UserRequest] {
     override def refine[A](activeOrganisationRequest: MySecuredRequest[A]) = {
-      userService.findOneByUuid(uuid).map { optUser =>
+      userService.findOne(User.queryByUuid(uuid)).map { optUser =>
         optUser.map(
           UserRequest(_, activeOrganisationRequest)).toRight(NotFound)
       }
@@ -88,7 +107,7 @@ class GeneralActionsImpl @Inject() (
   override def OrganisationAction(uuid: String) = new ActionRefiner[MySecuredRequest, OrganisationRequest] {
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
-        optionOrganisation <- organisationService.findOneByUuid(uuid)
+        optionOrganisation <- organisationService.findOne(Organisation.queryByUuid(uuid))
       } yield optionOrganisation.map(organisation => OrganisationRequest(organisation, mySecuredRequest)).toRight(NotFound)
     }
   }
@@ -96,7 +115,7 @@ class GeneralActionsImpl @Inject() (
   override def FactoryAction(uuid: String) = new ActionRefiner[MySecuredRequest, FactoryRequest] {
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
-        optionFactory <- factoryService.findOneByUuid(uuid)
+        optionFactory <- factoryService.findOneFactory(Factory.queryByUuid(uuid))
       } yield optionFactory.map(factory => FactoryRequest(factory, mySecuredRequest)).toRight(NotFound)
     }
   }
@@ -104,8 +123,8 @@ class GeneralActionsImpl @Inject() (
   override def HierarchyAction(uuid: String) = new ActionRefiner[MySecuredRequest, HierarchyRequest] {
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
-        optionHierarchy <- hierarchyService.findOneByUuid(uuid)
-        optionFactory <- factoryService.findOneByUuid(optionHierarchy.get.parent)
+        optionHierarchy <- factoryService.findOneHierarchy(Factory.queryByUuid(uuid))
+        optionFactory <- factoryService.findOneFactory(Factory.queryByUuid(optionHierarchy.get.parent))
       } yield optionFactory.map(factory => HierarchyRequest(optionFactory.get, optionHierarchy.get, mySecuredRequest))
         .toRight(NotFound)
     }
@@ -114,9 +133,9 @@ class GeneralActionsImpl @Inject() (
   override def ElementAction(uuid: String) = new ActionRefiner[MySecuredRequest, ElementRequest] {
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
-        elements <- internalElementService.getElementChain(uuid)
-        optionHierarchy <- hierarchyService.findOneByUuid(elements.head.parent)
-        optionFactory <- factoryService.findOneByUuid(optionHierarchy.get.parent)
+        elements <- amlObjectService.getElementChain(uuid)
+        optionHierarchy <- factoryService.findOneHierarchy(Hierarchy.queryByUuid(elements.head.parent))
+        optionFactory <- factoryService.findOneFactory(Factory.queryByUuid(optionHierarchy.get.parent))
       } yield optionFactory.map(factory => ElementRequest(optionFactory.get, optionHierarchy.get, elements,
         mySecuredRequest)).toRight(NotFound)
     }
@@ -125,12 +144,64 @@ class GeneralActionsImpl @Inject() (
   override def InterfaceAction(uuid: String) = new ActionRefiner[MySecuredRequest, InterfaceRequest] {
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
-        interface <- externalInterfaceService.findOneByUuid(uuid)
-        elements <- internalElementService.getElementChain(interface.get.parent)
-        optionHierarchy <- hierarchyService.findOneByUuid(elements.head.parent)
-        optionFactory <- factoryService.findOneByUuid(optionHierarchy.get.parent)
+        interface <- amlObjectService.findOneInterface(Interface.queryByUuid(uuid))
+        elements <- amlObjectService.getElementChain(interface.get.parent)
+        optionHierarchy <- factoryService.findOneHierarchy(Hierarchy.queryByUuid(elements.head.parent))
+        optionFactory <- factoryService.findOneFactory(Factory.queryByUuid(optionHierarchy.get.parent))
       } yield optionFactory.map(factory => InterfaceRequest(optionFactory.get, optionHierarchy.get, elements,
         interface.get, mySecuredRequest)).toRight(NotFound)
+    }
+  }
+
+  override def AmlObjectAction(uuid: String) = new ActionRefiner[MySecuredRequest, AmlObjectRequest] {
+    override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
+      for {
+        interface <- amlObjectService.findOneInterface(Interface.queryByUuid(uuid))
+        element <- interface.map(i => Future.successful(None)).getOrElse(amlObjectService.findOneElement(Element.queryByUuid(uuid)))
+      } yield interface match {
+        case Some(i) => Right(AmlObjectRequest(Right(i), mySecuredRequest))
+        case None => element.map(e => AmlObjectRequest(Left(e), mySecuredRequest)).toRight(NotFound)
+      }
+    }
+  }
+
+  override def InstructionAction(uuid: String) = new ActionRefiner[MySecuredRequest, InstructionRequest] {
+    override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
+      for {
+        optionInstruction <- instructionService.findOneInstruction(Instruction.queryByUuid(uuid))
+      } yield optionInstruction.map(i => InstructionRequest(i, mySecuredRequest)).toRight(NotFound)
+    }
+  }
+
+  override def InstructionPartAction(uuid: String) = new ActionRefiner[MySecuredRequest, InstructionPartRequest] {
+    override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
+      for {
+        optionInstructionPart <- instructionService.findOneInstructionPart(InstructionPart.queryByUuid(uuid))
+        optionInstruction <- instructionService.findOneInstruction(Instruction.queryByUuid(optionInstructionPart.get.parent))
+      } yield (optionInstructionPart, optionInstruction) match {
+        case (Some(instructionPart), Some(instruction)) => Right(InstructionPartRequest(instructionPart, instruction, mySecuredRequest))
+        case _ => Left(NotFound)
+      }
+    }
+  }
+
+  def IssueAction(uuid: String): ActionRefiner[MySecuredRequest, IssueRequest] = new ActionRefiner[MySecuredRequest, IssueRequest] {
+    override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
+      for {
+        optionIssue <- issueService.findOneIssue(Issue.queryByUuid(uuid))
+      } yield optionIssue.map(i => IssueRequest(i, mySecuredRequest)).toRight(NotFound)
+    }
+  }
+
+  def IssueUpdateAction(uuid: String): ActionRefiner[MySecuredRequest, IssueUpdateRequest] = new ActionRefiner[MySecuredRequest, IssueUpdateRequest] {
+    override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
+      for {
+        optionIssueUpdate <- issueService.findOneIssueUpdate(IssueUpdate.queryByUuid(uuid))
+        optionIssue <- issueService.findOneIssue(Issue.queryByUuid(optionIssueUpdate.get.parent))
+      } yield (optionIssueUpdate, optionIssue) match {
+        case (Some(issueUpdate), Some(issue)) => Right(IssueUpdateRequest(issueUpdate, issue, mySecuredRequest))
+        case _ => Left(NotFound)
+      }
     }
   }
 }

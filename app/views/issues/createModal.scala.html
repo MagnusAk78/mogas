@@ -1,0 +1,24 @@
+@(issueUpdate: IssueUpdate)(implicit flash: Flash, request: RequestHeader, messages: Messages, 
+	webJarAssets: WebJarAssets)
+
+@import components.buttons._
+
+@if(issueUpdate.text.length > 140) {
+<div class="modal" id="@issueUpdate.uuid" tabindex="-1" role="dialog" aria-labelledby="@{issueUpdate.uuid+"Label"}" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        @issueUpdate.text
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+}

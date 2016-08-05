@@ -1,0 +1,57 @@
+@(instruction: Instruction, elementOrInterface: utils.ElementOrInterface, factory: Factory, instructionParts: List[InstructionPart], 
+	paginateData: utils.PaginateData, loggedInUser: Option[User], 
+	activeOrg: Option[Organisation])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
+	webJarAssets: WebJarAssets)
+
+@import b4.inline.fieldConstructor
+@import templates._
+@import components.buttons._
+@import components.media._
+@import components.utils._
+@import forms._
+
+@main(Messages("instructions"), loggedInUser, activeOrg) {
+	
+	@title(instruction.name)
+	@rowContentButtons() {
+		@paginate(paginateData, controllers.routes.InstructionController.instruction(instruction.uuid, _))
+		
+		<div class="hidden-lg-down">
+			@for(instructionPartList <- instructionParts.grouped(3)) {		
+				<div class="row">
+  					@for(instructionPart <- instructionPartList) {
+  						<div class="col-xl-4">
+  							@displayInstructionPart(instructionPart, paginateData.page)
+  						</div>
+  					}
+  				</div>
+  			}
+  		</div>
+  		
+  		<div class="hidden-xs-down hidden-xl-up">
+			@for(instructionPartList <- instructionParts.grouped(2)) {		
+				<div class="row">
+  						@for(instructionPart <- instructionPartList) {
+  							<div class="col-sm-6 col-md-6 col-lg-6">
+  								@displayInstructionPart(instructionPart, paginateData.page)
+  							</div>
+  						}
+  				</div>
+  			}
+  		</div>
+  		
+  		<div class="row hidden-sm-up">
+  			@for(instructionPart <- instructionParts) {		
+  				@displayInstructionPart(instructionPart, paginateData.page)
+  			}  		
+  		</div>  		
+    }{
+        @backButton(controllers.routes.InstructionController.list(factory.uuid, 1))
+        @editButton(controllers.routes.InstructionController.edit(instruction.uuid), Some(Messages("edit")))
+        @createButton(controllers.routes.InstructionController.createPart(instruction.uuid), Some(Messages("addMore")))
+    }
+    
+	@for(instructionPart <- instructionParts) {		
+  		@createModal(instructionPart)
+  	}    
+}

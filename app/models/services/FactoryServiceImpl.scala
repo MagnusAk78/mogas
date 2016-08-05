@@ -1,6 +1,7 @@
 package models.services
 
 import java.io.PipedInputStream
+import utils.ModelListData
 import java.io.PipedOutputStream
 
 import scala.concurrent.Await
@@ -11,10 +12,11 @@ import scala.concurrent.duration.Duration
 import javax.inject.Inject
 import models.AmlFiles
 import models.Factory
-import models.ExternalInterface
+import models.Interface
 import models.Hierarchy
-import models.InternalElement
+import models.Element
 import models.daos.FactoryDAO
+import models.daos.HierarchyDAO
 import reactivemongo.play.json.JsFieldBSONElementProducer
 import utils.PaginateData
 import play.api.Logger
@@ -31,28 +33,52 @@ import play.api.libs.iteratee.Iteratee
 import models.Images
 import java.io.BufferedInputStream
 import models.Organisation
+import play.api.libs.json.JsObject
+import utils.RemoveResult
+import models.services.misc.AmlInterface
+import models.services.misc.AmlHierarchy
+import models.services.misc.AmlHelper
+import models.services.misc.AmlElement
+import utils.AmlObjectChain
+import utils.ElementOrInterface
 
 class FactoryServiceImpl @Inject() (
-  override val dao: FactoryDAO,
+  val factoryDao: FactoryDAO,
+  val hierarchyDao: HierarchyDAO,
   userService: UserService,
   fileService: FileService,
-  hierarchyService: HierarchyService,
-  internalElementService: InternalElementService,
-  externalInterfaceService: ExternalInterfaceService)(implicit val ec: ExecutionContext)
+  amlObjectService: AmlObjectService)(implicit val ec: ExecutionContext)
     extends FactoryService {
 
   override def getFactoryList(page: Int, organisation: Organisation): Future[ModelListData[Factory]] = {
-    findMany(Factory.queryByParent(organisation), page, utils.DefaultValues.DefaultPageLength)
+    findManyFactories(Factory.queryByParent(organisation), page, utils.DefaultValues.DefaultPageLength)
   }
 
-  override def remove(factory: Factory, loggedInUserUuid: String): Future[RemoveResult] = {
+  override def removeFactory(factory: Factory, loggedInUserUuid: String): Future[RemoveResult] = {
 
     //TODO: Is this allowed?
-    dao.remove(factory).map(success => if (success) {
+    factoryDao.remove(factory).map(success => if (success) {
       RemoveResult(true, None)
     } else {
       RemoveResult(false, Some("DAO refused to remove factory: " + factory.uuid))
     })
+  }
+
+  override def insertFactory(model: Factory): Future[Option[Factory]] = factoryDao.insert(model).map(wr => if (wr.ok) Some(model) else None)
+
+  override def updateFactory(model: Factory): Future[Boolean] = factoryDao.update(model).map(wr => wr.ok)
+
+  override def findOneFactory(query: JsObject): Future[Option[Factory]] = factoryDao.find(query, 1, 1).map(_.headOption)
+
+  override def findManyFactories(query: JsObject, page: Int = 1,
+                                 pageSize: Int = utils.DefaultValues.DefaultPageLength): Future[ModelListData[Factory]] = {
+    for {
+      theList <- factoryDao.find(query, page, utils.DefaultValues.DefaultPageLength)
+      count <- factoryDao.count(query)
+    } yield new ModelListData[Factory] {
+      override val list = theList
+      override val paginateData = PaginateData(page, count)
+    }
   }
 
   override def parseAmlFiles(factory: Factory): Future[Boolean] = {
@@ -84,9 +110,30 @@ class FactoryServiceImpl @Inject() (
           }
         }
 
-        update(factory.copy(hierachies = hierarchies.toSet))
+        updateFactory(factory.copy(hierachies = hierarchies.toSet))
       }
     } yield updateResult
+  }
+
+  override def getHierarchyList(page: Int, factory: Factory): Future[ModelListData[Hierarchy]] = {
+    findManyHierarchies(Hierarchy.queryByParent(factory), page, utils.DefaultValues.DefaultPageLength)
+  }
+
+  override def insertHierarchy(model: Hierarchy): Future[Option[Hierarchy]] = hierarchyDao.insert(model).map(wr => if (wr.ok) Some(model) else None)
+
+  override def updateHierarchy(model: Hierarchy): Future[Boolean] = hierarchyDao.update(model).map(wr => wr.ok)
+
+  override def findOneHierarchy(query: JsObject): Future[Option[Hierarchy]] = hierarchyDao.find(query, 1, 1).map(_.headOption)
+
+  override def findManyHierarchies(query: JsObject, page: Int = 1,
+                                   pageSize: Int = utils.DefaultValues.DefaultPageLength): Future[ModelListData[Hierarchy]] = {
+    for {
+      theList <- hierarchyDao.find(query, page, utils.DefaultValues.DefaultPageLength)
+      count <- hierarchyDao.count(query)
+    } yield new ModelListData[Hierarchy] {
+      override val list = theList
+      override val paginateData = PaginateData(page, count)
+    }
   }
 
   private def updateAmlHierarchies(factory: Factory, amlHierarchies: List[AmlHierarchy]): Future[List[String]] = {
@@ -99,102 +146,130 @@ class FactoryServiceImpl @Inject() (
 
   private def updateAmlHierarchy(factory: Factory, amlHierarchy: AmlHierarchy): Future[String] = {
     for {
-      optionalOldHierarchy <- hierarchyService.findOne(Hierarchy.queryByParent(factory) ++
+      optionalOldHierarchy <- findOneHierarchy(Hierarchy.queryByParent(factory) ++
         Hierarchy.queryByName(amlHierarchy.name))
       existingHierarchy <- optionalOldHierarchy match {
         case Some(h) => Future.successful(h)
-        case None => hierarchyService.insert(Hierarchy.
+        case None => insertHierarchy(Hierarchy.
           create(parentFactory = factory.uuid, name = amlHierarchy.name, orderNumber = amlHierarchy.orderNumber)).
           map(h => h.get)
       }
-      internalElements <- updateInternalElements(factory, existingHierarchy.uuid, true,
-        amlHierarchy.internalElements)
+      elements <- updateElements(factory, existingHierarchy.uuid, true,
+        amlHierarchy.elements)
       updateResult <- {
         //This was an existing hierarchy, update it in the db
         val updatedHierarchy = existingHierarchy.copy(orderNumber = amlHierarchy.orderNumber,
-          internalElements = internalElements.toSet)
-        hierarchyService.update(updatedHierarchy).map(s => updatedHierarchy.uuid)
+          elements = elements.toSet)
+        updateHierarchy(updatedHierarchy).map(s => updatedHierarchy.uuid)
       }
     } yield updateResult
   }
 
-  private def updateInternalElements(factory: Factory, parent: String, parentIsHierarchy: Boolean,
-                                     amlInternalElements: List[AmlInternalElement]): Future[List[String]] = {
+  private def updateElements(factory: Factory, parent: String, parentIsHierarchy: Boolean,
+                             amlElements: List[AmlElement]): Future[List[String]] = {
 
     Future.sequence(
-      amlInternalElements.map(elements => updateInternalElement(factory, parent, parentIsHierarchy, elements)))
+      amlElements.map(elements => updateElement(factory, parent, parentIsHierarchy, elements)))
   }
 
-  private def updateInternalElement(factory: Factory, parent: String, parentIsHierarchy: Boolean,
-                                    amlInternalElement: AmlInternalElement): Future[String] = {
+  private def updateElement(factory: Factory, parent: String, parentIsHierarchy: Boolean,
+                            amlElement: AmlElement): Future[String] = {
 
     for {
       optionalOldIE <- {
-        val query = InternalElement.queryByAmlId(amlInternalElement.amlId) ++ InternalElement.queryByConnectionTo(factory)
-        internalElementService.findOne(query)
+        val query = Element.queryByAmlId(amlElement.amlId) ++ Element.queryByConnectionTo(factory)
+        amlObjectService.findOneElement(query)
       }
 
       existingIE <- {
         optionalOldIE match {
           case Some(ie) => Future.successful(ie)
-          case None => internalElementService.insert(InternalElement.
-            create(factory.uuid, amlInternalElement.name, parent, parentIsHierarchy, amlInternalElement.orderNumber,
-              amlInternalElement.amlId)).
+          case None => amlObjectService.insertElement(Element.
+            create(factory.uuid, amlElement.name, parent, parentIsHierarchy, amlElement.orderNumber,
+              amlElement.amlId)).
             map(ie => ie.get)
         }
       }
-      currentExternalInterfaces <- updateExternalInterfaces(factory, existingIE.uuid,
-        amlInternalElement.externalInterfaces)
-      currentInternalElements <- updateInternalElements(factory, existingIE.uuid, false,
-        amlInternalElement.internalElements)
+      currentInterfaces <- updateInterfaces(factory, existingIE.uuid,
+        amlElement.interfaces)
+      currentElements <- updateElements(factory, existingIE.uuid, false,
+        amlElement.elements)
       updatedOrNewUuid <- {
-        val updatedInternalElement = existingIE.copy(
-          name = amlInternalElement.name,
-          internalElements = currentInternalElements.toSet,
-          externalInterfaces = currentExternalInterfaces.toSet,
-          orderNumber = amlInternalElement.orderNumber,
+        val updatedElement = existingIE.copy(
+          name = amlElement.name,
+          elements = currentElements.toSet,
+          interfaces = currentInterfaces.toSet,
+          orderNumber = amlElement.orderNumber,
           parent = parent)
 
-        internalElementService.update(updatedInternalElement).map(s => updatedInternalElement.uuid)
+        amlObjectService.updateElement(updatedElement).map(s => updatedElement.uuid)
       }
 
     } yield updatedOrNewUuid
   }
 
-  private def updateExternalInterfaces(
+  private def updateInterfaces(
     factory: Factory,
-    parentInternalElement: String,
-    amlExternalInterfaces: List[AmlExternalInterface]): Future[List[String]] = {
+    parentElement: String,
+    amlInterfaces: List[AmlInterface]): Future[List[String]] = {
 
     Future.sequence(
-      amlExternalInterfaces.map(interface => updateExternalInterface(factory, parentInternalElement, interface)))
+      amlInterfaces.map(interface => updateInterface(factory, parentElement, interface)))
   }
 
-  private def updateExternalInterface(factory: Factory, parentInternalElement: String,
-                                      amlExternalInterface: AmlExternalInterface): Future[String] = {
+  private def updateInterface(factory: Factory, parentElement: String,
+                              amlInterface: AmlInterface): Future[String] = {
     for {
-      existingExternalInterface <- {
-        val query = ExternalInterface.queryByAmlId(amlExternalInterface.amlId) ++ ExternalInterface.queryByConnectionTo(factory)
-        externalInterfaceService.findOne(query)
+      existingInterface <- {
+        val query = Interface.queryByAmlId(amlInterface.amlId) ++ Interface.queryByConnectionTo(factory)
+        amlObjectService.findOneInterface(query)
       }
-      updatedOrNewUuid <- existingExternalInterface match {
+      updatedOrNewUuid <- existingInterface match {
         case Some(fei) =>
           //This was an existing external interface, update it in the db
-          val updatedExternalInterface = fei.copy(name = amlExternalInterface.name, connectionTo = factory.uuid,
-            orderNumber = amlExternalInterface.orderNumber, parent = parentInternalElement)
+          val updatedInterface = fei.copy(name = amlInterface.name, connectionTo = factory.uuid,
+            orderNumber = amlInterface.orderNumber, parent = parentElement)
 
-          externalInterfaceService.update(updatedExternalInterface).map(s => updatedExternalInterface.uuid)
+          amlObjectService.updateInterface(updatedInterface).map(s => updatedInterface.uuid)
         case None =>
           //This was a new external interface, insert it in the db
-          val newExternalInterface = ExternalInterface.create(
+          val newInterface = Interface.create(
             connectionToFactory = factory.uuid,
-            name = amlExternalInterface.name,
-            orderNumber = amlExternalInterface.orderNumber,
-            amlId = amlExternalInterface.amlId,
-            parent = parentInternalElement)
+            name = amlInterface.name,
+            orderNumber = amlInterface.orderNumber,
+            amlId = amlInterface.amlId,
+            parent = parentElement)
 
-          externalInterfaceService.insert(newExternalInterface).map(r => newExternalInterface.uuid)
+          amlObjectService.insertInterface(newInterface).map(r => newInterface.uuid)
       }
     } yield updatedOrNewUuid
+  }
+
+  override def getAmlObjectChains(children: List[ChildOf[AmlObject]]): Future[List[AmlObjectChain]] =
+    Future.successful(children.map(child => getAmlObjectChain(child.parent)))
+
+  private def getAmlObjectChain(uuid: String): AmlObjectChain = {
+    val chain = genereateAmlObjectChain(uuid, List())
+    val hierarchy = Await.result(findOneHierarchy(Hierarchy.queryByUuid(chain.head.fold(_.parent, _.parent))),
+      Duration("3s")).get
+    val factory = Await.result(findOneFactory(Factory.queryByUuid(hierarchy.parent)), Duration("3s")).get
+
+    AmlObjectChain(chain, hierarchy, factory)
+  }
+
+  private def genereateAmlObjectChain(uuid: String, list: List[ElementOrInterface]): List[ElementOrInterface] = {
+    val optElement = Await.result(amlObjectService.findOneElement(Element.queryByUuid(uuid)), Duration("3s"))
+    Logger.info("optElement: " + optElement)
+    val optInterface = optElement.map(element => None).
+      getOrElse(Await.result(amlObjectService.findOneInterface(Interface.queryByUuid(uuid)),
+        Duration("3s")))
+
+    optElement match {
+      case Some(element) => genereateAmlObjectChain(element.parent, Left(element) :: list)
+      case None => optInterface match {
+        case Some(interface) => genereateAmlObjectChain(interface.parent, Right(interface) :: list)
+        case None => list
+      }
+    }
   }
 }

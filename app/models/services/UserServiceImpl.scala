@@ -1,29 +1,27 @@
 package models.services
 
-import java.util.UUID
-import javax.inject.Inject
+import scala.annotation.implicitNotFound
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.impl.providers.CommonSocialProfile
+import utils.ModelListData
+import javax.inject.Inject
 import models.User
-
-import play.api.Logger
-
-import scala.concurrent.Future
-import play.api.libs.json.JsObject
-import scala.concurrent.ExecutionContext
 import models.daos.UserDAO
-import play.api.libs.json.Reads
+import play.api.Logger
+import play.api.libs.json.JsObject
 import play.api.libs.json.OWrites
+import play.api.libs.json.Reads
 import utils.PaginateData
-import models.DbModel
 
 /**
  * Handles actions to users.
  *
  * @param userDAO The user DAO implementation.
  */
-class UserServiceImpl @Inject() (val dao: UserDAO, implicit override val ec: ExecutionContext) extends UserService {
+class UserServiceImpl @Inject() (val dao: UserDAO)(implicit val ec: ExecutionContext) extends UserService {
 
   implicit val joWrites: OWrites[User] = User.userFormat
 
@@ -129,6 +127,23 @@ class UserServiceImpl @Inject() (val dao: UserDAO, implicit override val ec: Exe
           insert(newUser)
         }
       }
+    }
+  }
+
+  override def insert(user: User): Future[Option[User]] = dao.insert(user).map(wr => if (wr.ok) Some(user) else None)
+
+  override def update(user: User): Future[Boolean] = dao.update(user).map(wr => wr.ok)
+
+  override def findOne(query: JsObject): Future[Option[User]] = dao.find(query, 1, 1).map(_.headOption)
+
+  override def findMany(query: JsObject, page: Int = 1,
+                        pageSize: Int = utils.DefaultValues.DefaultPageLength): Future[ModelListData[User]] = {
+    for {
+      theList <- dao.find(query, page, utils.DefaultValues.DefaultPageLength)
+      count <- dao.count(query)
+    } yield new ModelListData[User] {
+      override val list = theList
+      override val paginateData = PaginateData(page, count)
     }
   }
 }
