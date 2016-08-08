@@ -7,7 +7,7 @@
 @import components.media._
 @import components.utils._
 
-@main(Messages("factories"), loggedInUser, activeOrg) {
+@main(utils.MainViewData(Messages("factories"), utils.NavTypes.Factories), loggedInUser, activeOrg) {
 	@title(Messages("factories"))
 	@rowContentButtons() {
     	@{

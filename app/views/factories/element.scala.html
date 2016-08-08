@@ -9,7 +9,7 @@
 @import components.buttons._
 @import components.utils._
 
-@main(Messages("element"), loggedInUser, activeOrg) {
+@main(utils.MainViewData(elementChain.last.name, utils.NavTypes.Factories), loggedInUser, activeOrg) {
 	
 	@title(elementChain.last.name)
 	@rowContentButtons() {

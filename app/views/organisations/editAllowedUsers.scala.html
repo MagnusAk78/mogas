@@ -6,7 +6,7 @@
 @import components.buttons._
 @import components.utils._
 
-@main(Messages("organisations"), loggedInUser, activeOrg) {
+@main(utils.MainViewData(Messages("editAllowedUsers", organisation.name), utils.NavTypes.Organisations), loggedInUser, activeOrg) {
 	@title(Messages("editAllowedUsers", organisation.name))
 	@rowContentButtons() {
     	@{

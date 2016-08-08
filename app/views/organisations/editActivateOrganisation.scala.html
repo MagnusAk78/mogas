@@ -6,8 +6,8 @@
 @import components.buttons._
 @import components.utils._
 
-@main(Messages("organisations"), loggedInUser, activeOrg) {
-	@title(Messages("chooseActiveOrganisation"))
+@main(utils.MainViewData(Messages("chooseActive", Messages("organisation")), utils.NavTypes.Organisations), loggedInUser, activeOrg) {
+	@title(Messages("chooseActive", Messages("organisation")))
 	@rowContentButtons() {
     	@{
             val mediaList = organisations.map{ organisation =>

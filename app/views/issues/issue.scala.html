@@ -10,7 +10,7 @@
 @import components.utils._
 @import forms._
 
-@main(Messages("issues"), loggedInUser, activeOrg) {
+@main(utils.MainViewData(issue.name, utils.NavTypes.Issues), loggedInUser, activeOrg) {
 	
 	@title(issue.name)
 	@rowContentButtons() {

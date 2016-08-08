@@ -5,7 +5,7 @@
 @import components.utils._
 @import components.media._
 
-@main(Messages("users"), loggedInUser, activeOrg) {
+@main(utils.MainViewData(Messages("users"), utils.NavTypes.Users), loggedInUser, activeOrg) {
 	
 	@title(Messages("users"))
 	@rowContentButtons() {

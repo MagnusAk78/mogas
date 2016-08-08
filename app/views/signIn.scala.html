@@ -1,5 +1,6 @@
-@(signInForm: Form[models.formdata.SignInForm.Data], socialProviders: com.mohiva.play.silhouette.impl.providers.SocialProviderRegistry)(implicit request: RequestHeader, messages: Messages, 
-	webJarAssets: WebJarAssets, lang: Lang, flash: Flash)
+@(signInForm: Form[models.formdata.SignInForm.Data], 
+	socialProviders: com.mohiva.play.silhouette.impl.providers.SocialProviderRegistry)(implicit request: RequestHeader, 
+	messages: Messages, webJarAssets: WebJarAssets, lang: Lang, flash: Flash)
 
 @import com.mohiva.play.silhouette.impl.providers.oauth2.ClefProvider
 @import b4.vertical.fieldConstructor
@@ -7,7 +8,7 @@
 @import forms._
 @import components.buttons._
 
-@main(Messages("signIn"), None, None) {
+@main(utils.MainViewData(Messages("signIn"), utils.NavTypes.None), None, None) {
 	@title(Messages("signIn"))
 	
 	@rowContentButtons() {

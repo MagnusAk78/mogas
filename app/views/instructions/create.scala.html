@@ -8,7 +8,7 @@
 @import components.media._
 @import forms._
 
-@main(Messages("instructions"), loggedInUser, activeOrg) {
+@main(utils.MainViewData(Messages("createNew", Messages("instruction")), utils.NavTypes.Instructions), loggedInUser, activeOrg) {
 	@title(Messages("createNewInstruction"))
 			
 	@rowContentButtons() {	

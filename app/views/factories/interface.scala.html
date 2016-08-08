@@ -8,7 +8,7 @@
 @import components.media._
 @import components.utils._
 
-@main(Messages("factory.hierarchies"), loggedInUser, activeOrg) {
+@main(utils.MainViewData(interface.name, utils.NavTypes.Factories), loggedInUser, activeOrg) {
 	
 	@title(interface.name)
 	@rowContentButtons() {

@@ -8,8 +8,8 @@
 @import components.media._
 @import forms._
 
-@main(Messages("organisations"), loggedInUser, activeOrg) {
-	@title(Messages("createNewOrganisation"))
+@main(utils.MainViewData(Messages("createNew", Messages("organisation")), utils.NavTypes.Organisations), loggedInUser, activeOrg) {
+	@title(Messages("createNew", Messages("organisation")))
 		
 	@rowContentButtons() {
 		@rowEvenColumns() {
@@ -22,5 +22,3 @@
 		@backButton(controllers.routes.OrganisationController.list(1))	
 	}
 }
-
-

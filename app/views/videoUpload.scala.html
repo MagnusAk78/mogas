@@ -5,7 +5,7 @@
 @import templates._
 @import forms._
 
-@main(Messages("videoUpload"), loggedInUser, activeOrg) {
+@main(utils.MainViewData(Messages("videoUpload"), modelType.navType), loggedInUser, activeOrg) {
 	@title(Messages("videoUpload"))
 	
 	@rowContentButtons() {	

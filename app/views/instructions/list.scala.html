@@ -9,7 +9,7 @@
 @import components.media._
 @import forms._
 
-@main(Messages("instructions"), loggedInUser, activeOrg) {
+@main(utils.MainViewData(Messages("instructions"), utils.NavTypes.Instructions), loggedInUser, activeOrg) {
 	
 	@title(Messages("instructions"))
 	@rowContentButtons() {

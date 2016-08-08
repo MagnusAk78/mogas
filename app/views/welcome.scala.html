@@ -6,7 +6,7 @@
 @import components.utils._
 @import components.buttons._
 
-@main(Messages("welcome"), loggedInUser, activeOrg) {
+@main(utils.MainViewData(Messages("welcome"), utils.NavTypes.None), loggedInUser, activeOrg) {
 	<h3 class="display-1 hidden-xs-down">
     	@Messages("welcome") 
     </h3>

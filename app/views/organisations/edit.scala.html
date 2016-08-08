@@ -8,7 +8,7 @@
 @import components.media._
 @import forms._
 
-@main(Messages("organisations"), loggedInUser, activeOrg) {
+@main(utils.MainViewData(Messages("edit", organisation.name), utils.NavTypes.Organisations), loggedInUser, activeOrg) {
 	@title(organisation.name)
 			
 	@rowContentButtons() {	

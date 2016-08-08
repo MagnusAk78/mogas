@@ -9,7 +9,7 @@
 @import components.utils._
 @import forms._
 
-@main(Messages("issues"), loggedInUser, activeOrg) {
+@main(utils.MainViewData(issue.name, utils.NavTypes.Issues), loggedInUser, activeOrg) {
 	
 	@rowContentButtons() {
 		<div class="card">

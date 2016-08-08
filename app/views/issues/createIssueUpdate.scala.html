@@ -8,8 +8,8 @@
 @import components.media._
 @import forms._
 
-@main(Messages("issues"), loggedInUser, activeOrg) {
-	@title(Messages("createNewIssueUpdate"))
+@main(utils.MainViewData(Messages("edit", issue.name), utils.NavTypes.Issues), loggedInUser, activeOrg) {
+	@title(Messages("edit", issue.name))
 			
 	@rowContentButtons() {	
 		@rowEvenColumns() {

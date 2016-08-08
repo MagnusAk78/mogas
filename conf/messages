@@ -1,8 +1,28 @@
 changeImage = Change image
 create = Create
 delete = Delete
-edit = Edit
+edit = Edit {0}
 back = Back
+
+createNew = Create new {0}
+
+organisation = organisation
+organisations = Organisations
+
+user = user
+users = Users
+
+factory = factory
+factories = Factories
+
+instruction = instruction
+instructions = Instructions
+
+issue = issue
+issues = Issues
+
+chooseActive = choose active {0}
+active = active: {0}
 
 accessDenied = Access Denied
 

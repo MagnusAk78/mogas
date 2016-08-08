@@ -8,8 +8,8 @@
 @import components.buttons._
 @import components.media._
 
-@main(Messages("signUp"), loggedInUser, activeOrg) {
-	@title(user.name)
+@main(utils.MainViewData(Messages("edit", user.name), utils.NavTypes.Users), loggedInUser, activeOrg) {
+	@title(Messages("edit", user.name))
 			
 	@rowContentButtons() {	
 		@rowEvenColumns() {

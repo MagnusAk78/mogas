@@ -1,5 +1,5 @@
-@(signUpForm: Form[models.formdata.SignUpForm.Data])(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, 
-	flash: Flash)
+@(signUpForm: Form[models.formdata.SignUpForm.Data])(implicit request: RequestHeader, messages: Messages, 
+	webJarAssets: WebJarAssets, flash: Flash)
 
 @import b4.inline.fieldConstructor
 @import templates._
@@ -7,7 +7,7 @@
 @import components.buttons._
 @import components.media._
 
-@main(Messages("signUp"), None, None) {
+@main(utils.MainViewData(Messages("signUp"), utils.NavTypes.None), None, None) {
 	@title(Messages("signUp"))
 	@rowContentButtons() {
 		@formNormal(routes.SignUpController.submitSignUp, Messages("signUp")) {

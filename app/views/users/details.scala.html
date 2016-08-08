@@ -7,8 +7,7 @@
 @import components.buttons._
 @import components.media._
 
-@main(Messages("user.details", user.name), loggedInUser, activeOrg) {
-
+@main(utils.MainViewData(user.name, utils.NavTypes.Users), loggedInUser, activeOrg) {
 	@title(user.name)
 			
 	@rowContentButtons() {	

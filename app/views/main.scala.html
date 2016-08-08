@@ -1,4 +1,4 @@
-@(titleString: String, loggedInUser: Option[models.User], activeOrg: Option[models.Organisation])(content: Html)(implicit flash: Flash, 
+@(mainViewData: utils.MainViewData, loggedInUser: Option[models.User], activeOrg: Option[models.Organisation])(content: Html)(implicit flash: Flash, 
 	messages: Messages, webJarAssets: WebJarAssets, lang: Lang)
 
 @import templates._
@@ -12,7 +12,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
         
-        <title>@titleString</title>
+        <title>@mainViewData.title</title>
         
         <link rel="stylesheet" href="@routes.WebJarAssets.at(webJarAssets.locate("bootstrap.min.css"))" />
         <link rel="stylesheet" href="@routes.Assets.at("font-awesome-4.6.3/css/font-awesome.min.css")" />
@@ -38,24 +38,62 @@
 <div class="container-fluid" id="main">
 	<div class="row row-offcanvas row-offcanvas-left">
 		<div class="col-md-3 col-lg-2 sidebar-offcanvas" id="sidebar" role="navigation">
-            
-    	@{
-        	val navLinks = List(loggedInUser.map(u => routes.OrganisationController.list(1)), 
-        		activeOrg.map(o => routes.UserController.list(1)),
-        		activeOrg.map(o => routes.FactoryController.list(1)),
-        		activeOrg.map(o => routes.InstructionController.list("", 1)),
-        		activeOrg.map(o => routes.IssueController.list("", 1))).filter { _.isDefined }.flatten				
+		
+			<ul class="nav nav-pills nav-stacked">
+				@if(loggedInUser.isDefined) {
+				<li class="nav-item">
+					<a class="nav-link @if(mainViewData.navType == utils.NavTypes.Organisations){active}" 
+					href="@routes.OrganisationController.list(1)">
+            			@Messages("organisations")
+            		</a>
+        		</li>
+        		}
+        
+        		@if(loggedInUser.isDefined && activeOrg.isDefined) {
+				<li class="alert alert-success">
+					@Messages("active", activeOrg.get.name)				
+				</li>        		
+        		}
+        		@if(loggedInUser.isDefined && activeOrg.isEmpty) {
+				<li class="alert alert-warning">
+  					<a class="alert-link" 
+					href="@routes.OrganisationController.editActiveOrganisation(1)">
+            			@Messages("chooseActive", Messages("organisation"))
+            		</a>
+				</li>
+				}        		
 
-            val navTexts = List(loggedInUser.map(u => Messages("organisations")), 
-        		activeOrg.map(o => Messages("users")),
-        		activeOrg.map(o => Messages("factories")),
-        		activeOrg.map(o => Messages("instructions")),
-        		activeOrg.map(o => Messages("issues"))).filter { _.isDefined }.flatten
 
-            if(loggedInUser.isDefined) {
-            	navigation(navLinks, navTexts)
-            }
-        }
+				@if(loggedInUser.isDefined && activeOrg.isDefined) {
+				<li class="nav-item">
+					<a class="nav-link @if(mainViewData.navType == utils.NavTypes.Users){active}" 
+					href="@routes.UserController.list(1)">
+            			@Messages("users")
+            		</a>
+        		</li>
+        		
+        		<li class="nav-item">
+					<a class="nav-link @if(mainViewData.navType == utils.NavTypes.Factories){active}" 
+					href="@routes.FactoryController.list(1)">
+            			@Messages("factories")
+            		</a>
+        		</li>
+        		
+        		<li class="nav-item">
+					<a class="nav-link @if(mainViewData.navType == utils.NavTypes.Instructions){active}" 
+					href="@routes.InstructionController.list("", 1)">
+            			@Messages("users")
+            		</a>
+        		</li>
+        		
+        		<li class="nav-item">
+					<a class="nav-link @if(mainViewData.navType == utils.NavTypes.Issues){active}" 
+					href="@routes.IssueController.list("", 1)">
+            			@Messages("issues")
+            		</a>
+        		</li>
+        		}
+			</ul>		
             	
         </div>
         <div class="col-md-9 col-lg-10 main">

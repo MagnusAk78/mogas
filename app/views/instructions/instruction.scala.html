@@ -10,7 +10,7 @@
 @import components.utils._
 @import forms._
 
-@main(Messages("instructions"), loggedInUser, activeOrg) {
+@main(utils.MainViewData(instruction.name, utils.NavTypes.Instructions), loggedInUser, activeOrg) {
 	
 	@title(instruction.name)
 	@rowContentButtons() {

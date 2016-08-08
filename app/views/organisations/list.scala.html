@@ -7,7 +7,7 @@
 @import components.utils._
 @import components.buttons._
 
-@main(Messages("organisations"), loggedInUser, activeOrg) {
+@main(utils.MainViewData(Messages("organisations"), utils.NavTypes.Organisations), loggedInUser, activeOrg) {
 	@title(Messages("organisations"))
 	@rowContentButtons() {
     	@{
@@ -26,7 +26,7 @@
     	}
     }{
 		@editButton(controllers.routes.OrganisationController.editActiveOrganisation(paginateData.page),
-            Some(Messages("selectActiveOrganisation")))
+            Some(Messages("chooseActive", Messages("organisation"))))
    
         @createButton(controllers.routes.OrganisationController.create)
     }
