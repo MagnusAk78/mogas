@@ -13,14 +13,12 @@ import com.sksamuel.scrimage.writer
 
 import akka.stream.Materializer
 import models.formdata
-import models.formdata.OrganisationForm
-import models.formdata.OrganisationForm.fromOrganisationToData
+import models.formdata.DomainForm
+import models.formdata.DomainForm.fromDomainToData
 import javax.inject.Inject
 import javax.inject.Singleton
-import models.Organisation
 import models.daos.FileDAO
 import models.services.FileService
-import models.services.OrganisationService
 import models.services.UserService
 import play.api.Logger
 import play.api.i18n.I18nSupport
@@ -56,14 +54,16 @@ import com.sun.xml.internal.messaging.saaj.util.ByteInputStream
 import java.io.ByteArrayInputStream
 import java.io.BufferedInputStream
 import com.sksamuel.scrimage.nio.JpegWriter
+import models.services.DomainService
+import models.Domain
 
 @Singleton
 class FileController @Inject() (
   val messagesApi: MessagesApi,
   val generalActions: GeneralActions,
-  val organisationService: OrganisationService,
   val userService: UserService,
   val fileService: FileService,
+  val domainService: DomainService,
   val reactiveMongoApi: ReactiveMongoApi,
   implicit val webJarAssets: WebJarAssets)(implicit exec: ExecutionContext, materialize: Materializer)
     extends Controller with MongoController with ReactiveMongoComponents with I18nSupport {
@@ -85,16 +85,15 @@ class FileController @Inject() (
 
             //No image found, we need to send default image depending type
             modelType match {
-              case models.Types.OrganisationType => Future.successful(Redirect(routes.Assets.at("images/organisation-default.png")).as("image/png"))
+              case models.Types.DomainType => Future.successful(Redirect(routes.Assets.at("images/domain-default.png")).as("image/png"))
               case models.Types.UserType => Future.successful(Redirect(routes.Assets.at("images/user-default.png")).as("image/png"))
-              case models.Types.FactoryType => Future.successful(Redirect(routes.Assets.at("images/factory-default.png")).as("image/png"))
               case models.Types.HierarchyType => Future.successful(Redirect(routes.Assets.at("images/hierarchy-default.png")).as("image/png"))
               case models.Types.ElementType => Future.successful(Redirect(routes.Assets.at("images/element-default.png")).as("image/png"))
               case models.Types.InterfaceType => Future.successful(Redirect(routes.Assets.at("images/interface-default.png")).as("image/png"))
-              case models.Types.InstructionType => Future.successful(Redirect(routes.Assets.at("images/organisation-default.png")).as("image/png"))
-              case models.Types.InstructionPartType => Future.successful(Redirect(routes.Assets.at("images/organisation-default.png")).as("image/png"))
-              case models.Types.IssueType => Future.successful(Redirect(routes.Assets.at("images/organisation-default.png")).as("image/png"))
-              case models.Types.IssueUpdateType => Future.successful(Redirect(routes.Assets.at("images/organisation-default.png")).as("image/png"))
+              case models.Types.InstructionType => Future.successful(Redirect(routes.Assets.at("images/domain-default.png")).as("image/png"))
+              case models.Types.InstructionPartType => Future.successful(Redirect(routes.Assets.at("images/domain-default.png")).as("image/png"))
+              case models.Types.IssueType => Future.successful(Redirect(routes.Assets.at("images/domain-default.png")).as("image/png"))
+              case models.Types.IssueUpdateType => Future.successful(Redirect(routes.Assets.at("images/domain-default.png")).as("image/png"))
               case models.Types.UnknownType => Future.successful(NotFound)
             }
           }
@@ -107,7 +106,7 @@ class FileController @Inject() (
 
   def uploadImage(uuid: String, modelTypeString: String) = generalActions.MySecuredAction { implicit request =>
     val modelType = models.Types.fromString(modelTypeString)
-    Ok(views.html.imageUpload(uuid, modelType, Some(request.identity), request.activeOrganisation))
+    Ok(views.html.imageUpload(uuid, modelType, Some(request.identity), request.activeDomain))
   }
 
   def getThumbnailImage(uuid: String, modelTypeString: String) = generalActions.MySecuredAction async { implicit request =>
@@ -124,16 +123,15 @@ class FileController @Inject() (
           Logger.info("modelType: " + modelType)
 
           modelType match {
-            case Types.OrganisationType => Future.successful(Redirect(routes.Assets.at("images/organisation-default.png")).as("image/png"))
+            case Types.DomainType => Future.successful(Redirect(routes.Assets.at("images/domain-default.png")).as("image/png"))
             case Types.UserType => Future.successful(Redirect(routes.Assets.at("images/user-default.png")).as("image/png"))
-            case Types.FactoryType => Future.successful(Redirect(routes.Assets.at("images/factory-default.png")).as("image/png"))
             case Types.HierarchyType => Future.successful(Redirect(routes.Assets.at("images/hierarchy-default.png")).as("image/png"))
             case Types.ElementType => Future.successful(Redirect(routes.Assets.at("images/element-default.png")).as("image/png"))
             case Types.InterfaceType => Future.successful(Redirect(routes.Assets.at("images/interface-default.png")).as("image/png"))
-            case Types.InstructionType => Future.successful(Redirect(routes.Assets.at("images/organisation-default.png")).as("image/png"))
-            case Types.InstructionPartType => Future.successful(Redirect(routes.Assets.at("images/organisation-default.png")).as("image/png"))
-            case models.Types.IssueType => Future.successful(Redirect(routes.Assets.at("images/organisation-default.png")).as("image/png"))
-            case models.Types.IssueUpdateType => Future.successful(Redirect(routes.Assets.at("images/organisation-default.png")).as("image/png"))
+            case Types.InstructionType => Future.successful(Redirect(routes.Assets.at("images/domain-default.png")).as("image/png"))
+            case Types.InstructionPartType => Future.successful(Redirect(routes.Assets.at("images/domain-default.png")).as("image/png"))
+            case models.Types.IssueType => Future.successful(Redirect(routes.Assets.at("images/domain-default.png")).as("image/png"))
+            case models.Types.IssueUpdateType => Future.successful(Redirect(routes.Assets.at("images/domain-default.png")).as("image/png"))
             case Types.UnknownType => Future.successful(NotFound)
           }
         }
@@ -146,7 +144,7 @@ class FileController @Inject() (
 
   def uploadVideo(uuid: String, modelTypeString: String) = generalActions.MySecuredAction { implicit request =>
     val modelType = models.Types.fromString(modelTypeString)
-    Ok(views.html.videoUpload(uuid, modelType, Some(request.identity), request.activeOrganisation))
+    Ok(views.html.videoUpload(uuid, modelType, Some(request.identity), request.activeDomain))
   }
 
   def getVideo(uuid: String, modelTypeString: String) = generalActions.MySecuredAction async { implicit request =>
@@ -253,11 +251,11 @@ class FileController @Inject() (
         }
       })
 
-      val futureActiveOrg = organisationService.findOne(Organisation.queryByUuid(request.identity.activeOrganisation))
+      val futureActiveOrg = domainService.findOneDomain(Domain.queryByUuid(request.identity.activeDomain))
 
       val responses = for {
         optFile <- futureOptFile
-        activeOrg <- futureActiveOrg
+        activeDomain <- futureActiveOrg
         oldImageFileList <- futureOldImageFileList
         removeOldImagesRes <- Future.sequence(oldImageFileList.map { file =>
 
@@ -266,17 +264,16 @@ class FileController @Inject() (
           fileService.remove(file.id.as[String])
         })
       } yield Types.fromString(modelType) match {
-        case Types.OrganisationType => Redirect(routes.OrganisationController.edit(uuid)).flashing("success" -> Messages("db.success.imageUpload"))
+        case Types.DomainType => Redirect(routes.DomainController.edit(uuid)).flashing("success" -> Messages("db.success.imageUpload"))
         case Types.UserType => Redirect(routes.SignUpController.edit(uuid)).flashing("success" -> Messages("db.success.imageUpload"))
-        case Types.FactoryType => Redirect(routes.FactoryController.edit(uuid)).flashing("success" -> Messages("db.success.imageUpload"))
-        case Types.HierarchyType => Redirect(routes.FactoryController.hierarchy(uuid, 1)).flashing("success" -> Messages("db.success.imageUpload"))
-        case Types.ElementType => Redirect(routes.FactoryController.element(uuid, 1, 1)).flashing("success" -> Messages("db.success.imageUpload"))
-        case Types.InterfaceType => Redirect(routes.FactoryController.interface(uuid)).flashing("success" -> Messages("db.success.imageUpload"))
+        case Types.HierarchyType => Redirect(routes.DomainController.hierarchy(uuid, 1)).flashing("success" -> Messages("db.success.imageUpload"))
+        case Types.ElementType => Redirect(routes.DomainController.element(uuid, 1, 1)).flashing("success" -> Messages("db.success.imageUpload"))
+        case Types.InterfaceType => Redirect(routes.DomainController.interface(uuid)).flashing("success" -> Messages("db.success.imageUpload"))
         case Types.InstructionType => Redirect(routes.InstructionController.instruction(uuid, 1)).flashing("success" -> Messages("db.success.imageUpload"))
         case Types.InstructionPartType => Redirect(routes.InstructionController.inspectPart(uuid, 1)).flashing("success" -> Messages("db.success.imageUpload"))
         case Types.IssueType => Redirect(routes.IssueController.issue(uuid, 1)).flashing("success" -> Messages("db.success.imageUpload"))
         case Types.IssueUpdateType => Redirect(routes.IssueController.inspectIssueUpdate(uuid, 1)).flashing("success" -> Messages("db.success.imageUpload"))
-        case Types.UnknownType => Redirect(routes.OrganisationController.list(1)).flashing("error" -> Messages("error.unknownType"))
+        case Types.UnknownType => Redirect(routes.DomainController.list(1)).flashing("error" -> Messages("error.unknownType"))
       }
 
       responses recover {
@@ -361,11 +358,11 @@ class FileController @Inject() (
         }
       })
 
-      val futureActiveOrg = organisationService.findOne(Organisation.queryByUuid(request.identity.activeOrganisation))
+      val futureActiveOrg = domainService.findOneDomain(Domain.queryByUuid(request.identity.activeDomain))
 
       val responses = for {
         optFile <- futureOptFile
-        activeOrg <- futureActiveOrg
+        activeDomain <- futureActiveOrg
         oldVideoFileList <- futureOldVideoFileList
         removeOldVideosRes <- Future.sequence(oldVideoFileList.map { file =>
 
@@ -374,17 +371,16 @@ class FileController @Inject() (
           fileService.remove(file.id.as[String])
         })
       } yield Types.fromString(modelType) match {
-        case Types.OrganisationType => Redirect(routes.OrganisationController.edit(uuid)).flashing("success" -> Messages("db.success.videoUpload"))
+        case Types.DomainType => Redirect(routes.DomainController.edit(uuid)).flashing("success" -> Messages("db.success.videoUpload"))
         case Types.UserType => Redirect(routes.SignUpController.edit(uuid)).flashing("success" -> Messages("db.success.videoUpload"))
-        case Types.FactoryType => Redirect(routes.FactoryController.edit(uuid)).flashing("success" -> Messages("db.success.videoUpload"))
-        case Types.HierarchyType => Redirect(routes.FactoryController.hierarchy(uuid, 1)).flashing("success" -> Messages("db.success.videoUpload"))
-        case Types.ElementType => Redirect(routes.FactoryController.element(uuid, 1, 1)).flashing("success" -> Messages("db.success.videoUpload"))
-        case Types.InterfaceType => Redirect(routes.FactoryController.interface(uuid)).flashing("success" -> Messages("db.success.videoUpload"))
+        case Types.HierarchyType => Redirect(routes.DomainController.hierarchy(uuid, 1)).flashing("success" -> Messages("db.success.videoUpload"))
+        case Types.ElementType => Redirect(routes.DomainController.element(uuid, 1, 1)).flashing("success" -> Messages("db.success.videoUpload"))
+        case Types.InterfaceType => Redirect(routes.DomainController.interface(uuid)).flashing("success" -> Messages("db.success.videoUpload"))
         case Types.InstructionType => Redirect(routes.InstructionController.instruction(uuid, 1)).flashing("success" -> Messages("db.success.videoUpload"))
         case Types.InstructionPartType => Redirect(routes.InstructionController.inspectPart(uuid, 1)).flashing("success" -> Messages("db.success.videoUpload"))
         case Types.IssueType => Redirect(routes.IssueController.issue(uuid, 1)).flashing("success" -> Messages("db.success.videoUpload"))
         case Types.IssueUpdateType => Redirect(routes.IssueController.inspectIssueUpdate(uuid, 1)).flashing("success" -> Messages("db.success.videoUpload"))
-        case Types.UnknownType => Redirect(routes.OrganisationController.list(1)).flashing("error" -> Messages("error.unknownType"))
+        case Types.UnknownType => Redirect(routes.DomainController.list(1)).flashing("error" -> Messages("error.unknownType"))
       }
 
       responses recover {
@@ -396,18 +392,18 @@ class FileController @Inject() (
     }
   }
 
-  def submitAmlFile(factoryUuid: String) = {
+  def submitAmlFile(domainUuid: String) = {
 
     //Create the parser using the GridFS collection from FileService
     val gdfsParser = fileService.withSyncGfs[BodyParser[MultipartFormData[Future[FileDAO.JSONReadFile]]]] { gfs => gridFSBodyParser(gfs) }
 
-    (generalActions.MySecuredAction andThen generalActions.RequireActiveOrganisation andThen
-      generalActions.FactoryAction(factoryUuid)).async(gdfsParser) { implicit factoryRequest =>
+    (generalActions.MySecuredAction andThen generalActions.RequireActiveDomain andThen
+      generalActions.DomainAction(domainUuid)).async(gdfsParser) { implicit domainRequest =>
 
         //A list of the existing aml files
-        val futureExistingAmlFileList = fileService.findByQuery(AmlFiles.getQueryAllAmlFiles(factoryUuid)).flatMap(cursor => cursor.collect[List](0, true))
+        val futureExistingAmlFileList = fileService.findByQuery(AmlFiles.getQueryAllAmlFiles(domainUuid)).flatMap(cursor => cursor.collect[List](0, true))
 
-        val futureOptFileRef = factoryRequest.body.file(models.formdata.AmlFileKeyString) match {
+        val futureOptFileRef = domainRequest.body.file(models.formdata.AmlFileKeyString) match {
           case Some(file) => file.ref.map(Some(_))
           case None => Future.successful(None)
         }
@@ -425,17 +421,17 @@ class FileController @Inject() (
               val result = fileService.remove(file.id.as[String])
 
               //And return with error
-              Future.successful(Redirect(routes.FactoryController.edit(factoryUuid)).flashing("error" -> Messages("amlFile.not.ok")))
+              Future.successful(Redirect(routes.DomainController.edit(domainUuid)).flashing("error" -> Messages("amlFile.not.ok")))
             } else {
               Logger.info("Aml file uploaded correctly")
 
-              fileService.updateMetadata(file.id.as[String], AmlFiles.getAmlFileMetadata(factoryUuid)).map { success =>
-                Redirect(routes.FactoryController.edit(factoryUuid)).flashing("success" -> ("success: " + success))
+              fileService.updateMetadata(file.id.as[String], AmlFiles.getAmlFileMetadata(domainUuid)).map { success =>
+                Redirect(routes.DomainController.edit(domainUuid)).flashing("success" -> ("success: " + success))
               }
             }
           }
           case None => {
-            Future.successful(Redirect(routes.FactoryController.edit(factoryUuid)).flashing("error" -> Messages("amlFile.upload.failed")))
+            Future.successful(Redirect(routes.DomainController.edit(domainUuid)).flashing("error" -> Messages("amlFile.upload.failed")))
           }
         }
 

@@ -31,10 +31,10 @@ object Element extends DbModelComp[Element] with AmlObjectComp with ChildOfComp[
   private val KeyParentIsHierarchy = "parentIsHierarchy"
   private val KeyInterfaces = "interfaces"
 
-  def create(connectionToFactory: String, name: String, parent: String, parentIsHierarchy: Boolean = false,
+  def create(connectionToDomain: String, name: String, parent: String, parentIsHierarchy: Boolean = false,
              orderNumber: Int, amlId: String, elements: Set[String] = Set.empty,
              interfaces: Set[String] = Set.empty) =
-    Element(uuid = UUID.randomUUID.toString, connectionTo = connectionToFactory, name = name, parent = parent,
+    Element(uuid = UUID.randomUUID.toString, connectionTo = connectionToDomain, name = name, parent = parent,
       parentIsHierarchy = parentIsHierarchy, orderNumber = orderNumber, amlId = amlId,
       elements = elements, interfaces = interfaces)
 }

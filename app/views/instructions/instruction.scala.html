@@ -1,6 +1,6 @@
-@(instruction: Instruction, elementOrInterface: utils.ElementOrInterface, factory: Factory, instructionParts: List[InstructionPart], 
+@(instruction: Instruction, elementOrInterface: utils.ElementOrInterface, domain: Domain, instructionParts: List[InstructionPart], 
 	paginateData: utils.PaginateData, loggedInUser: Option[User], 
-	activeOrg: Option[Organisation])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
+	activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
 	webJarAssets: WebJarAssets)
 
 @import b4.inline.fieldConstructor
@@ -10,7 +10,7 @@
 @import components.utils._
 @import forms._
 
-@main(utils.MainViewData(instruction.name, utils.NavTypes.Instructions), loggedInUser, activeOrg) {
+@main(utils.MainViewData(instruction.name, utils.NavTypes.Instructions), loggedInUser, activeDomain) {
 	
 	@title(instruction.name)
 	@rowContentButtons() {
@@ -46,7 +46,7 @@
   			}  		
   		</div>  		
     }{
-        @backButton(controllers.routes.InstructionController.list(factory.uuid, 1))
+        @backButton(controllers.routes.InstructionController.list(domain.uuid, 1))
         @editButton(controllers.routes.InstructionController.edit(instruction.uuid), Some(Messages("edit")))
         @createButton(controllers.routes.InstructionController.createPart(instruction.uuid), Some(Messages("addMore")))
     }

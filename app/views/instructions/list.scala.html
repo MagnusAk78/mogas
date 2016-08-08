@@ -1,6 +1,6 @@
-@(factoryOpt: Option[Factory], instructions: List[Instruction], 
+@(domainOpt: Option[Domain], instructions: List[Instruction], 
 	parentObjectChains: List[utils.AmlObjectChain], paginateData: utils.PaginateData, 
-	loggedInUser: Option[User], activeOrg: Option[Organisation])(implicit flash: Flash, request: RequestHeader, 
+	loggedInUser: Option[User], activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, 
 	messages: Messages, lang: Lang, webJarAssets: WebJarAssets)    
 
 @import b4.inline.fieldConstructor
@@ -9,7 +9,7 @@
 @import components.media._
 @import forms._
 
-@main(utils.MainViewData(Messages("instructions"), utils.NavTypes.Instructions), loggedInUser, activeOrg) {
+@main(utils.MainViewData(Messages("instructions"), utils.NavTypes.Instructions), loggedInUser, activeDomain) {
 	
 	@title(Messages("instructions"))
 	@rowContentButtons() {
@@ -20,11 +20,11 @@
                 controllers.routes.InstructionController.instruction(instruction.uuid, 1))
             val headingList = instructions.map(_.name)
             val textList = (instructions, parentObjectChains).zipped map((instruction, objectChain) => 
-            	objectChain.factory.name + " / " + objectChain.hierarchy.name + " / " +
+            	objectChain.domain.name + " / " + objectChain.hierarchy.name + " / " +
             	objectChain.amlObjectChain.map(eoi => eoi.fold(_.name, _.name)).mkString(" / "))
 
             displayPaginatedList(mediaList, linkList, headingList, textList, List(),
-            	paginateData, controllers.routes.InstructionController.list(factoryOpt.map(_.uuid).getOrElse(""), _))
+            	paginateData, controllers.routes.InstructionController.list(domainOpt.map(_.uuid).getOrElse(""), _))
     	}
     }{
     }

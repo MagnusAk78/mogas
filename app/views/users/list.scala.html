@@ -1,11 +1,11 @@
-@(users: List[User], paginateData:utils.PaginateData, loggedInUser: Option[User], activeOrg: Option[Organisation])(implicit flash: Flash,
+@(users: List[User], paginateData:utils.PaginateData, loggedInUser: Option[User], activeDomain: Option[Domain])(implicit flash: Flash,
     messages: Messages, request: RequestHeader, webJarAssets: WebJarAssets)
 
 @import templates._
 @import components.utils._
 @import components.media._
 
-@main(utils.MainViewData(Messages("users"), utils.NavTypes.Users), loggedInUser, activeOrg) {
+@main(utils.MainViewData(Messages("users"), utils.NavTypes.Users), loggedInUser, activeDomain) {
 	
 	@title(Messages("users"))
 	@rowContentButtons() {

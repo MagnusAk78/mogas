@@ -1,11 +1,11 @@
 @(uuid: String, modelType: models.Types.ModelType, loggedInUser: Option[models.User], 
-	activeOrg: Option[models.Organisation])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
+	activeDomain: Option[models.Domain])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
 	lang: Lang, webJarAssets: WebJarAssets)
 
 @import templates._
 @import forms._
 
-@main(utils.MainViewData(Messages("imageUpload"), modelType.navType), loggedInUser, activeOrg) {
+@main(utils.MainViewData(Messages("imageUpload"), modelType.navType), loggedInUser, activeDomain) {
 	@title(Messages("imageUpload"))
 	
 	@rowContentButtons() {	

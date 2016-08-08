@@ -1,0 +1,37 @@
+@(domain: Domain, hierarchies: List[Hierarchy], paginateData: utils.PaginateData, loggedInUser: Option[User], 
+	activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, messages: Messages, lang: Lang, 
+	webJarAssets: WebJarAssets)
+
+@import templates._
+@import components.buttons._
+@import components.media._
+@import components.utils._
+
+@main(utils.MainViewData(domain.name, utils.NavTypes.Browse), loggedInUser, activeDomain) {
+	
+	@title(domain.name)
+	@rowContentButtons() {
+		@breadcrumb(List(controllers.routes.DomainController.domain(domain.uuid, 1)), List(domain.name))
+    	@{
+			val mediaList = hierarchies.map{ hierarchy =>
+            	routes.FileController.getThumbnailImage(hierarchy.uuid, models.Types.HierarchyType.stringValue)
+            }                
+                
+            val linkList = hierarchies.map((hierarchy: Hierarchy) =>
+                controllers.routes.DomainController.hierarchy(hierarchy.uuid, 1))
+                
+            val headingList = hierarchies.map(_.name)
+            val textList = hierarchies.map(_.name)
+
+            displayPaginatedList(mediaList, linkList, headingList, textList, List(),
+            	paginateData, controllers.routes.DomainController.domain(domain.uuid, _))
+    	}
+    	
+    	@showImage(routes.FileController.getStandardImage(domain.uuid, models.Types.DomainType.stringValue))
+    }{
+    	@backButton(controllers.routes.DomainController.list(1))
+    	@changeImageButton(domain.uuid, models.Types.DomainType)
+    	@editButton(controllers.routes.DomainController.edit(domain.uuid))
+        @createButton(controllers.routes.DomainController.create)
+    }  
+}

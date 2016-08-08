@@ -1,0 +1,33 @@
+@(domains: List[Domain], paginateData: utils.PaginateData, loggedInUser: Option[User],
+	activeDomain: Option[Domain])(implicit flash: Flash,
+    request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
+
+@import templates._
+@import components.buttons._
+@import components.media._
+@import components.utils._
+
+@main(utils.MainViewData(Messages("domains"), utils.NavTypes.Domains), loggedInUser, activeDomain) {
+	@title(Messages("domains"))
+	@rowContentButtons() {
+    	@{
+            val mediaList = domains.map{ domain =>
+            	routes.FileController.getThumbnailImage(domain.uuid, models.Types.DomainType.stringValue)
+            }
+            
+            val linkList = domains.map(domain =>
+                controllers.routes.DomainController.domain(domain.uuid, 1))
+                
+            val headingList = domains.map(_.name)
+            val textList = domains.map(_.name)
+
+            displayPaginatedList(mediaList, linkList, headingList, textList, List(),
+            	paginateData, controllers.routes.DomainController.list(_))
+    	}
+    }{
+    	@editButton(controllers.routes.DomainController.editActiveDomain(paginateData.page),
+            Some(Messages("chooseActive", Messages("domain"))))
+            
+        @createButton(controllers.routes.DomainController.create)
+    }	
+}

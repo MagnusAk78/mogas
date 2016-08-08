@@ -11,11 +11,11 @@ import scala.concurrent.duration.Duration
 
 import javax.inject.Inject
 import models.AmlFiles
-import models.Factory
+import models.Domain
 import models.Interface
 import models.Hierarchy
 import models.Element
-import models.daos.FactoryDAO
+import models.daos.DomainDAO
 import models.daos.HierarchyDAO
 import reactivemongo.play.json.JsFieldBSONElementProducer
 import utils.PaginateData
@@ -32,7 +32,6 @@ import play.modules.reactivemongo.JSONFileToSave
 import play.api.libs.iteratee.Iteratee
 import models.Images
 import java.io.BufferedInputStream
-import models.Organisation
 import play.api.libs.json.JsObject
 import utils.RemoveResult
 import models.services.misc.AmlInterface
@@ -41,52 +40,53 @@ import models.services.misc.AmlHelper
 import models.services.misc.AmlElement
 import utils.AmlObjectChain
 import utils.ElementOrInterface
+import models.User
 
-class FactoryServiceImpl @Inject() (
-  val factoryDao: FactoryDAO,
+class DomainServiceImpl @Inject() (
+  val domainDao: DomainDAO,
   val hierarchyDao: HierarchyDAO,
   userService: UserService,
   fileService: FileService,
   amlObjectService: AmlObjectService)(implicit val ec: ExecutionContext)
-    extends FactoryService {
+    extends DomainService {
 
-  override def getFactoryList(page: Int, organisation: Organisation): Future[ModelListData[Factory]] = {
-    findManyFactories(Factory.queryByParent(organisation), page, utils.DefaultValues.DefaultPageLength)
+  override def getDomainList(page: Int, allowedUser: User): Future[ModelListData[Domain]] = {
+    findManyDomains(Domain.queryByAllowedUser(allowedUser), page, utils.DefaultValues.DefaultPageLength)
   }
 
-  override def removeFactory(factory: Factory, loggedInUserUuid: String): Future[RemoveResult] = {
+  override def removeDomain(domain: Domain, loggedInUserUuid: String): Future[RemoveResult] = {
 
     //TODO: Is this allowed?
-    factoryDao.remove(factory).map(success => if (success) {
+    domainDao.remove(domain).map(success => if (success) {
       RemoveResult(true, None)
     } else {
-      RemoveResult(false, Some("DAO refused to remove factory: " + factory.uuid))
+      RemoveResult(false, Some("DAO refused to remove domain: " + domain.uuid))
     })
   }
 
-  override def insertFactory(model: Factory): Future[Option[Factory]] = factoryDao.insert(model).map(wr => if (wr.ok) Some(model) else None)
+  override def insertDomain(model: Domain): Future[Option[Domain]] = domainDao.insert(model).map(wr => if (wr.ok) Some(model) else None)
 
-  override def updateFactory(model: Factory): Future[Boolean] = factoryDao.update(model).map(wr => wr.ok)
+  override def updateDomain(model: Domain): Future[Boolean] = domainDao.update(model).map(wr => wr.ok)
 
-  override def findOneFactory(query: JsObject): Future[Option[Factory]] = factoryDao.find(query, 1, 1).map(_.headOption)
+  override def findOneDomain(query: JsObject): Future[Option[Domain]] = domainDao.find(query, 1, 1).map(_.headOption)
 
-  override def findManyFactories(query: JsObject, page: Int = 1,
-                                 pageSize: Int = utils.DefaultValues.DefaultPageLength): Future[ModelListData[Factory]] = {
+  override def findManyDomains(query: JsObject, page: Int = 1,
+    pageSize: Int = utils.DefaultValues.DefaultPageLength): Future[ModelListData[Domain]] = {
     for {
-      theList <- factoryDao.find(query, page, utils.DefaultValues.DefaultPageLength)
-      count <- factoryDao.count(query)
-    } yield new ModelListData[Factory] {
+      theList <- domainDao.find(query, page, utils.DefaultValues.DefaultPageLength)
+      count <- domainDao.count(query)
+    } yield new ModelListData[Domain] {
       override val list = theList
       override val paginateData = PaginateData(page, count)
     }
   }
 
-  override def parseAmlFiles(factory: Factory): Future[Boolean] = {
+  override def parseAmlFiles(domain: Domain): Future[Boolean] = {
 
-    Logger.info("parseAmlFiles, factory: " + factory)
+    Logger.info("parseAmlFiles, domain: " + domain)
 
     for {
-      fileList <- fileService.findByQuery(AmlFiles.getQueryAllAmlFiles(factory.uuid)).flatMap(_.collect[List](0, true))
+      fileList <- fileService.findByQuery(AmlFiles.getQueryAllAmlFiles(domain.uuid)).flatMap(_.collect[List](0, true))
       updateResult <- {
         var hierarchies = List.empty[String]
 
@@ -102,7 +102,7 @@ class FactoryServiceImpl @Inject() (
               bytes =>
                 {
                   val inputStream = new BufferedInputStream(new ByteArrayInputStream(bytes))
-                  updateAmlHierarchies(factory, AmlHelper.generateFromStream(inputStream))
+                  updateAmlHierarchies(domain, AmlHelper.generateFromStream(inputStream))
                 }
             }
 
@@ -110,13 +110,13 @@ class FactoryServiceImpl @Inject() (
           }
         }
 
-        updateFactory(factory.copy(hierachies = hierarchies.toSet))
+        updateDomain(domain.copy(hierachies = hierarchies.toSet))
       }
     } yield updateResult
   }
 
-  override def getHierarchyList(page: Int, factory: Factory): Future[ModelListData[Hierarchy]] = {
-    findManyHierarchies(Hierarchy.queryByParent(factory), page, utils.DefaultValues.DefaultPageLength)
+  override def getHierarchyList(page: Int, domain: Domain): Future[ModelListData[Hierarchy]] = {
+    findManyHierarchies(Hierarchy.queryByParent(domain), page, utils.DefaultValues.DefaultPageLength)
   }
 
   override def insertHierarchy(model: Hierarchy): Future[Option[Hierarchy]] = hierarchyDao.insert(model).map(wr => if (wr.ok) Some(model) else None)
@@ -126,7 +126,7 @@ class FactoryServiceImpl @Inject() (
   override def findOneHierarchy(query: JsObject): Future[Option[Hierarchy]] = hierarchyDao.find(query, 1, 1).map(_.headOption)
 
   override def findManyHierarchies(query: JsObject, page: Int = 1,
-                                   pageSize: Int = utils.DefaultValues.DefaultPageLength): Future[ModelListData[Hierarchy]] = {
+    pageSize: Int = utils.DefaultValues.DefaultPageLength): Future[ModelListData[Hierarchy]] = {
     for {
       theList <- hierarchyDao.find(query, page, utils.DefaultValues.DefaultPageLength)
       count <- hierarchyDao.count(query)
@@ -136,25 +136,25 @@ class FactoryServiceImpl @Inject() (
     }
   }
 
-  private def updateAmlHierarchies(factory: Factory, amlHierarchies: List[AmlHierarchy]): Future[List[String]] = {
+  private def updateAmlHierarchies(domain: Domain, amlHierarchies: List[AmlHierarchy]): Future[List[String]] = {
 
     Logger.info("updateAmlHierarchies, amlHierarchies: " + amlHierarchies.map(_.name))
 
     Future.sequence(
-      amlHierarchies.map(amlHierarchy => updateAmlHierarchy(factory, amlHierarchy)))
+      amlHierarchies.map(amlHierarchy => updateAmlHierarchy(domain, amlHierarchy)))
   }
 
-  private def updateAmlHierarchy(factory: Factory, amlHierarchy: AmlHierarchy): Future[String] = {
+  private def updateAmlHierarchy(domain: Domain, amlHierarchy: AmlHierarchy): Future[String] = {
     for {
-      optionalOldHierarchy <- findOneHierarchy(Hierarchy.queryByParent(factory) ++
+      optionalOldHierarchy <- findOneHierarchy(Hierarchy.queryByParent(domain) ++
         Hierarchy.queryByName(amlHierarchy.name))
       existingHierarchy <- optionalOldHierarchy match {
         case Some(h) => Future.successful(h)
         case None => insertHierarchy(Hierarchy.
-          create(parentFactory = factory.uuid, name = amlHierarchy.name, orderNumber = amlHierarchy.orderNumber)).
+          create(parentDomain = domain.uuid, name = amlHierarchy.name, orderNumber = amlHierarchy.orderNumber)).
           map(h => h.get)
       }
-      elements <- updateElements(factory, existingHierarchy.uuid, true,
+      elements <- updateElements(domain, existingHierarchy.uuid, true,
         amlHierarchy.elements)
       updateResult <- {
         //This was an existing hierarchy, update it in the db
@@ -165,19 +165,19 @@ class FactoryServiceImpl @Inject() (
     } yield updateResult
   }
 
-  private def updateElements(factory: Factory, parent: String, parentIsHierarchy: Boolean,
-                             amlElements: List[AmlElement]): Future[List[String]] = {
+  private def updateElements(domain: Domain, parent: String, parentIsHierarchy: Boolean,
+    amlElements: List[AmlElement]): Future[List[String]] = {
 
     Future.sequence(
-      amlElements.map(elements => updateElement(factory, parent, parentIsHierarchy, elements)))
+      amlElements.map(elements => updateElement(domain, parent, parentIsHierarchy, elements)))
   }
 
-  private def updateElement(factory: Factory, parent: String, parentIsHierarchy: Boolean,
-                            amlElement: AmlElement): Future[String] = {
+  private def updateElement(domain: Domain, parent: String, parentIsHierarchy: Boolean,
+    amlElement: AmlElement): Future[String] = {
 
     for {
       optionalOldIE <- {
-        val query = Element.queryByAmlId(amlElement.amlId) ++ Element.queryByConnectionTo(factory)
+        val query = Element.queryByAmlId(amlElement.amlId) ++ Element.queryByConnectionTo(domain)
         amlObjectService.findOneElement(query)
       }
 
@@ -185,14 +185,14 @@ class FactoryServiceImpl @Inject() (
         optionalOldIE match {
           case Some(ie) => Future.successful(ie)
           case None => amlObjectService.insertElement(Element.
-            create(factory.uuid, amlElement.name, parent, parentIsHierarchy, amlElement.orderNumber,
+            create(domain.uuid, amlElement.name, parent, parentIsHierarchy, amlElement.orderNumber,
               amlElement.amlId)).
             map(ie => ie.get)
         }
       }
-      currentInterfaces <- updateInterfaces(factory, existingIE.uuid,
+      currentInterfaces <- updateInterfaces(domain, existingIE.uuid,
         amlElement.interfaces)
-      currentElements <- updateElements(factory, existingIE.uuid, false,
+      currentElements <- updateElements(domain, existingIE.uuid, false,
         amlElement.elements)
       updatedOrNewUuid <- {
         val updatedElement = existingIE.copy(
@@ -209,32 +209,32 @@ class FactoryServiceImpl @Inject() (
   }
 
   private def updateInterfaces(
-    factory: Factory,
+    domain: Domain,
     parentElement: String,
     amlInterfaces: List[AmlInterface]): Future[List[String]] = {
 
     Future.sequence(
-      amlInterfaces.map(interface => updateInterface(factory, parentElement, interface)))
+      amlInterfaces.map(interface => updateInterface(domain, parentElement, interface)))
   }
 
-  private def updateInterface(factory: Factory, parentElement: String,
-                              amlInterface: AmlInterface): Future[String] = {
+  private def updateInterface(domain: Domain, parentElement: String,
+    amlInterface: AmlInterface): Future[String] = {
     for {
       existingInterface <- {
-        val query = Interface.queryByAmlId(amlInterface.amlId) ++ Interface.queryByConnectionTo(factory)
+        val query = Interface.queryByAmlId(amlInterface.amlId) ++ Interface.queryByConnectionTo(domain)
         amlObjectService.findOneInterface(query)
       }
       updatedOrNewUuid <- existingInterface match {
         case Some(fei) =>
           //This was an existing external interface, update it in the db
-          val updatedInterface = fei.copy(name = amlInterface.name, connectionTo = factory.uuid,
+          val updatedInterface = fei.copy(name = amlInterface.name, connectionTo = domain.uuid,
             orderNumber = amlInterface.orderNumber, parent = parentElement)
 
           amlObjectService.updateInterface(updatedInterface).map(s => updatedInterface.uuid)
         case None =>
           //This was a new external interface, insert it in the db
           val newInterface = Interface.create(
-            connectionToFactory = factory.uuid,
+            connectionToDomain = domain.uuid,
             name = amlInterface.name,
             orderNumber = amlInterface.orderNumber,
             amlId = amlInterface.amlId,
@@ -252,9 +252,9 @@ class FactoryServiceImpl @Inject() (
     val chain = genereateAmlObjectChain(uuid, List())
     val hierarchy = Await.result(findOneHierarchy(Hierarchy.queryByUuid(chain.head.fold(_.parent, _.parent))),
       Duration("3s")).get
-    val factory = Await.result(findOneFactory(Factory.queryByUuid(hierarchy.parent)), Duration("3s")).get
+    val domain = Await.result(findOneDomain(Domain.queryByUuid(hierarchy.parent)), Duration("3s")).get
 
-    AmlObjectChain(chain, hierarchy, factory)
+    AmlObjectChain(chain, hierarchy, domain)
   }
 
   private def genereateAmlObjectChain(uuid: String, list: List[ElementOrInterface]): List[ElementOrInterface] = {

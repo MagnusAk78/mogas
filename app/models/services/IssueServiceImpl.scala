@@ -8,9 +8,9 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import play.api.libs.json.Json
-import models.Factory
+import models.Domain
 import models.IssueUpdate
-import views.html.factories.factory
+import views.html.domains.domain
 import models.AmlObject
 import utils.AmlObjectChain
 import play.api.libs.json.JsObject
@@ -22,8 +22,8 @@ class IssueServiceImpl @Inject() (val issueDao: IssueDAO,
                                   val amlObjectService: AmlObjectService)(implicit val ec: ExecutionContext)
     extends IssueService {
 
-  override def getIssueList(page: Int, factory: Option[Factory] = None): Future[ModelListData[Issue]] = {
-    val selector = factory.map(f => Issue.queryByConnectionTo(f)).getOrElse(Issue.queryAll)
+  override def getIssueList(page: Int, domain: Option[Domain] = None): Future[ModelListData[Issue]] = {
+    val selector = domain.map(f => Issue.queryByConnectionTo(f)).getOrElse(Issue.queryAll)
     findManyIssues(selector, page, utils.DefaultValues.DefaultPageLength)
   }
 

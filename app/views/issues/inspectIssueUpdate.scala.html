@@ -1,5 +1,5 @@
 @(issueUpdate: IssueUpdate, issue: Issue, page: Int, loggedInUser: Option[User], 
-	activeOrg: Option[Organisation])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
+	activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
 	webJarAssets: WebJarAssets)
 
 @import b4.inline.fieldConstructor
@@ -9,7 +9,7 @@
 @import components.utils._
 @import forms._
 
-@main(utils.MainViewData(issue.name, utils.NavTypes.Issues), loggedInUser, activeOrg) {
+@main(utils.MainViewData(issue.name, utils.NavTypes.Issues), loggedInUser, activeDomain) {
 	
 	@rowContentButtons() {
 		<div class="card">

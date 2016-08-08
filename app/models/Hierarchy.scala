@@ -8,7 +8,7 @@ case class Hierarchy(
   override val parent: String,
   override val name: String,
   override val orderNumber: Int,
-  override val elements: Set[String]) extends DbModel with ChildOf[Factory] with ElementParent
+  override val elements: Set[String]) extends DbModel with ChildOf[Domain] with ElementParent
     with NamedModel with OrderedModel {
 
   override def asJsObject: JsObject = {
@@ -18,21 +18,21 @@ case class Hierarchy(
   }
 }
 
-object Hierarchy extends DbModelComp[Hierarchy] with ChildOfComp[Factory] with ElementParentComp
+object Hierarchy extends DbModelComp[Hierarchy] with ChildOfComp[Domain] with ElementParentComp
     with NamedModelComp with OrderedModelComp {
   implicit val hierarchyFormat = Json.format[Hierarchy]
 
-  def create(name: String, parentFactory: String, orderNumber: Int, elements: Set[String] = Set.empty) =
-    Hierarchy(uuid = UUID.randomUUID.toString, name = name, parent = parentFactory, orderNumber = orderNumber,
+  def create(name: String, parentDomain: String, orderNumber: Int, elements: Set[String] = Set.empty) =
+    Hierarchy(uuid = UUID.randomUUID.toString, name = name, parent = parentDomain, orderNumber = orderNumber,
       elements = elements)
 }
 
 /*
 object HierarchyDbHelper {
-  def getFactoryHierarchies(factoryId: ObjectId): Option[SalatMongoCursor[Hierarchy]] = {
-    FactoryDAO.findOneById(factoryId) match {
-      case Some(factory) => {
-        Some(HierarchyDAO.find(DbHelper.queryIdFromIdList(factory.factoryHierachies)).
+  def getDomainHierarchies(domainId: ObjectId): Option[SalatMongoCursor[Hierarchy]] = {
+    DomainDAO.findOneById(domainId) match {
+      case Some(domain) => {
+        Some(HierarchyDAO.find(DbHelper.queryIdFromIdList(domain.domainHierachies)).
           sort(DbHelper.sortAscKey(NumericlyOrdered.orderNumberKey)))
       }
       case None => None
@@ -42,7 +42,7 @@ object HierarchyDbHelper {
 
 object Hierarchy {
 
-  val factoryKey = "factory"
+  val domainKey = "domain"
 
   private def identifyObjectType(objectIdString: String):
   Option[Either[Element, Interface]] = {

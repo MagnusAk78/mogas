@@ -1,0 +1,24 @@
+@(domainForm: Form[models.formdata.DomainForm.Data], loggedInUser: Option[models.User], 
+	activeDomain: Option[models.Domain])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
+	lang: Lang, webJarAssets: WebJarAssets)
+
+@import b4.inline.fieldConstructor
+@import templates._
+@import components.buttons._
+@import components.media._
+@import forms._
+
+@main(utils.MainViewData(Messages("createNew", Messages("domain")), utils.NavTypes.Domains), loggedInUser, activeDomain) {
+	@title(Messages("createNew", "domain"))
+			
+	@rowContentButtons() {	
+		@rowEvenColumns() {
+			@formNormal(routes.DomainController.submitCreate, Messages("create")) {
+        		@b4.text(domainForm("name"), '_label -> Messages("name"))
+        	}        	
+        }{	
+    	}		
+	}{
+		@backButton(controllers.routes.DomainController.list(1))
+	}
+}

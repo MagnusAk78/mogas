@@ -8,14 +8,14 @@ object AmlFiles {
 
   final val OctetStreamContentType = "application/octet-stream"
 
-  private val KeyBelongToFactory = "belongToFactory"
+  private val KeyBelongToDomain = "belongToDomain"
 
   val KeyMetadata = "metadata"
 
   def getQueryAllAmlFiles(belongToUuid: String): JsObject =
-    Json.obj((KeyMetadata + "." + KeyBelongToFactory) -> JsString(belongToUuid))
+    Json.obj((KeyMetadata + "." + KeyBelongToDomain) -> JsString(belongToUuid))
 
-  def getAmlFileMetadata(factoryUuid: String) =
+  def getAmlFileMetadata(domainUuid: String) =
     Json.obj(
-      KeyBelongToFactory -> JsString(factoryUuid))
+      KeyBelongToDomain -> JsString(domainUuid))
 }

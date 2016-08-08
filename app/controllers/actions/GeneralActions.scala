@@ -8,9 +8,8 @@ import com.mohiva.play.silhouette.api.Silhouette
 import controllers.AlwaysAuthorized
 import javax.inject.Inject
 import javax.inject.Singleton
-import models.Organisation
-import models.services.FactoryService
-import models.services.OrganisationService
+import models.services.DomainService
+import models.services.DomainService
 import models.services.UserService
 import play.api.mvc.ActionBuilder
 import play.api.mvc.ActionFilter
@@ -22,7 +21,7 @@ import play.api.mvc.Results.NotFound
 import utils.auth.DefaultEnv
 import models.services.InstructionService
 import models.User
-import models.Factory
+import models.Domain
 import models.Interface
 import models.Hierarchy
 import models.Element
@@ -37,15 +36,13 @@ trait GeneralActions {
 
   def MySecuredAction: ActionBuilder[MySecuredRequest]
 
-  def RequireActiveOrganisation: ActionFilter[MySecuredRequest]
+  def RequireActiveDomain: ActionFilter[MySecuredRequest]
 
   def MyUserAwareAction: ActionBuilder[MyUserAwareRequest]
 
   def UserAction(uuid: String): ActionRefiner[MySecuredRequest, UserRequest]
 
-  def OrganisationAction(uuid: String): ActionRefiner[MySecuredRequest, OrganisationRequest]
-
-  def FactoryAction(uuid: String): ActionRefiner[MySecuredRequest, FactoryRequest]
+  def DomainAction(uuid: String): ActionRefiner[MySecuredRequest, DomainRequest]
 
   def HierarchyAction(uuid: String): ActionRefiner[MySecuredRequest, HierarchyRequest]
 
@@ -66,17 +63,16 @@ trait GeneralActions {
 
 @Singleton
 class GeneralActionsImpl @Inject() (
-    val organisationService: OrganisationService,
+    val domainService: DomainService,
     val userService: UserService,
-    val factoryService: FactoryService,
     val amlObjectService: AmlObjectService,
     val instructionService: InstructionService,
     val issueService: IssueService,
     val silhouette: Silhouette[DefaultEnv])(implicit ec: ExecutionContext) extends GeneralActions {
 
-  def ActiveOrganisationAction = new ActionTransformer[SilhouetteSecuredRequest, MySecuredRequest] {
+  def ActiveDomainAction = new ActionTransformer[SilhouetteSecuredRequest, MySecuredRequest] {
     override def transform[A](request: SilhouetteSecuredRequest[A]) = {
-      organisationService.findOne(Organisation.queryByUuid(request.identity.activeOrganisation)).map { optActiveOrg =>
+      domainService.findOneDomain(Domain.queryByUuid(request.identity.activeDomain)).map { optActiveOrg =>
         MySecuredRequest(optActiveOrg, request)
       }
     }
@@ -86,46 +82,38 @@ class GeneralActionsImpl @Inject() (
     override def transform[A](request: SilhouetteUserAwareRequest[A]) = Future.successful(MyUserAwareRequest(request))
   }
 
-  override def MySecuredAction = silhouette.SecuredAction(AlwaysAuthorized()) andThen ActiveOrganisationAction
+  override def MySecuredAction = silhouette.SecuredAction(AlwaysAuthorized()) andThen ActiveDomainAction
 
   override def MyUserAwareAction = silhouette.UserAwareAction andThen MyUserAwareTransformer
 
-  override def RequireActiveOrganisation: ActionFilter[MySecuredRequest] = new ActionFilter[MySecuredRequest] {
+  override def RequireActiveDomain: ActionFilter[MySecuredRequest] = new ActionFilter[MySecuredRequest] {
     override def filter[A](mySecuredRequest: MySecuredRequest[A]): Future[Option[Result]] =
-      Future.successful(mySecuredRequest.activeOrganisation.map(activeOrg => None).getOrElse(Some(NotFound)))
+      Future.successful(mySecuredRequest.activeDomain.map(activeDomain => None).getOrElse(Some(NotFound)))
   }
 
   override def UserAction(uuid: String) = new ActionRefiner[MySecuredRequest, UserRequest] {
-    override def refine[A](activeOrganisationRequest: MySecuredRequest[A]) = {
+    override def refine[A](activeDomainRequest: MySecuredRequest[A]) = {
       userService.findOne(User.queryByUuid(uuid)).map { optUser =>
         optUser.map(
-          UserRequest(_, activeOrganisationRequest)).toRight(NotFound)
+          UserRequest(_, activeDomainRequest)).toRight(NotFound)
       }
     }
   }
 
-  override def OrganisationAction(uuid: String) = new ActionRefiner[MySecuredRequest, OrganisationRequest] {
+  override def DomainAction(uuid: String) = new ActionRefiner[MySecuredRequest, DomainRequest] {
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
-        optionOrganisation <- organisationService.findOne(Organisation.queryByUuid(uuid))
-      } yield optionOrganisation.map(organisation => OrganisationRequest(organisation, mySecuredRequest)).toRight(NotFound)
-    }
-  }
-
-  override def FactoryAction(uuid: String) = new ActionRefiner[MySecuredRequest, FactoryRequest] {
-    override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
-      for {
-        optionFactory <- factoryService.findOneFactory(Factory.queryByUuid(uuid))
-      } yield optionFactory.map(factory => FactoryRequest(factory, mySecuredRequest)).toRight(NotFound)
+        optionDomain <- domainService.findOneDomain(Domain.queryByUuid(uuid))
+      } yield optionDomain.map(domain => DomainRequest(domain, mySecuredRequest)).toRight(NotFound)
     }
   }
 
   override def HierarchyAction(uuid: String) = new ActionRefiner[MySecuredRequest, HierarchyRequest] {
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
-        optionHierarchy <- factoryService.findOneHierarchy(Factory.queryByUuid(uuid))
-        optionFactory <- factoryService.findOneFactory(Factory.queryByUuid(optionHierarchy.get.parent))
-      } yield optionFactory.map(factory => HierarchyRequest(optionFactory.get, optionHierarchy.get, mySecuredRequest))
+        optionHierarchy <- domainService.findOneHierarchy(Domain.queryByUuid(uuid))
+        optionDomain <- domainService.findOneDomain(Domain.queryByUuid(optionHierarchy.get.parent))
+      } yield optionDomain.map(domain => HierarchyRequest(optionDomain.get, optionHierarchy.get, mySecuredRequest))
         .toRight(NotFound)
     }
   }
@@ -134,9 +122,9 @@ class GeneralActionsImpl @Inject() (
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
         elements <- amlObjectService.getElementChain(uuid)
-        optionHierarchy <- factoryService.findOneHierarchy(Hierarchy.queryByUuid(elements.head.parent))
-        optionFactory <- factoryService.findOneFactory(Factory.queryByUuid(optionHierarchy.get.parent))
-      } yield optionFactory.map(factory => ElementRequest(optionFactory.get, optionHierarchy.get, elements,
+        optionHierarchy <- domainService.findOneHierarchy(Hierarchy.queryByUuid(elements.head.parent))
+        optionDomain <- domainService.findOneDomain(Domain.queryByUuid(optionHierarchy.get.parent))
+      } yield optionDomain.map(domain => ElementRequest(optionDomain.get, optionHierarchy.get, elements,
         mySecuredRequest)).toRight(NotFound)
     }
   }
@@ -146,9 +134,9 @@ class GeneralActionsImpl @Inject() (
       for {
         interface <- amlObjectService.findOneInterface(Interface.queryByUuid(uuid))
         elements <- amlObjectService.getElementChain(interface.get.parent)
-        optionHierarchy <- factoryService.findOneHierarchy(Hierarchy.queryByUuid(elements.head.parent))
-        optionFactory <- factoryService.findOneFactory(Factory.queryByUuid(optionHierarchy.get.parent))
-      } yield optionFactory.map(factory => InterfaceRequest(optionFactory.get, optionHierarchy.get, elements,
+        optionHierarchy <- domainService.findOneHierarchy(Hierarchy.queryByUuid(elements.head.parent))
+        optionDomain <- domainService.findOneDomain(Domain.queryByUuid(optionHierarchy.get.parent))
+      } yield optionDomain.map(domain => InterfaceRequest(optionDomain.get, optionHierarchy.get, elements,
         interface.get, mySecuredRequest)).toRight(NotFound)
     }
   }

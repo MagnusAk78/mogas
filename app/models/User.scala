@@ -13,7 +13,7 @@ case class User(
     val lastName: String,
     val email: String,
     val avatarURL: Option[String],
-    val activeOrganisation: String) extends DbModel with Identity with NamedModel {
+    val activeDomain: String) extends DbModel with Identity with NamedModel {
 
   override def asJsObject: JsObject = User.namedModelJsObject(this) ++
     JsObject(Seq.empty ++
@@ -22,7 +22,7 @@ case class User(
       Seq(User.KeyLastName -> JsString(lastName)) ++
       Seq(User.KeyEmail -> JsString(email)) ++
       avatarURL.map(User.KeyAvatarURL -> JsString(_)) ++
-      Seq(User.KeyActiveOrganisation -> JsString(activeOrganisation)))
+      Seq(User.KeyActiveDomain -> JsString(activeDomain)))
 }
 
 object User extends DbModelComp[User] with NamedModelComp {
@@ -33,21 +33,21 @@ object User extends DbModelComp[User] with NamedModelComp {
   private val KeyLastName = "lastName"
   private val KeyEmail = "email"
   private val KeyAvatarURL = "avatarURL"
-  private val KeyActiveOrganisation = "activeOrganisation"
+  private val KeyActiveDomain = "activeDomain"
 
   def create(loginInfo: LoginInfo,
-             firstName: String,
-             lastName: String,
-             name: String,
-             email: String,
-             avatarURL: Option[String] = None,
-             activeOrganisation: String = UuidNotSet) =
+    firstName: String,
+    lastName: String,
+    name: String,
+    email: String,
+    avatarURL: Option[String] = None,
+    activeDomain: String = UuidNotSet) =
     User(uuid = UUID.randomUUID.toString, loginInfo = loginInfo, firstName = firstName,
       lastName = lastName, name = name, email = email, avatarURL = avatarURL,
-      activeOrganisation = activeOrganisation)
+      activeDomain = activeDomain)
 
   def queryByLoginInfo(loginInfo: LoginInfo): JsObject = Json.obj(KeyLoginInfo -> Json.toJson(loginInfo))
 
-  def queryByActiveOrganisation(activeOrganisationUuid: String): JsObject =
-    Json.obj(KeyActiveOrganisation -> JsString(activeOrganisationUuid))
+  def queryByActiveDomain(domain: Domain): JsObject =
+    Json.obj(KeyActiveDomain -> JsString(domain.uuid))
 }

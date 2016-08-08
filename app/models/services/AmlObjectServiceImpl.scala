@@ -10,7 +10,7 @@ import scala.concurrent.duration.Duration
 
 import javax.inject.Inject
 import models.Element
-import models.Factory
+import models.Domain
 import models.Hierarchy
 import models.Instruction
 import models.Interface

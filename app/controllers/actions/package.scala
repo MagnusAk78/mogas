@@ -2,13 +2,12 @@ package controllers
 
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import utils.auth.DefaultEnv
-import models.Organisation
 import play.api.mvc.WrappedRequest
 import models.User
 import play.api.mvc.Request
 import com.mohiva.play.silhouette.api.actions.UserAwareRequest
 import com.mohiva.play.silhouette.api.Authenticator
-import models.Factory
+import models.Domain
 import models.Hierarchy
 import models.Element
 import models.Interface
@@ -26,7 +25,7 @@ package object actions {
   type SilhouetteUserAwareRequest[A] = UserAwareRequest[DefaultEnv, A]
 
   case class MySecuredRequest[A](
-      activeOrganisation: Option[Organisation],
+      activeDomain: Option[Domain],
       request: SilhouetteSecuredRequest[A]) extends WrappedRequest[A](request) {
     def identity: User = request.identity
     def authenticator = request.authenticator
@@ -39,61 +38,56 @@ package object actions {
 
   case class UserRequest[A](user: User, request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
     lazy val identity: User = request.identity
-    lazy val activeOrganisation = request.activeOrganisation
+    lazy val activeDomain = request.activeDomain
   }
 
-  case class OrganisationRequest[A](organisation: Organisation, request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
+  case class DomainRequest[A](myDomain: Domain, request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
     lazy val identity: User = request.identity
-    lazy val activeOrganisation = request.activeOrganisation
+    lazy val activeDomain = request.activeDomain
   }
 
-  case class FactoryRequest[A](factory: Factory, request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
-    lazy val identity: User = request.identity
-    lazy val activeOrganisation = request.activeOrganisation
-  }
-
-  case class HierarchyRequest[A](factory: Factory, hierarchy: Hierarchy, request: MySecuredRequest[A])
+  case class HierarchyRequest[A](myDomain: Domain, hierarchy: Hierarchy, request: MySecuredRequest[A])
       extends WrappedRequest[A](request) {
     lazy val identity: User = request.identity
-    lazy val activeOrganisation = request.activeOrganisation
+    lazy val activeDomain = request.activeDomain
   }
 
-  case class ElementRequest[A](factory: Factory, hierarchy: Hierarchy, elementChain: List[Element],
-                               request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
+  case class ElementRequest[A](myDomain: Domain, hierarchy: Hierarchy, elementChain: List[Element],
+      request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
     lazy val identity: User = request.identity
-    lazy val activeOrganisation = request.activeOrganisation
+    lazy val activeDomain = request.activeDomain
   }
 
-  case class InterfaceRequest[A](factory: Factory, hierarchy: Hierarchy, elementChain: List[Element],
-                                 interface: Interface, request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
+  case class InterfaceRequest[A](myDomain: Domain, hierarchy: Hierarchy, elementChain: List[Element],
+      interface: Interface, request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
     lazy val identity: User = request.identity
-    lazy val activeOrganisation = request.activeOrganisation
+    lazy val activeDomain = request.activeDomain
   }
 
   case class AmlObjectRequest[A](elementOrInterface: ElementOrInterface, request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
     lazy val identity: User = request.identity
-    lazy val activeOrganisation = request.activeOrganisation
+    lazy val activeDomain = request.activeDomain
   }
 
   case class InstructionRequest[A](instruction: Instruction, request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
     lazy val identity: User = request.identity
-    lazy val activeOrganisation = request.activeOrganisation
+    lazy val activeDomain = request.activeDomain
   }
 
   case class InstructionPartRequest[A](instructionPart: InstructionPart, instruction: Instruction,
-                                       request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
+      request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
     lazy val identity: User = request.identity
-    lazy val activeOrganisation = request.activeOrganisation
+    lazy val activeDomain = request.activeDomain
   }
 
   case class IssueRequest[A](issue: Issue, request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
     lazy val identity: User = request.identity
-    lazy val activeOrganisation = request.activeOrganisation
+    lazy val activeDomain = request.activeDomain
   }
 
   case class IssueUpdateRequest[A](issueUpdate: IssueUpdate, issue: Issue,
-                                   request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
+      request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
     lazy val identity: User = request.identity
-    lazy val activeOrganisation = request.activeOrganisation
+    lazy val activeDomain = request.activeDomain
   }
 }

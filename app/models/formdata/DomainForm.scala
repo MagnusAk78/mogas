@@ -2,9 +2,9 @@ package models.formdata
 
 import play.api.data.Form
 import play.api.data.Forms._
-import models.Organisation
+import models.Domain
 
-object OrganisationForm {
+object DomainForm {
     
   val form = Form[Data](
     mapping(
@@ -12,8 +12,7 @@ object OrganisationForm {
     )(Data.apply)(Data.unapply)
   )
     
-  case class Data(
-    name: String)
+  case class Data(name: String)
    
-  implicit def fromOrganisationToData(organisation: Organisation): Data = Data(name = organisation.name)
+  implicit def fromDomainToData(domain: Domain): Data = Data(name = domain.name)
 }

@@ -9,34 +9,29 @@ object Types {
     val navType: NavType
   }
 
-  final case object OrganisationType extends ModelType {
-    override val stringValue = "Organisation"
-    override val navType = NavTypes.Organisations
-  }
-
   final case object UserType extends ModelType {
     override val stringValue = "User"
     override val navType = NavTypes.Users
   }
 
-  final case object FactoryType extends ModelType {
-    override val stringValue = "Factory"
-    override val navType = NavTypes.Factories
+  final case object DomainType extends ModelType {
+    override val stringValue = "Domain"
+    override val navType = NavTypes.Domains
   }
 
   final case object HierarchyType extends ModelType {
     override val stringValue = "Hierarchy"
-    override val navType = NavTypes.Factories
+    override val navType = NavTypes.Browse
   }
 
   final case object ElementType extends ModelType {
     override val stringValue = "Element"
-    override val navType = NavTypes.Factories
+    override val navType = NavTypes.Browse
   }
 
   final case object InterfaceType extends ModelType {
     override val stringValue = "Interface"
-    override val navType = NavTypes.Factories
+    override val navType = NavTypes.Browse
   }
 
   final case object InstructionType extends ModelType {
@@ -66,9 +61,9 @@ object Types {
 
   def fromString(modelType: String): ModelType = {
     modelType match {
-      case OrganisationType.stringValue => OrganisationType
+      case DomainType.stringValue => DomainType
       case UserType.stringValue => UserType
-      case FactoryType.stringValue => FactoryType
+      case DomainType.stringValue => DomainType
       case HierarchyType.stringValue => HierarchyType
       case ElementType.stringValue => ElementType
       case InterfaceType.stringValue => InterfaceType

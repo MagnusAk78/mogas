@@ -19,7 +19,7 @@ case class Interface(
 object Interface extends DbModelComp[Interface] with AmlObjectComp with ChildOfComp[Element] {
   implicit val interfaceFormat = Json.format[Interface]
 
-  def create(connectionToFactory: String, name: String, parent: String, orderNumber: Int, amlId: String) =
-    Interface(uuid = UUID.randomUUID.toString, connectionTo = connectionToFactory, name = name,
+  def create(connectionToDomain: String, name: String, parent: String, orderNumber: Int, amlId: String) =
+    Interface(uuid = UUID.randomUUID.toString, connectionTo = connectionToDomain, name = name,
       parent = parent, orderNumber = orderNumber, amlId = amlId)
 }

@@ -8,7 +8,7 @@ case class Issue(
     override val uuid: String,
     override val name: String,
     override val connectionTo: String,
-    override val parent: String) extends DbModel with NamedModel with ConnectionTo[Factory] with ChildOf[AmlObject] {
+    override val parent: String) extends DbModel with NamedModel with ConnectionTo[Domain] with ChildOf[AmlObject] {
 
   override def asJsObject: JsObject = {
     Issue.connectionToJsObject(this) ++
@@ -17,14 +17,14 @@ case class Issue(
   }
 }
 
-object Issue extends DbModelComp[Issue] with ChildOfComp[AmlObject] with ConnectionToComp[Factory]
+object Issue extends DbModelComp[Issue] with ChildOfComp[AmlObject] with ConnectionToComp[Domain]
     with CreatedByComp with NamedModelComp {
   implicit val issueFormat = Json.format[Issue]
 
   private val KeyCreatedByUser = "createdByUser"
 
-  def create(name: String, connectionToToFactory: String, parentAmlObject: String, createdBy: String) =
-    Issue(uuid = UUID.randomUUID.toString, name = name, connectionTo = connectionToToFactory,
+  def create(name: String, connectionToToDomain: String, parentAmlObject: String, createdBy: String) =
+    Issue(uuid = UUID.randomUUID.toString, name = name, connectionTo = connectionToToDomain,
       parent = parentAmlObject)
 }
 

@@ -13,12 +13,12 @@ import com.sksamuel.scrimage.Image
 
 import models.formdata.SignUpForm
 import javax.inject.Inject
-import models.Organisation
+import models.Domain
 import models.Images
 import models.User
 import models.daos.FileDAO
 import models.services.FileService
-import models.services.OrganisationService
+import models.services.DomainService
 import models.services.UserService
 import play.api.Logger
 import play.api.Logger
@@ -62,7 +62,7 @@ class SignUpController @Inject() (
   val silhouette: Silhouette[DefaultEnv],
   val generalActions: GeneralActions,
   val userService: UserService,
-  val organisationService: OrganisationService,
+  val domainService: DomainService,
   val authInfoRepository: AuthInfoRepository,
   val avatarService: AvatarService,
   val passwordHasher: PasswordHasher,
@@ -84,12 +84,12 @@ class SignUpController @Inject() (
 
     val responses = for {
       userOpt <- userService.findOne(User.queryByUuid(uuid))
-      activeOrgOpt <- organisationService.findOne(Organisation.queryByUuid(request.identity.activeOrganisation))
+      activeDomainOpt <- domainService.findOneDomain(Domain.queryByUuid(request.identity.activeDomain))
     } yield userOpt match {
       case Some(user) => {
         if (user.uuid == request.identity.uuid) {
           //TODO: Use sign up form and edit
-          Ok(views.html.users.edit(user, SignUpForm.form.fill(user), Some(request.identity), activeOrgOpt))
+          Ok(views.html.users.edit(user, SignUpForm.form.fill(user), Some(request.identity), activeDomainOpt))
         } else {
           Redirect(routes.UserController.list(1))
         }

@@ -8,7 +8,7 @@ case class Instruction(
   override val name: String,
   override val connectionTo: String,
   override val parent: String,
-  override val createdBy: String) extends DbModel with NamedModel with ConnectionTo[Factory] with ChildOf[AmlObject]
+  override val createdBy: String) extends DbModel with NamedModel with ConnectionTo[Domain] with ChildOf[AmlObject]
     with CreatedBy {
 
   override def asJsObject: JsObject = {
@@ -17,14 +17,14 @@ case class Instruction(
   }
 }
 
-object Instruction extends DbModelComp[Instruction] with ChildOfComp[AmlObject] with ConnectionToComp[Factory]
+object Instruction extends DbModelComp[Instruction] with ChildOfComp[AmlObject] with ConnectionToComp[Domain]
     with CreatedByComp with NamedModelComp {
   implicit val instructionFormat = Json.format[Instruction]
 
   private val KeyCreatedByUser = "createdByUser"
 
-  def create(name: String, connectionToToFactory: String, parentAmlObject: String, createdBy: String) =
-    Instruction(uuid = UUID.randomUUID.toString, name = name, connectionTo = connectionToToFactory,
+  def create(name: String, connectionToToDomain: String, parentAmlObject: String, createdBy: String) =
+    Instruction(uuid = UUID.randomUUID.toString, name = name, connectionTo = connectionToToDomain,
       parent = parentAmlObject, createdBy = createdBy)
 }
 
@@ -36,7 +36,7 @@ object Instruction extends DbModelComp[Instruction] with ChildOfComp[AmlObject] 
  *
  * val titleKey = "title"
  *
- * val factoryKey = "factory"
+ * val domainKey = "domain"
  *
  * val refersToElementKey = "refersToElement"
  *
@@ -51,14 +51,14 @@ object Instruction extends DbModelComp[Instruction] with ChildOfComp[AmlObject] 
  * }
  * case None => true
  * }),
- * "factory" -> nonEmptyText.verifying(FactoryDAO.findOneById(_).nonEmpty),
+ * "domain" -> nonEmptyText.verifying(DomainDAO.findOneById(_).nonEmpty),
  * "refersToElement" -> nonEmptyText,
  * "createdBy" -> nonEmptyText.verifying(UserDAO.findOneById(_).nonEmpty),
  * "title" -> nonEmptyText)
  * (Instruction.instructionFormApply)(Instruction.instructionFormUnapply))
  * }
  *
- * def instructionFormApply(optionalIdString: Option[String], factoryIdString: String, factoryElementIdString: String,
+ * def instructionFormApply(optionalIdString: Option[String], domainIdString: String, domainElementIdString: String,
  * createdByIdString: String, title: String): Instruction = {
  *
  * val objectId = optionalIdString match {
@@ -68,8 +68,8 @@ object Instruction extends DbModelComp[Instruction] with ChildOfComp[AmlObject] 
  *
  * val existingInstruction = InstructionDAO.findOneById(objectId)
  *
- * val instruction = Instruction(_id = objectId, factory = new ObjectId(factoryIdString),
- * refersToElement = new ObjectId(factoryElementIdString), createdBy = new ObjectId(createdByIdString),
+ * val instruction = Instruction(_id = objectId, domain = new ObjectId(domainIdString),
+ * refersToElement = new ObjectId(domainElementIdString), createdBy = new ObjectId(createdByIdString),
  * title = title)
  *
  * Logger.info("instructionFormApply instruction: " + instruction.toString)
@@ -79,7 +79,7 @@ object Instruction extends DbModelComp[Instruction] with ChildOfComp[AmlObject] 
  *
  * def instructionFormUnapply(instruction: Instruction) = {
  * Logger.info("instructionFormUnapply instruction: " + instruction.toString)
- * Some(Some(instruction._id.toString), instruction.factory.toString, instruction.refersToElement.toString,
+ * Some(Some(instruction._id.toString), instruction.domain.toString, instruction.refersToElement.toString,
  * instruction.createdBy.toString, instruction.title)
  * }
  * }

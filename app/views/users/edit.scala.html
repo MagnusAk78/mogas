@@ -1,5 +1,5 @@
 @(user: User, signUpForm: Form[models.formdata.SignUpForm.Data], loggedInUser: Option[User], 
-	activeOrg: Option[Organisation])(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, 
+	activeDomain: Option[Domain])(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, 
 	flash: Flash)
 
 @import b4.inline.fieldConstructor
@@ -8,7 +8,7 @@
 @import components.buttons._
 @import components.media._
 
-@main(utils.MainViewData(Messages("edit", user.name), utils.NavTypes.Users), loggedInUser, activeOrg) {
+@main(utils.MainViewData(Messages("edit", user.name), utils.NavTypes.Users), loggedInUser, activeDomain) {
 	@title(Messages("edit", user.name))
 			
 	@rowContentButtons() {	

@@ -1,0 +1,33 @@
+@(domain: Domain, domainForm: Form[models.formdata.DomainForm.Data], loggedInUser: Option[models.User], 
+	activeDomain: Option[models.Domain])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
+	lang: Lang, webJarAssets: WebJarAssets)
+
+@import b4.inline.fieldConstructor
+@import templates._
+@import components.buttons._
+@import components.media._
+@import forms._
+
+@main(utils.MainViewData(Messages("edit", domain.name), utils.NavTypes.Domains), loggedInUser, activeDomain) {
+	@title(domain.name)
+			
+	@rowContentButtons() {	
+		@rowEvenColumns() {
+    		@formNormal(routes.DomainController.submitEdit(domain.uuid), Messages("update")) {
+        		@b4.text(domainForm("name"), '_label -> Messages("name"))
+        	}
+			@formAmlFileUpload(routes.FileController.submitAmlFile(domain.uuid))
+			@button(controllers.routes.DomainController.parseAmlFiles(domain.uuid), Messages("parseAmlFiles"))        	
+        }{	
+    		@imageOrVideo(Some(routes.FileController.getStandardImage(domain.uuid, models.Types.DomainType.stringValue)),
+    			Some(routes.FileController.getThumbnailImage(domain.uuid, models.Types.DomainType.stringValue)), 
+    			None)
+    	}		
+	}{
+		@backButton(controllers.routes.DomainController.list(1))
+		@changeImageButton(domain.uuid, models.Types.DomainType)
+		@editButton(controllers.routes.DomainController.editAllowedUsers(domain.uuid, 1), 
+			Some(Messages("changeAllowedUsers")))
+		@deleteButton(controllers.routes.DomainController.delete(domain.uuid))	
+	}
+}

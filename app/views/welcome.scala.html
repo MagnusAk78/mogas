@@ -1,4 +1,4 @@
-@(loggedInUser: Option[User], activeOrg: Option[Organisation])(implicit flash: Flash, request: RequestHeader, 
+@(loggedInUser: Option[User], activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, 
 	messages: Messages, webJarAssets: WebJarAssets)
 
 @import templates._
@@ -6,7 +6,7 @@
 @import components.utils._
 @import components.buttons._
 
-@main(utils.MainViewData(Messages("welcome"), utils.NavTypes.None), loggedInUser, activeOrg) {
+@main(utils.MainViewData(Messages("welcome"), utils.NavTypes.None), loggedInUser, activeDomain) {
 	<h3 class="display-1 hidden-xs-down">
     	@Messages("welcome") 
     </h3>

@@ -19,10 +19,10 @@ import com.mohiva.play.silhouette.api.actions.UserAwareAction
 import reactivemongo.core.nodeset.Authentication
 import scala.concurrent.ExecutionContext
 import models.services.UserService
-import models.services.OrganisationService
-import models.Organisation
 import play.api.Logger
 import controllers.actions.GeneralActions
+import models.Domain
+import models.services.DomainService
 
 /**
  * The basic application controller.
@@ -38,7 +38,7 @@ class ApplicationController @Inject() (
   val generalActions: GeneralActions,
   val socialProviderRegistry: SocialProviderRegistry,
   val userService: UserService,
-  val organisationService: OrganisationService,
+  val domainService: DomainService,
   implicit val webJarAssets: WebJarAssets)(implicit exec: ExecutionContext)
     extends Controller with I18nSupport {
 
@@ -54,12 +54,12 @@ class ApplicationController @Inject() (
         case Some(user) => Future.successful(Some(user))
         case None => Future.successful(None)
       }
-      activeOrg <- userOpt match {
-        case Some(user) => organisationService.findOne(Organisation.queryByUuid(user.activeOrganisation))
+      activeDomain <- userOpt match {
+        case Some(user) => domainService.findOneDomain(Domain.queryByUuid(user.activeDomain))
         case None => Future.successful(None)
       }
     } yield userOpt match {
-      case Some(user) => Ok(views.html.welcome(userOpt, activeOrg))
+      case Some(user) => Ok(views.html.welcome(userOpt, activeDomain))
       case None => Redirect(routes.SignInController.view())
     }
 

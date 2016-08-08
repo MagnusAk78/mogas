@@ -1,4 +1,4 @@
-@(mainViewData: utils.MainViewData, loggedInUser: Option[models.User], activeOrg: Option[models.Organisation])(content: Html)(implicit flash: Flash, 
+@(mainViewData: utils.MainViewData, loggedInUser: Option[models.User], activeDomain: Option[models.Domain])(content: Html)(implicit flash: Flash, 
 	messages: Messages, webJarAssets: WebJarAssets, lang: Lang)
 
 @import templates._
@@ -28,10 +28,10 @@
     </head>
     <body>
 
-    	@if(activeOrg.isDefined) {
-        	@navigationBar(activeOrg.get.name, loggedInUser)
+    	@if(activeDomain.isDefined) {
+        	@navigationBar(activeDomain.get.name, loggedInUser)
 		} else {
-        	@navigationBar(Messages("activeOrganisationNotSet"), loggedInUser)
+        	@navigationBar(Messages("activeDomainNotSet"), loggedInUser)
 		}
 
 
@@ -42,29 +42,28 @@
 			<ul class="nav nav-pills nav-stacked">
 				@if(loggedInUser.isDefined) {
 				<li class="nav-item">
-					<a class="nav-link @if(mainViewData.navType == utils.NavTypes.Organisations){active}" 
-					href="@routes.OrganisationController.list(1)">
-            			@Messages("organisations")
+					<a class="nav-link @if(mainViewData.navType == utils.NavTypes.Domains){active}" 
+					href="@routes.DomainController.list(1)">
+            			@Messages("domains")
             		</a>
         		</li>
         		}
         
-        		@if(loggedInUser.isDefined && activeOrg.isDefined) {
+        		@if(loggedInUser.isDefined && activeDomain.isDefined) {
 				<li class="alert alert-success">
-					@Messages("active", activeOrg.get.name)				
+					@Messages("active", activeDomain.get.name)				
 				</li>        		
         		}
-        		@if(loggedInUser.isDefined && activeOrg.isEmpty) {
+        		@if(loggedInUser.isDefined && activeDomain.isEmpty) {
 				<li class="alert alert-warning">
   					<a class="alert-link" 
-					href="@routes.OrganisationController.editActiveOrganisation(1)">
-            			@Messages("chooseActive", Messages("organisation"))
+					href="@routes.DomainController.editActiveDomain(1)">
+            			@Messages("chooseActive", Messages("domain"))
             		</a>
 				</li>
 				}        		
 
-
-				@if(loggedInUser.isDefined && activeOrg.isDefined) {
+				@if(loggedInUser.isDefined && activeDomain.isDefined) {
 				<li class="nav-item">
 					<a class="nav-link @if(mainViewData.navType == utils.NavTypes.Users){active}" 
 					href="@routes.UserController.list(1)">
@@ -73,16 +72,16 @@
         		</li>
         		
         		<li class="nav-item">
-					<a class="nav-link @if(mainViewData.navType == utils.NavTypes.Factories){active}" 
-					href="@routes.FactoryController.list(1)">
-            			@Messages("factories")
+					<a class="nav-link @if(mainViewData.navType == utils.NavTypes.Browse){active}" 
+					href="@routes.DomainController.domain(activeDomain.get.uuid, 1)">
+            			@Messages("browse")
             		</a>
         		</li>
         		
         		<li class="nav-item">
 					<a class="nav-link @if(mainViewData.navType == utils.NavTypes.Instructions){active}" 
 					href="@routes.InstructionController.list("", 1)">
-            			@Messages("users")
+            			@Messages("instructions")
             		</a>
         		</li>
         		

@@ -7,13 +7,11 @@ import scala.concurrent.Future
 import org.joda.time.DateTime
 
 import akka.stream.Materializer
-import models.formdata.OrganisationForm
-import models.formdata.OrganisationForm.fromOrganisationToData
+import models.formdata.DomainForm
+import models.formdata.DomainForm.fromDomainToData
 import javax.inject.Inject
 import javax.inject.Singleton
-import models.Organisation
-import models.services.FactoryService
-import models.services.OrganisationService
+import models.services.DomainService
 import models.services.UserService
 import play.api.i18n.I18nSupport
 import play.api.i18n.Messages
@@ -35,8 +33,8 @@ import play.api.mvc.ActionBuilder
 import play.api.mvc.Flash
 import controllers.actions._
 import utils.RemoveResult
-import models.formdata.FactoryForm
-import models.Factory
+import models.formdata.DomainForm
+import models.Domain
 import models.services.IssueService
 import models.formdata.IssueForm
 import models.Issue
@@ -52,29 +50,28 @@ class IssueController @Inject() (
   val messagesApi: MessagesApi,
   val generalActions: GeneralActions,
   val userService: UserService,
-  val organisationService: OrganisationService,
   val amlObjectService: AmlObjectService,
-  val factoryService: FactoryService,
+  val domainService: DomainService,
   val issueService: IssueService,
   implicit val webJarAssets: WebJarAssets)(implicit exec: ExecutionContext, materialize: Materializer)
     extends Controller with I18nSupport {
 
-  def list(factoryUuid: String, page: Int) = (generalActions.MySecuredAction andThen
-    generalActions.RequireActiveOrganisation).async {
-      implicit factoryRequest =>
+  def list(domainUuid: String, page: Int) = (generalActions.MySecuredAction andThen
+    generalActions.RequireActiveDomain).async {
+      implicit domainRequest =>
 
         val responses = for {
-          factoryOpt <- {
-            if (factoryUuid.isEmpty()) {
+          domainOpt <- {
+            if (domainUuid.isEmpty()) {
               Future.successful(None)
             } else {
-              factoryService.findOneFactory(Factory.queryByUuid(factoryUuid))
+              domainService.findOneDomain(Domain.queryByUuid(domainUuid))
             }
           }
           issueListData <- issueService.getIssueList(page)
-          objectChainList <- factoryService.getAmlObjectChains(issueListData.list)
-        } yield Ok(views.html.issues.list(factoryOpt, issueListData.list, objectChainList,
-          issueListData.paginateData, Some(factoryRequest.identity), factoryRequest.activeOrganisation))
+          objectChainList <- domainService.getAmlObjectChains(issueListData.list)
+        } yield Ok(views.html.issues.list(domainOpt, issueListData.list, objectChainList,
+          issueListData.paginateData, Some(domainRequest.identity), domainRequest.activeDomain))
 
         responses recover {
           case e => InternalServerError(e.getMessage())
@@ -82,24 +79,24 @@ class IssueController @Inject() (
     }
 
   def create(amlObjectUuid: String) = (generalActions.MySecuredAction andThen
-    generalActions.RequireActiveOrganisation) {
+    generalActions.RequireActiveDomain) {
       implicit mySecuredRequest =>
         Ok(views.html.issues.create(IssueForm.form, amlObjectUuid, Some(mySecuredRequest.identity),
-          mySecuredRequest.activeOrganisation))
+          mySecuredRequest.activeDomain))
     }
 
   def submitCreate(amlObjectUuid: String) = (generalActions.MySecuredAction andThen
-    generalActions.RequireActiveOrganisation andThen generalActions.AmlObjectAction(amlObjectUuid)).async {
+    generalActions.RequireActiveDomain andThen generalActions.AmlObjectAction(amlObjectUuid)).async {
       implicit amlObjectRequest =>
         IssueForm.form.bindFromRequest().fold(
           formWithErrors => {
             Future.successful(BadRequest(views.html.issues.create(formWithErrors, amlObjectUuid,
-              Some(amlObjectRequest.identity), amlObjectRequest.activeOrganisation)))
+              Some(amlObjectRequest.identity), amlObjectRequest.activeDomain)))
           },
           formData => {
             val responses = for {
               optSavedIssue <- issueService.insertIssue(Issue.create(name = formData.name,
-                connectionToToFactory = amlObjectRequest.elementOrInterface.fold(_.connectionTo, _.connectionTo),
+                connectionToToDomain = amlObjectRequest.elementOrInterface.fold(_.connectionTo, _.connectionTo),
                 parentAmlObject = amlObjectRequest.elementOrInterface.fold(_.uuid, _.uuid),
                 createdBy = amlObjectRequest.identity.uuid))
             } yield optSavedIssue match {
@@ -119,16 +116,16 @@ class IssueController @Inject() (
     }
 
   def issue(uuid: String, page: Int) = (generalActions.MySecuredAction andThen
-    generalActions.RequireActiveOrganisation andThen generalActions.IssueAction(uuid)).async {
+    generalActions.RequireActiveDomain andThen generalActions.IssueAction(uuid)).async {
       implicit issueRequest =>
 
         val responses = for {
-          factoryOpt <- factoryService.findOneFactory(Factory.queryByUuid(issueRequest.issue.connectionTo))
+          domainOpt <- domainService.findOneDomain(Domain.queryByUuid(issueRequest.issue.connectionTo))
           amlObjectOpt <- amlObjectService.findOneElementOrInterface(AmlObject.queryByUuid(issueRequest.issue.parent))
           issueUpdatesListData <- issueService.getIssueUpdateList(issueRequest.issue, page)
-        } yield Ok(views.html.issues.issue(issueRequest.issue, amlObjectOpt.get, factoryOpt.get,
+        } yield Ok(views.html.issues.issue(issueRequest.issue, amlObjectOpt.get, domainOpt.get,
           issueUpdatesListData.list, issueUpdatesListData.paginateData, Some(issueRequest.identity),
-          issueRequest.activeOrganisation))
+          issueRequest.activeDomain))
 
         responses recover {
           case e => InternalServerError(e.getMessage())
@@ -136,14 +133,14 @@ class IssueController @Inject() (
     }
 
   def inspectIssueUpdate(uuid: String, page: Int) = (generalActions.MySecuredAction andThen
-    generalActions.RequireActiveOrganisation andThen generalActions.IssueUpdateAction(uuid)).async {
+    generalActions.RequireActiveDomain andThen generalActions.IssueUpdateAction(uuid)).async {
       implicit issueUpdateRequest =>
 
         val responses = for {
           issueOpt <- issueService.findOneIssue(Issue.queryByUuid(issueUpdateRequest.issueUpdate.parent))
         } yield issueOpt.map(issue => Ok(views.html.issues.inspectIssueUpdate(
           issueUpdateRequest.issueUpdate, issue, page,
-          Some(issueUpdateRequest.identity), issueUpdateRequest.activeOrganisation))).getOrElse(NotFound)
+          Some(issueUpdateRequest.identity), issueUpdateRequest.activeDomain))).getOrElse(NotFound)
 
         responses recover {
           case e => InternalServerError(e.getMessage())
@@ -152,13 +149,13 @@ class IssueController @Inject() (
     }
 
   def submitCreateIssueUpdate(issueUuid: String) = (generalActions.MySecuredAction andThen
-    generalActions.RequireActiveOrganisation andThen generalActions.IssueAction(issueUuid)).async {
+    generalActions.RequireActiveDomain andThen generalActions.IssueAction(issueUuid)).async {
       implicit issueRequest =>
 
         IssueUpdateForm.form.bindFromRequest().fold(
           formWithErrors => {
             Future.successful(BadRequest(views.html.issues.createIssueUpdate(issueRequest.issue,
-              formWithErrors, Some(issueRequest.identity), issueRequest.activeOrganisation)))
+              formWithErrors, Some(issueRequest.identity), issueRequest.activeDomain)))
           },
           formData => {
             val responses = for {
@@ -186,15 +183,15 @@ class IssueController @Inject() (
     }
 
   def createIssueUpdate(issueUuid: String) = (generalActions.MySecuredAction andThen
-    generalActions.RequireActiveOrganisation andThen generalActions.IssueAction(issueUuid)) {
+    generalActions.RequireActiveDomain andThen generalActions.IssueAction(issueUuid)) {
       implicit issueRequest =>
 
         Ok(views.html.issues.createIssueUpdate(issueRequest.issue, IssueUpdateForm.form,
-          Some(issueRequest.identity), issueRequest.activeOrganisation))
+          Some(issueRequest.identity), issueRequest.activeDomain))
     }
 
   def submitEditIssueUpdate(uuid: String) = (generalActions.MySecuredAction andThen
-    generalActions.RequireActiveOrganisation andThen generalActions.IssueUpdateAction(uuid)).async {
+    generalActions.RequireActiveDomain andThen generalActions.IssueUpdateAction(uuid)).async {
       implicit issueUpdateRequest =>
 
         IssueUpdateForm.form.bindFromRequest().fold(
@@ -205,7 +202,7 @@ class IssueController @Inject() (
             } yield issueOpt.map(issue => Ok(views.html.issues.editIssueUpdate(issue,
               issueUpdateRequest.issueUpdate,
               formWithErrors, Some(issueUpdateRequest.identity),
-              issueUpdateRequest.activeOrganisation))).getOrElse(NotFound)
+              issueUpdateRequest.activeDomain))).getOrElse(NotFound)
 
             responses recover {
               case e => InternalServerError(e.getMessage())
@@ -234,7 +231,7 @@ class IssueController @Inject() (
     }
 
   def editIssueUpdate(uuid: String) = (generalActions.MySecuredAction andThen
-    generalActions.RequireActiveOrganisation andThen generalActions.IssueUpdateAction(uuid)).async {
+    generalActions.RequireActiveDomain andThen generalActions.IssueUpdateAction(uuid)).async {
       implicit issueUpdateRequest =>
 
         val responses = for {
@@ -242,7 +239,7 @@ class IssueController @Inject() (
         } yield issueOpt.map(issue => Ok(views.html.issues.editIssueUpdate(issue,
           issueUpdateRequest.issueUpdate,
           IssueUpdateForm.form.fill(issueUpdateRequest.issueUpdate), Some(issueUpdateRequest.identity),
-          issueUpdateRequest.activeOrganisation))).getOrElse(NotFound)
+          issueUpdateRequest.activeDomain))).getOrElse(NotFound)
 
         responses recover {
           case e => InternalServerError(e.getMessage())

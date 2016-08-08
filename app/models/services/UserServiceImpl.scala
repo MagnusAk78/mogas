@@ -56,7 +56,7 @@ class UserServiceImpl @Inject() (val dao: UserDAO)(implicit val ec: ExecutionCon
                 fullName = user.fullName,
                 email = user.email,
                 avatarURL = user.avatarURL,
-                activeOrganisation = user.activeOrganisation)
+                activeDomain = user.activeDomain)
               dao.update(oldUser.uuid.get, updatedUser)
             }
             case None => { // Insert a new user
@@ -67,7 +67,7 @@ class UserServiceImpl @Inject() (val dao: UserDAO)(implicit val ec: ExecutionCon
                 fullName = user.fullName,
                 email = user.email,
                 avatarURL = user.avatarURL,
-                activeOrganisation = user.activeOrganisation))
+                activeDomain = user.activeDomain))
             }
           }
         }
@@ -80,7 +80,7 @@ class UserServiceImpl @Inject() (val dao: UserDAO)(implicit val ec: ExecutionCon
           fullName = user.fullName,
           email = user.email,
           avatarURL = user.avatarURL,
-          activeOrganisation = user.activeOrganisation))
+          activeDomain = user.activeDomain))
       }
     }
   }

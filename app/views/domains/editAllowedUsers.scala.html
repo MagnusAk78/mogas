@@ -1,0 +1,28 @@
+@(domain: Domain, users: List[User], paginateData: utils.PaginateData, loggedInUser: Option[User], 
+	activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets)
+
+@import templates._
+@import components.media._
+@import components.buttons._
+@import components.utils._
+
+@main(utils.MainViewData(Messages("editAllowedUsers", domain.name), utils.NavTypes.Domains), loggedInUser, activeDomain) {
+	@title(Messages("editAllowedUsers", domain.name))
+	@rowContentButtons() {
+    	@{
+			val mediaList = users.map{ user =>
+                routes.FileController.getThumbnailImage(user.uuid, models.Types.UserType.stringValue)
+            }            
+            val linkList = users.map((user: User) => controllers.routes.DomainController.
+            	changeAllowedUser(domain.uuid, user.uuid, paginateData.page))
+            val headingList = users.map(_.name)
+            val textList = users.map(_.email)
+            val activatedList = users.map((user: User) => domain.allowedUsers.contains(user.uuid))
+
+            displayPaginatedList(mediaList, linkList, headingList, textList, activatedList,
+            	paginateData, controllers.routes.DomainController.editAllowedUsers(domain.uuid, _))
+    	}
+    }{
+        @backButton(controllers.routes.DomainController.edit(domain.uuid))
+    }
+}

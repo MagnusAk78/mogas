@@ -1,5 +1,5 @@
-@(user: User, organisations: List[Organisation], paginateData: utils.PaginateData,
-    loggedInUser: Option[User], activeOrg: Option[Organisation])(implicit flash: Flash, request: RequestHeader, messages: Messages,
+@(user: User, domains: List[Domain], paginateData: utils.PaginateData,
+    loggedInUser: Option[User], activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, messages: Messages,
     webJarAssets: WebJarAssets)
 
 @import templates._
@@ -7,7 +7,7 @@
 @import components.buttons._
 @import components.media._
 
-@main(utils.MainViewData(user.name, utils.NavTypes.Users), loggedInUser, activeOrg) {
+@main(utils.MainViewData(user.name, utils.NavTypes.Users), loggedInUser, activeDomain) {
 	@title(user.name)
 			
 	@rowContentButtons() {	
@@ -17,10 +17,10 @@
 				<p class="card-text">@user.email</p>
 			</div>
 			<div class="card card-block text-xs-center">
-				<h6 class="card-subtitle text-muted">@Messages("organisations")</h6>
+				<h6 class="card-subtitle text-muted">@Messages("domains")</h6>
         		@paginate(paginateData, controllers.routes.UserController.show(user.uuid, _))
 		    	<ul class="list-unstyled">
-    				@for(name <- organisations.map(_.name)) {
+    				@for(name <- domains.map(_.name)) {
     				<li>
         				@name
     				</li>

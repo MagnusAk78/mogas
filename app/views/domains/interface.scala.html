@@ -1,6 +1,6 @@
-@(factory: Factory, hierarchy: Hierarchy, elementChain: List[Element], 
+@(domain: Domain, hierarchy: Hierarchy, elementChain: List[Element], 
 	interface: Interface, loggedInUser: Option[User], 
-	activeOrg: Option[Organisation])(implicit flash: Flash, request: RequestHeader, messages: Messages, lang: Lang, 
+	activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, messages: Messages, lang: Lang, 
 	webJarAssets: WebJarAssets)
 
 @import templates._
@@ -8,25 +8,25 @@
 @import components.media._
 @import components.utils._
 
-@main(utils.MainViewData(interface.name, utils.NavTypes.Factories), loggedInUser, activeOrg) {
+@main(utils.MainViewData(interface.name, utils.NavTypes.Browse), loggedInUser, activeDomain) {
 	
 	@title(interface.name)
 	@rowContentButtons() {
         @{
-            var linkList = List(controllers.routes.FactoryController.factory(factory.uuid, 1),
-                controllers.routes.FactoryController.hierarchy(hierarchy.uuid, 1))
+            var linkList = List(controllers.routes.DomainController.domain(domain.uuid, 1),
+                controllers.routes.DomainController.hierarchy(hierarchy.uuid, 1))
                 
-            var textList = List(factory.name, hierarchy.name)
+            var textList = List(domain.name, hierarchy.name)
 
             for(element <- elementChain) {
-                linkList = (controllers.routes.FactoryController.element(element.uuid, 1, 1)
+                linkList = (controllers.routes.DomainController.element(element.uuid, 1, 1)
                                 :: linkList.reverse).reverse
 
                 textList = (element.name :: textList.reverse).reverse
 
             }
 
-            linkList = (controllers.routes.FactoryController.interface(interface.uuid) ::
+            linkList = (controllers.routes.DomainController.interface(interface.uuid) ::
                 linkList.reverse).reverse
 
             breadcrumb(linkList, (interface.name :: textList.reverse).reverse)
@@ -34,10 +34,10 @@
     	@showImage(routes.FileController.getStandardImage(interface.uuid, 
     		models.Types.InterfaceType.stringValue))        
     }{
-    	@backButton(controllers.routes.FactoryController.element(elementChain.last.uuid, 1, 1))
+    	@backButton(controllers.routes.DomainController.element(elementChain.last.uuid, 1, 1))
     	@createInstructionButton(interface.uuid)
     	@createIssueButton(interface.uuid)
     	@changeImageButton(interface.uuid, models.Types.InterfaceType)
-        @createButton(controllers.routes.FactoryController.create)
+        @createButton(controllers.routes.DomainController.create)
     }
 }

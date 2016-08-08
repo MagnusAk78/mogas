@@ -3,7 +3,7 @@ package models.services
 import scala.concurrent.Future
 import models.Issue
 import utils.PaginateData
-import models.Factory
+import models.Domain
 import models.IssueUpdate
 import play.api.libs.json.JsObject
 import utils.RemoveResult
@@ -11,7 +11,7 @@ import utils.ModelListData
 
 trait IssueService {
 
-  def getIssueList(page: Int, factory: Option[Factory] = None): Future[ModelListData[Issue]]
+  def getIssueList(page: Int, domain: Option[Domain] = None): Future[ModelListData[Issue]]
 
   def insertIssue(model: Issue): Future[Option[Issue]]
 

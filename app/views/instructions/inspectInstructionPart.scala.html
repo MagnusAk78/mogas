@@ -1,5 +1,5 @@
 @(instructionPart: InstructionPart, instruction: Instruction, page: Int, loggedInUser: Option[User], 
-	activeOrg: Option[Organisation])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
+	activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
 	webJarAssets: WebJarAssets)
 
 @import b4.inline.fieldConstructor
@@ -9,7 +9,7 @@
 @import components.utils._
 @import forms._
 
-@main(utils.MainViewData(Messages("edit", instruction.name + ": " + instructionPart.orderNumber), utils.NavTypes.Instructions), loggedInUser, activeOrg) {
+@main(utils.MainViewData(Messages("edit", instruction.name + ": " + instructionPart.orderNumber), utils.NavTypes.Instructions), loggedInUser, activeDomain) {
 	
 	@rowContentButtons() {
 		<div class="card">

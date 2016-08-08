@@ -3,7 +3,7 @@ package models.services
 import scala.concurrent.Future
 import models.Instruction
 import utils.PaginateData
-import models.Factory
+import models.Domain
 import models.InstructionPart
 import play.api.libs.json.JsObject
 import utils.RemoveResult
@@ -11,7 +11,7 @@ import utils.ModelListData
 
 trait InstructionService {
 
-  def getInstructionList(page: Int, factory: Option[Factory] = None): Future[ModelListData[Instruction]]
+  def getInstructionList(page: Int, domain: Option[Domain] = None): Future[ModelListData[Instruction]]
 
   def insertInstruction(model: Instruction): Future[Option[Instruction]]
 

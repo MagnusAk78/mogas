@@ -8,9 +8,9 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import play.api.libs.json.Json
-import models.Factory
+import models.Domain
 import models.InstructionPart
-import views.html.factories.factory
+import views.html.domains.domain
 import models.AmlObject
 import utils.AmlObjectChain
 import play.api.libs.json.JsObject
@@ -22,8 +22,8 @@ class InstructionServiceImpl @Inject() (val instructionDao: InstructionDAO,
   val amlObjectService: AmlObjectService)(implicit val ec: ExecutionContext)
     extends InstructionService {
 
-  override def getInstructionList(page: Int, factory: Option[Factory] = None): Future[ModelListData[Instruction]] = {
-    val selector = factory.map(f => Instruction.queryByConnectionTo(f)).getOrElse(Instruction.queryAll)
+  override def getInstructionList(page: Int, domain: Option[Domain] = None): Future[ModelListData[Instruction]] = {
+    val selector = domain.map(f => Instruction.queryByConnectionTo(f)).getOrElse(Instruction.queryAll)
     findManyInstructions(selector, page, utils.DefaultValues.DefaultPageLength)
   }
 

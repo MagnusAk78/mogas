@@ -5,13 +5,13 @@ import play.api.libs.json.JsString
 import play.api.libs.json.Json
 import play.api.libs.json.JsNumber
 
-trait AmlObject extends DbModel with NamedModel with ConnectionTo[Factory] with OrderedModel {
+trait AmlObject extends DbModel with NamedModel with ConnectionTo[Domain] with OrderedModel {
   val amlId: String
 }
 
 object AmlObject extends DbModelComp[AmlObject]
 
-trait AmlObjectComp extends NamedModelComp with ConnectionToComp[Factory] with OrderedModelComp {
+trait AmlObjectComp extends NamedModelComp with ConnectionToComp[Domain] with OrderedModelComp {
 
   private val KeyAmlId = "amlId"
 

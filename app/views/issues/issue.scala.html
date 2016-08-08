@@ -1,6 +1,6 @@
-@(issue: Issue, elementOrInterface: utils.ElementOrInterface, factory: Factory, issueUpdates: List[IssueUpdate], 
+@(issue: Issue, elementOrInterface: utils.ElementOrInterface, domain: Domain, issueUpdates: List[IssueUpdate], 
 	paginateData: utils.PaginateData, loggedInUser: Option[User], 
-	activeOrg: Option[Organisation])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
+	activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
 	webJarAssets: WebJarAssets)
 
 @import b4.inline.fieldConstructor
@@ -10,7 +10,7 @@
 @import components.utils._
 @import forms._
 
-@main(utils.MainViewData(issue.name, utils.NavTypes.Issues), loggedInUser, activeOrg) {
+@main(utils.MainViewData(issue.name, utils.NavTypes.Issues), loggedInUser, activeDomain) {
 	
 	@title(issue.name)
 	@rowContentButtons() {
@@ -46,7 +46,7 @@
   			}  		
   		</div>  		
     }{
-        @backButton(controllers.routes.IssueController.list(factory.uuid, 1))
+        @backButton(controllers.routes.IssueController.list(domain.uuid, 1))
         @createButton(controllers.routes.IssueController.createIssueUpdate(issue.uuid), Some(Messages("addMore")))
     }
     

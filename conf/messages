@@ -1,19 +1,16 @@
 changeImage = Change image
 create = Create
+createSome = Create {0}
 delete = Delete
-edit = Edit {0}
+edit = Edit
+editSome = Edit {0}
 back = Back
-
-createNew = Create new {0}
-
-organisation = organisation
-organisations = Organisations
 
 user = user
 users = Users
 
-factory = factory
-factories = Factories
+domain = domain
+domains = Domains
 
 instruction = instruction
 instructions = Instructions
