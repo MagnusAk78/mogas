@@ -15,24 +15,6 @@ POST    /authentication/signIn								controllers.SignInController.submit
 GET     /authentication/signIn                              controllers.SignInController.view
 GET     /authentication/signUp                              controllers.SignUpController.view
 
-# Organisation actions
-POST    /organisation/submit                                              	controllers.OrganisationController.submitCreate
-GET     /organisation/create                                            	controllers.OrganisationController.create
-POST    /organisation/:uuid/submit                                        	controllers.OrganisationController.submitEdit(uuid: String)
-GET     /organisation/:uuid/edit                                          	controllers.OrganisationController.edit(uuid: String)
-GET     /organisation/:uuid/changeAllowedUser/:userIdString/:usersPage    	controllers.OrganisationController.changeAllowedUser(uuid: String, userIdString: String, usersPage: Int)
-GET     /organisation/:uuid/editAllowedUsers                              	controllers.OrganisationController.editAllowedUsers(uuid: String, usersPage: Int=1)
-GET     /organisation/:uuid/editAllowedUsers/:usersPage                   	controllers.OrganisationController.editAllowedUsers(uuid: String, usersPage: Int)
-GET     /organisation/:uuid/delete                                        	controllers.OrganisationController.delete(uuid: String)
-
-
-GET     /organisations/list                                             	controllers.OrganisationController.list(page: Int=1)
-GET     /organisations/list/:page                          					controllers.OrganisationController.list(page: Int)
-GET     /organisations/editActivateOrganisation                         	controllers.OrganisationController.editActiveOrganisation(page:Int=1)
-GET     /organisations/editActivateOrganisation/:page                   	controllers.OrganisationController.editActiveOrganisation(page:Int)
-GET     /organisations/setActivateOrganisation/:uuid                      	controllers.OrganisationController.setActiveOrganisation(uuid: String, page:Int=1)
-GET     /organisations/setActivateOrganisation/:uuid/:page                	controllers.OrganisationController.setActiveOrganisation(uuid: String, page:Int)
-
 # User actions
 POST    /user/:uuid/submit                                   			    controllers.SignUpController.submitEdit(uuid: String)
 GET     /user/:uuid/edit                               			            controllers.SignUpController.edit(uuid: String)
@@ -42,30 +24,39 @@ GET     /user/:uuid/show/:page                         						controllers.UserCon
 GET     /users/list                                  						controllers.UserController.list(page: Int=1)
 GET     /users/list/:page                            						controllers.UserController.list(page: Int)
 
-# Factory actions
-POST    /factory/submit                               						controllers.FactoryController.submitCreate
-GET     /factory/create                                            			controllers.FactoryController.create
-POST    /factory/:uuid/submit                               				controllers.FactoryController.submitEdit(uuid: String)
-GET     /factory/:uuid/edit                           						controllers.FactoryController.edit(uuid: String)
-GET     /factory/:uuid/delete                         						controllers.FactoryController.delete(uuid: String)
+# Domain actions
+POST    /domain/submit                               						controllers.DomainController.submitCreate
+GET     /domain/create                                            			controllers.DomainController.create
+POST    /domain/:uuid/submit                               					controllers.DomainController.submitEdit(uuid: String)
+GET     /domain/:uuid/edit                           						controllers.DomainController.edit(uuid: String)
+GET     /domain/:uuid/delete                         						controllers.DomainController.delete(uuid: String)
 
-GET     /factory/:uuid/list                           						controllers.FactoryController.factory(uuid: String, page: Int=1)
-GET     /factory/:uuid/list/:page                           				controllers.FactoryController.factory(uuid: String, page: Int)
+GET     /domain/:uuid/list                           						controllers.DomainController.domain(uuid: String, page: Int=1)
+GET     /domain/:uuid/list/:page                           					controllers.DomainController.domain(uuid: String, page: Int)
 
-GET		/factory/:uuid/parseAmlFiles										controllers.FactoryController.parseAmlFiles(uuid: String)
+GET		/domain/:uuid/parseAmlFiles											controllers.DomainController.parseAmlFiles(uuid: String)
 
-GET     /factories/list                                             		controllers.FactoryController.list(page: Int=1)
-GET     /factories/list/:page												controllers.FactoryController.list(page: Int)
+GET     /domains/list                                             			controllers.DomainController.list(page: Int=1)
+GET     /domains/list/:page													controllers.DomainController.list(page: Int)
+
+GET     /domains/:uuid/changeAllowedUser/:userIdString/:usersPage    		controllers.DomainController.changeAllowedUser(uuid: String, userIdString: String, usersPage: Int)
+GET     /domains/:uuid/editAllowedUsers                              		controllers.DomainController.editAllowedUsers(uuid: String, usersPage: Int=1)
+GET     /domains/:uuid/editAllowedUsers/:usersPage                   		controllers.DomainController.editAllowedUsers(uuid: String, usersPage: Int)
+
+GET     /domains/editActivateDomain                         				controllers.DomainController.editActiveDomain(page:Int=1)
+GET     /domains/editActivateDomain/:page                   				controllers.DomainController.editActiveDomain(page:Int)
+GET     /domains/setActivateDomain/:uuid                      				controllers.DomainController.setActiveDomain(uuid: String, page:Int=1)
+GET     /domains/setActivateDomain/:uuid/:page                				controllers.DomainController.setActiveDomain(uuid: String, page:Int)
 
 #Hierarchies
-GET		/factories/hierarchy/:uuid											controllers.FactoryController.hierarchy(uuid: String, page: Int=1)
-GET		/factories/hierarchy/:uuid/:page									controllers.FactoryController.hierarchy(uuid: String, page: Int)
+GET		/domains/hierarchy/:uuid											controllers.DomainController.hierarchy(uuid: String, page: Int=1)
+GET		/domains/hierarchy/:uuid/:page										controllers.DomainController.hierarchy(uuid: String, page: Int)
 
-GET		/factories/element/:uuid											controllers.FactoryController.element(uuid: String, elementPage: Int=1, interfacePage: Int=1)
-GET		/factories/element/:uuid/:elementPage								controllers.FactoryController.element(uuid: String, elementPage: Int, interfacePage: Int=1)
-GET		/factories/element/:uuid/:elementPage/:interfacePage				controllers.FactoryController.element(uuid: String, elementPage: Int, interfacePage: Int)
+GET		/domains/element/:uuid												controllers.DomainController.element(uuid: String, elementPage: Int=1, interfacePage: Int=1)
+GET		/domains/element/:uuid/:elementPage									controllers.DomainController.element(uuid: String, elementPage: Int, interfacePage: Int=1)
+GET		/domains/element/:uuid/:elementPage/:interfacePage					controllers.DomainController.element(uuid: String, elementPage: Int, interfacePage: Int)
 
-GET		/factories/interface/:uuid											controllers.FactoryController.interface(uuid: String)
+GET		/domains/interface/:uuid											controllers.DomainController.interface(uuid: String)
 
 #Instructions
 POST    /instruction/submit/:amlObjectUuid                     				controllers.InstructionController.submitCreate(amlObjectUuid: String)
@@ -76,9 +67,9 @@ GET     /instruction/:uuid/delete											controllers.InstructionController.de
 GET     /instruction/:uuid/show                                             controllers.InstructionController.instruction(uuid: String, page: Int=1)
 GET     /instruction/:uuid/show/:page                                       controllers.InstructionController.instruction(uuid: String, page: Int)
 
-GET     /instructions/list/                                     			controllers.InstructionController.list(factoryUuid: String="", page: Int=1)
-GET     /instructions/list/:page											controllers.InstructionController.list(factoryUuid: String="", page: Int)
-GET     /instructions/list/:page/:factoryUuid/								controllers.InstructionController.list(factoryUuid: String, page: Int)
+GET     /instructions/list/                                     			controllers.InstructionController.list(domainUuid: String="", page: Int=1)
+GET     /instructions/list/:page											controllers.InstructionController.list(domainUuid: String="", page: Int)
+GET     /instructions/list/:page/:domainUuid/								controllers.InstructionController.list(domainUuid: String, page: Int)
 
 POST    /instructionpart/submit/:instructionUuid                     		controllers.InstructionController.submitCreatePart(instructionUuid: String)
 GET     /instructionpart/create/:instructionUuid							controllers.InstructionController.createPart(instructionUuid: String)
@@ -95,9 +86,9 @@ GET     /issue/create/:amlObjectUuid										controllers.IssueController.create
 GET     /issue/:uuid/show                                             		controllers.IssueController.issue(uuid: String, page: Int=1)
 GET     /issue/:uuid/show/:page                                       		controllers.IssueController.issue(uuid: String, page: Int)
 
-GET     /issues/list/                                     					controllers.IssueController.list(factoryUuid: String="", page: Int=1)
-GET     /issues/list/:page													controllers.IssueController.list(factoryUuid: String="", page: Int)
-GET     /issues/list/:page/factoryUuid/										controllers.IssueController.list(factoryUuid: String, page: Int)
+GET     /issues/list/                                     					controllers.IssueController.list(domainUuid: String="", page: Int=1)
+GET     /issues/list/:page													controllers.IssueController.list(domainUuid: String="", page: Int)
+GET     /issues/list/:page/domainUuid/										controllers.IssueController.list(domainUuid: String, page: Int)
 
 POST    /issueupdate/submit/:issueUuid                     					controllers.IssueController.submitCreateIssueUpdate(issueUuid: String)
 GET    	/issueupdate/create/:issueUuid										controllers.IssueController.createIssueUpdate(issueUuid: String)
@@ -113,7 +104,7 @@ POST    /image/:uuid/submitImage/:modelType   					controllers.FileController.su
 GET     /video/:uuid/:modelType 								controllers.FileController.getVideo(uuid: String, modelType: String)
 GET     /video/upload/:uuid/:modelType							controllers.FileController.uploadVideo(uuid: String, modelType: String)
 POST    /video/:uuid/submitVideo/:modelType   					controllers.FileController.submitVideo(uuid: String, modelType: String)
-POST	/factory/:uuid/submitAmlFile							controllers.FileController.submitAmlFile(uuid: String)
+POST	/domain/:uuid/submitAmlFile								controllers.FileController.submitAmlFile(uuid: String)
 
 # Map static resources from the /public folder to the /assets URL path
 #GET     /assets/*file               		controllers.Assets.versioned(path="/public", file: Asset)
