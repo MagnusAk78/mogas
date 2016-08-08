@@ -1,0 +1,15 @@
+@(uuid: String, modelType: models.Types.ModelType, loggedInUser: Option[models.User], 
+	activeOrg: Option[models.Organisation])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
+	lang: Lang, webJarAssets: WebJarAssets)
+
+@import templates._
+@import forms._
+
+@main(Messages("videoUpload"), loggedInUser, activeOrg) {
+	@title(Messages("videoUpload"))
+	
+	@rowContentButtons() {	
+		@formVideoFileUpload(routes.FileController.submitVideo(uuid, modelType.stringValue))
+	}{	
+	}
+}

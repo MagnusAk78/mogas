@@ -23,6 +23,7 @@
 	}{
 		@backButton(controllers.routes.InstructionController.instruction(instruction.uuid, 1))
 		@changeImageButton(instructionPart.uuid, models.Types.InstructionPartType)
+		@changeVideoButton(instructionPart.uuid, models.Types.InstructionPartType)
 		@deleteButton(controllers.routes.InstructionController.deletePart(instructionPart.uuid))	
 	}     
 }

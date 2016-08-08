@@ -110,6 +110,9 @@ GET     /image/:uuid/standard/:modelType						controllers.FileController.getStan
 GET     /image/:uuid/thumbnail/:modelType 						controllers.FileController.getThumbnailImage(uuid: String, modelType: String)
 GET     /image/upload/:uuid/:modelType							controllers.FileController.uploadImage(uuid: String, modelType: String)
 POST    /image/:uuid/submitImage/:modelType   					controllers.FileController.submitImage(uuid: String, modelType: String)
+GET     /video/:uuid/:modelType 								controllers.FileController.getVideo(uuid: String, modelType: String)
+GET     /video/upload/:uuid/:modelType							controllers.FileController.uploadVideo(uuid: String, modelType: String)
+POST    /video/:uuid/submitVideo/:modelType   					controllers.FileController.submitVideo(uuid: String, modelType: String)
 POST	/factory/:uuid/submitAmlFile							controllers.FileController.submitAmlFile(uuid: String)
 
 # Map static resources from the /public folder to the /assets URL path

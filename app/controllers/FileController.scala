@@ -51,6 +51,11 @@ import reactivemongo.api.Cursor
 import play.api.mvc.WrappedRequest
 import controllers.actions.GeneralActions
 import models.AmlFiles
+import models.Videos
+import com.sun.xml.internal.messaging.saaj.util.ByteInputStream
+import java.io.ByteArrayInputStream
+import java.io.BufferedInputStream
+import com.sksamuel.scrimage.nio.JpegWriter
 
 @Singleton
 class FileController @Inject() (
@@ -102,7 +107,7 @@ class FileController @Inject() (
 
   def uploadImage(uuid: String, modelTypeString: String) = generalActions.MySecuredAction { implicit request =>
     val modelType = models.Types.fromString(modelTypeString)
-    Ok(views.html.ImageUpload(uuid, modelType, Some(request.identity), request.activeOrganisation))
+    Ok(views.html.imageUpload(uuid, modelType, Some(request.identity), request.activeOrganisation))
   }
 
   def getThumbnailImage(uuid: String, modelTypeString: String) = generalActions.MySecuredAction async { implicit request =>
@@ -139,6 +144,16 @@ class FileController @Inject() (
     response
   }
 
+  def uploadVideo(uuid: String, modelTypeString: String) = generalActions.MySecuredAction { implicit request =>
+    val modelType = models.Types.fromString(modelTypeString)
+    Ok(views.html.videoUpload(uuid, modelType, Some(request.identity), request.activeOrganisation))
+  }
+
+  def getVideo(uuid: String, modelTypeString: String) = generalActions.MySecuredAction async { implicit request =>
+    fileService.findByQuery(Videos.getQueryAllVideos(uuid)).flatMap(cursor =>
+      fileService.withAsyncGfs[Result] { gfs => serve[JsValue, JSONReadFile](gfs)(cursor, CONTENT_DISPOSITION_INLINE) })
+  }
+
   def submitImage(uuid: String, modelType: String) = {
 
     //Create the parser using the GridFS collection from FileService
@@ -161,7 +176,7 @@ class FileController @Inject() (
         case Some(file) => {
           if (file.contentType.isEmpty ||
             file.contentType.get.startsWith("image") == false ||
-            file.length < utils.DefaultValues.MinimumImageSize) {
+            file.length < utils.DefaultValues.MinimumFileSize) {
 
             //File is not ok, remove it
             val result = fileService.remove(file.id.as[String])
@@ -179,13 +194,15 @@ class FileController @Inject() (
             val futureSaveStandardResult = iteratorUploaded1.flatMap {
               bytes =>
                 {
+                  implicit val writer = JpegWriter()
                   // Create standard image
+                  val inputStream = new BufferedInputStream(new ByteArrayInputStream(bytes))
                   val enumeratorStandard: Enumerator[Array[Byte]] = Enumerator.
-                    fromStream(Image(bytes).bound(Images.Standard.xPixels, Images.Standard.yPixels).stream)
+                    fromStream(Image.fromStream(inputStream).bound(Images.Standard.xPixels, Images.Standard.yPixels).stream)
 
                   val dataImage = JSONFileToSave(
                     filename = file.filename,
-                    contentType = file.contentType,
+                    contentType = Some("image/jpg"),
                     uploadDate = Some(DateTime.now().getMillis),
                     metadata = Images.getImageMetadata(uuid, Images.Standard))
 
@@ -197,12 +214,15 @@ class FileController @Inject() (
             val futureSaveThumbnailResult = iteratorUploaded2.flatMap {
               bytes =>
                 {
+                  implicit val writer = JpegWriter().withCompression(50)
+                  val inputStream = new BufferedInputStream(new ByteArrayInputStream(bytes))
                   val enumeratorThumbnail: Enumerator[Array[Byte]] = Enumerator.
-                    fromStream(Image(bytes).fit(Images.Thumbnail.xPixels, Images.Thumbnail.yPixels).stream)
+                    fromStream(Image.fromStream(inputStream).fit(Images.Thumbnail.xPixels, Images.Thumbnail.yPixels).
+                      stream)
 
                   val dataThumbnail = JSONFileToSave(
                     filename = file.filename,
-                    contentType = file.contentType,
+                    contentType = Some("image/jpg"),
                     uploadDate = Some(DateTime.now().getMillis),
                     metadata = Images.getImageMetadata(uuid, Images.Thumbnail))
 
@@ -268,6 +288,114 @@ class FileController @Inject() (
     }
   }
 
+  def submitVideo(uuid: String, modelType: String) = {
+
+    //Create the parser using the GridFS collection from FileService
+    val gdfsParser = fileService.withSyncGfs[BodyParser[MultipartFormData[Future[FileDAO.JSONReadFile]]]] { gfs => gridFSBodyParser(gfs) }
+
+    generalActions.MySecuredAction.async(gdfsParser) { implicit request =>
+
+      Logger.info("SignUpController: submitVideo")
+
+      //A list of the old videos that now has to be removed
+      val futureOldVideoFileList = fileService.findByQuery(Videos.getQueryAllVideos(uuid)).
+        flatMap(cursor => cursor.collect[List](0, true))
+
+      val futureOptFileRef = request.body.file(models.formdata.VideoFileKeyString) match {
+        case Some(file) => file.ref.map(Some(_))
+        case None => Future.successful(None)
+      }
+      //If the file is not a video or the correct size, just remove it
+      val futureOptFile = futureOptFileRef.flatMap(optFileRef => optFileRef match {
+        case Some(file) => {
+          if (file.contentType.isEmpty ||
+            file.contentType.get.startsWith("video") == false ||
+            file.length < utils.DefaultValues.MinimumFileSize) {
+
+            //File is not ok, remove it
+            val result = fileService.remove(file.id.as[String])
+
+            //And return nothing
+            Future.successful(None)
+          } else {
+
+            Logger.info("File uploaded correctly")
+
+            val iteratorUploaded = fileService.withAsyncGfs[Array[Byte]] { gfs =>
+              gfs.enumerate(file).run(Iteratee.consume[Array[Byte]]())
+            }
+
+            val futureSaveResult = iteratorUploaded.flatMap {
+              bytes =>
+                {
+                  val inputStream = new BufferedInputStream(new ByteArrayInputStream(bytes))
+                  val enumeratorStandard: Enumerator[Array[Byte]] = Enumerator.fromStream(inputStream)
+
+                  val dataVideo = JSONFileToSave(
+                    filename = file.filename,
+                    contentType = file.contentType,
+                    uploadDate = Some(DateTime.now().getMillis),
+                    metadata = Videos.getVideoMetadata(uuid))
+
+                  Logger.info("Saving the new large file")
+                  fileService.save(enumeratorStandard, dataVideo)
+                }
+            }
+
+            val saveResponses = for {
+              saveResult <- futureSaveResult
+              removeResult <- fileService.remove(file.id.as[String])
+            } yield removeResult
+
+            saveResponses recover {
+              case e => {
+                Logger.error("recover e.getStackTrace: " + e.getStackTrace)
+                InternalServerError(e.getMessage())
+              }
+            }
+          }
+        }
+        case None => {
+          Logger.info("optFileRef == None")
+          Future.successful(None)
+        }
+      })
+
+      val futureActiveOrg = organisationService.findOne(Organisation.queryByUuid(request.identity.activeOrganisation))
+
+      val responses = for {
+        optFile <- futureOptFile
+        activeOrg <- futureActiveOrg
+        oldVideoFileList <- futureOldVideoFileList
+        removeOldVideosRes <- Future.sequence(oldVideoFileList.map { file =>
+
+          Logger.info("Removing old video, id: " + file.id.as[String])
+
+          fileService.remove(file.id.as[String])
+        })
+      } yield Types.fromString(modelType) match {
+        case Types.OrganisationType => Redirect(routes.OrganisationController.edit(uuid)).flashing("success" -> Messages("db.success.videoUpload"))
+        case Types.UserType => Redirect(routes.SignUpController.edit(uuid)).flashing("success" -> Messages("db.success.videoUpload"))
+        case Types.FactoryType => Redirect(routes.FactoryController.edit(uuid)).flashing("success" -> Messages("db.success.videoUpload"))
+        case Types.HierarchyType => Redirect(routes.FactoryController.hierarchy(uuid, 1)).flashing("success" -> Messages("db.success.videoUpload"))
+        case Types.ElementType => Redirect(routes.FactoryController.element(uuid, 1, 1)).flashing("success" -> Messages("db.success.videoUpload"))
+        case Types.InterfaceType => Redirect(routes.FactoryController.interface(uuid)).flashing("success" -> Messages("db.success.videoUpload"))
+        case Types.InstructionType => Redirect(routes.InstructionController.instruction(uuid, 1)).flashing("success" -> Messages("db.success.videoUpload"))
+        case Types.InstructionPartType => Redirect(routes.InstructionController.inspectPart(uuid, 1)).flashing("success" -> Messages("db.success.videoUpload"))
+        case Types.IssueType => Redirect(routes.IssueController.issue(uuid, 1)).flashing("success" -> Messages("db.success.videoUpload"))
+        case Types.IssueUpdateType => Redirect(routes.IssueController.inspectIssueUpdate(uuid, 1)).flashing("success" -> Messages("db.success.videoUpload"))
+        case Types.UnknownType => Redirect(routes.OrganisationController.list(1)).flashing("error" -> Messages("error.unknownType"))
+      }
+
+      responses recover {
+        case e => {
+          Logger.error("recover e.getStackTrace: " + e.getStackTrace)
+          InternalServerError(e.getMessage())
+        }
+      }
+    }
+  }
+
   def submitAmlFile(factoryUuid: String) = {
 
     //Create the parser using the GridFS collection from FileService
@@ -291,7 +419,7 @@ class FileController @Inject() (
             if (file.contentType.isEmpty ||
               file.contentType.get != AmlFiles.OctetStreamContentType ||
               file.filename.isEmpty || !file.filename.get.endsWith("aml") ||
-              file.length < utils.DefaultValues.MinimumImageSize) {
+              file.length < utils.DefaultValues.MinimumFileSize) {
 
               //File is not ok, remove it
               val result = fileService.remove(file.id.as[String])

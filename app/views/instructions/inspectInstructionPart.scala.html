@@ -21,6 +21,12 @@
 				<p class="card-text">@instructionPart.text</p>
 			</div>	
 		</div>
+		
+		<div align="center" class="embed-responsive embed-responsive-4by3">
+    		<video controls class="embed-responsive-item">
+        		<source src="@routes.FileController.getVideo(instructionPart.uuid, models.Types.InstructionPartType.stringValue)">
+    		</video>
+		</div>		
     	
     }{
         @backButton(controllers.routes.InstructionController.instruction(instruction.uuid, page))
