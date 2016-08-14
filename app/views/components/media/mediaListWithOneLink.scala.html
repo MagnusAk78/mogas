@@ -1,8 +1,6 @@
 @(mediaList: List[Call], linkList: List[Call], headingList: List[String], textList: List[String],
     activatedList: List[Boolean]=Nil)(implicit flash: Flash, messages: Messages)
 
-<div class="row text-center">
-<div class="col-md-12 col-lg-12">
 	<div class="list-group">
     	@for(i <- 0 to (mediaList.size-1)) {
     	<!-- a -->
@@ -27,5 +25,3 @@
         </a>
     }
 	</div>
-</div>
-</div>

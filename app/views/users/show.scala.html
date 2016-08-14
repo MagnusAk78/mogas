@@ -1,0 +1,53 @@
+@(user: User, domainListData: utils.ModelListData[Domain], loggedInUser: Option[User], 
+	activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, messages: Messages,
+    webJarAssets: WebJarAssets)
+
+@import templates._
+@import components.utils._
+@import components.buttons._
+@import components.media._
+
+@main(utils.MainViewData(user.name, utils.NavTypes.Users), loggedInUser, activeDomain) {
+	
+	@{
+		val linkList = List(controllers.routes.UserController.list(1))                
+        val captionList = List(Messages("list"))
+        val activeList = List(false)
+
+        topNavigation(linkList, captionList, activeList)
+    }
+    
+	@rowLargeSmall() {
+		<h1>@user.name</h1>
+		
+		<div class="m-t-1">
+			<div class="card card-block text-xs-center">
+				<h6 class="card-subtitle text-muted">@Messages("details")</h6>
+				<p class="card-text">@user.email</p>
+			</div>
+			<div class="card card-block text-xs-center">
+				<h6 class="card-subtitle text-muted">@Messages("domains")</h6>
+        		@paginate(domainListData.paginateData, controllers.routes.UserController.show(user.uuid, _))
+		    	<ul class="list-unstyled">
+    				@for(name <- domainListData.list.map(_.name)) {
+    				<li>
+        				@name
+    				</li>
+    				}
+				</ul>
+		    </div>		
+		    </div>
+		
+		<div class="m-t-1">
+			@largeImage(user.uuid, models.Types.UserType.stringValue)
+		</div>
+    } {
+    	@if(loggedInUser.isDefined && loggedInUser.get.uuid == user.uuid) {
+			@button(
+				routes.SignUpController.edit(user.uuid),
+				Messages("edit"),
+				"btn-primary",
+				Some("fa fa-pencil fa-fw"))			
+		}
+    }
+}

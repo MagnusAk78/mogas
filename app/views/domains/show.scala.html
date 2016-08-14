@@ -1,0 +1,40 @@
+@(domain: Domain, loggedInUser: Option[models.User], activeDomain: Option[models.Domain])(implicit flash: Flash, 
+	request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
+
+@import templates._
+@import components.buttons._
+@import components.media._
+@import forms._
+
+@main(utils.MainViewData(domain.name, utils.NavTypes.Domains), loggedInUser, activeDomain) {
+	
+	@{
+		val linkList = List(
+			controllers.routes.DomainController.list(1),
+			controllers.routes.DomainController.editActiveDomain(1),
+			controllers.routes.DomainController.create
+		)                
+        val captionList = List(
+        	Messages("list"), 
+        	Messages("chooseActiveDomain"), 
+        	Messages("create"))
+        	
+        val activeList = List(false, false, false)
+
+        topNavigation(linkList, captionList, activeList)
+    }
+
+	@rowLargeSmall() {
+		<h1>@domain.name</h1>
+		<div class="m-t-1">
+			@largeImage(domain.uuid, models.Types.DomainType.stringValue)
+		</div>
+    } {
+		@button(
+			controllers.routes.DomainController.edit(domain.uuid),
+			Messages("edit"),
+			"btn-primary",
+			Some("fa fa-pencil fa-fw"))
+    	
+    }
+}

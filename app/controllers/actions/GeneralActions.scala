@@ -144,11 +144,21 @@ class GeneralActionsImpl @Inject() (
   override def AmlObjectAction(uuid: String) = new ActionRefiner[MySecuredRequest, AmlObjectRequest] {
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
-        interface <- amlObjectService.findOneInterface(Interface.queryByUuid(uuid))
-        element <- interface.map(i => Future.successful(None)).getOrElse(amlObjectService.findOneElement(Element.queryByUuid(uuid)))
-      } yield interface match {
-        case Some(i) => Right(AmlObjectRequest(Right(i), mySecuredRequest))
-        case None => element.map(e => AmlObjectRequest(Left(e), mySecuredRequest)).toRight(NotFound)
+        optInterface <- amlObjectService.findOneInterface(Interface.queryByUuid(uuid))
+        optElement <- optInterface match {
+          case Some(i) => Future.successful(None)
+          case None => amlObjectService.findOneElement(Element.queryByUuid(uuid))
+        }
+        elements <- optInterface match {
+          case Some(interface) => amlObjectService.getElementChain(interface.parent)
+          case None => amlObjectService.getElementChain(optElement.get.uuid)
+        }
+        optHierarchy <- domainService.findOneHierarchy(Hierarchy.queryByUuid(elements.head.parent))
+        optDomain <- domainService.findOneDomain(Domain.queryByUuid(optHierarchy.get.parent))
+      } yield if (optHierarchy.isDefined && optDomain.isDefined) {
+        Right(AmlObjectRequest(optDomain.get, optHierarchy.get, elements, optInterface, mySecuredRequest))
+      } else {
+        Left(NotFound)
       }
     }
   }
@@ -156,8 +166,24 @@ class GeneralActionsImpl @Inject() (
   override def InstructionAction(uuid: String) = new ActionRefiner[MySecuredRequest, InstructionRequest] {
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
-        optionInstruction <- instructionService.findOneInstruction(Instruction.queryByUuid(uuid))
-      } yield optionInstruction.map(i => InstructionRequest(i, mySecuredRequest)).toRight(NotFound)
+        optInstruction <- instructionService.findOneInstruction(Instruction.queryByUuid(uuid))
+        optInterface <- amlObjectService.findOneInterface(Interface.queryByUuid(optInstruction.get.parent))
+        optElement <- optInterface match {
+          case Some(i) => Future.successful(None)
+          case None => amlObjectService.findOneElement(Element.queryByUuid(optInstruction.get.parent))
+        }
+        elements <- optInterface match {
+          case Some(interface) => amlObjectService.getElementChain(interface.parent)
+          case None => amlObjectService.getElementChain(optElement.get.uuid)
+        }
+        optHierarchy <- domainService.findOneHierarchy(Hierarchy.queryByUuid(elements.head.parent))
+        optDomain <- domainService.findOneDomain(Domain.queryByUuid(optHierarchy.get.parent))
+      } yield if (optInstruction.isDefined && optHierarchy.isDefined && optDomain.isDefined) {
+        Right(InstructionRequest(optInstruction.get, optDomain.get, optHierarchy.get, elements, optInterface,
+          mySecuredRequest))
+      } else {
+        Left(NotFound)
+      }
     }
   }
 

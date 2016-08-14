@@ -1,13 +1,58 @@
-.top5 { margin-top:5px; }
-.top7 { margin-top:7px; }
-.top10 { margin-top:10px; }
-.top15 { margin-top:15px; }
-.top17 { margin-top:17px; }
-.top30 { margin-top:30px; }
+body {
+	font-family: 'Source Sans Pro', sans-serif;
+	font-size: 13px;
+}
 
-.bottom5 { margin-bottom:5px; }
-.bottom7 { margin-bottom:7px; }
-.bottom10 { margin-bottom:10px; }
-.bottom15 { margin-bottom:15px; }
-.bottom17 { margin-bottom:17px; }
-.bottom30 { margin-bottom:30px; }
+.black-link-icon {
+	color: grey !important;
+}
+
+.max-width-menu {
+	max-width: 160px !important;
+}
+
+.max-width-main {
+	max-width: 1300px !important;
+}
+
+.brand-text {
+	font-family: 'Source Sans Pro', sans-serif;
+	font-size: 16px;
+}
+
+.nav-left {	
+	font-family: 'Source Sans Pro', sans-serif;
+	font-size: 14px;
+}
+
+.nav-left a:focus
+.nav-left a:hover { 
+	background-color: #eceeef !important;
+}
+
+.nav-left a.active { 
+	color: black !important;
+	background-color: white !important; 
+	font-weight: bold !important; 
+}
+
+.nav-top {
+	font-family: 'Source Sans Pro', sans-serif;
+	font-size: 14px;
+}
+
+label {
+	font-family: 'Source Sans Pro', sans-serif;
+	font-size: 16px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-family: 'Montserrat', sans-serif;
+}
+
+h1 { font-size: 16px; font-weight: bold; }
+h2 { font-size: 16px;}
+h3 { font-size: 15px; font-weight: bold;}
+h4 { font-size: 15px;}
+h5 { font-size: 14px; font-weight: bold;}
+h6 { font-size: 14px;}

@@ -15,20 +15,24 @@ import play.api.libs.json.JsObject
 import utils.RemoveResult
 
 trait FileService {
-  
+
   val dao: FileDAO
-    
+
   def remove(uuid: String): Future[RemoveResult]
-  
+
   def find(uuid: String): Future[Cursor[JSONReadFile]]
-  
+
   def findByQuery(query: JsObject): Future[Cursor[JSONReadFile]]
-  
+
   def save(enumerator: Enumerator[Array[Byte]], fileToSave: JSONFileToSave): Future[JSONReadFile]
-  
-  def updateMetadata(fileUuid:String, metadata: JsObject): Future[Boolean]
-  
+
+  def updateMetadata(fileUuid: String, metadata: JsObject): Future[Boolean]
+
   def withAsyncGfs[T](func: (GridFS[JSONSerializationPack.type] => Future[T])): Future[T]
-  
+
   def withSyncGfs[T](func: (GridFS[JSONSerializationPack.type] => T)): T
+
+  def imageExists(uuid: String): Future[Boolean]
+
+  def videoExists(uuid: String): Future[Boolean]
 }

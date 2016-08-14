@@ -1,0 +1,56 @@
+@(instructionForm: Form[models.formdata.InstructionForm.Data], domain: Domain, hierarchy: Hierarchy, 
+	elementChain: List[Element], interface: Option[Interface], loggedInUser: Option[User], 
+	activeDomain: Option[models.Domain])(implicit flash: Flash, request: RequestHeader, 
+	messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
+
+@import components.utils._
+@import templates._
+@import components.buttons._
+@import components.media._
+@import forms._
+@import helper._
+@implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f("col-sm-4 col-md-3", "col-sm-8 col-md-9")) }
+
+@main(utils.MainViewData(Messages("createInstruction"), utils.NavTypes.Browse), loggedInUser, activeDomain) {
+	
+	@rowLargeSmall() {
+        @{
+            var linkList = List(controllers.routes.DomainController.domain(domain.uuid, 1),
+                controllers.routes.DomainController.hierarchy(hierarchy.uuid, 1))
+                
+            var textList = List(domain.name, hierarchy.name)
+
+            for(element <- elementChain) {
+                linkList = (controllers.routes.DomainController.element(element.uuid, 1, 1)
+                                :: linkList.reverse).reverse
+
+                textList = (element.name :: textList.reverse).reverse
+
+            }
+			if(interface.isDefined) {
+            	linkList = (controllers.routes.DomainController.interface(interface.get.uuid) ::
+                	linkList.reverse).reverse
+                	
+                textList = (interface.get.name :: textList.reverse).reverse
+            }
+
+            breadcrumb(linkList, textList)
+        }
+        <h1>
+        	@Messages("createInstruction")
+        </h1>
+        <div class="m-t-1">
+    	@helper.form(action = routes.InstructionController.submitCreate(interface.map(_.uuid).getOrElse(elementChain.last.uuid))) {
+    		@helper.CSRF.formField
+    		@helper.inputText(instructionForm("name"), 'class-> "form-control", 'placeholder -> Messages("name"))
+    		@submitButton(Messages("create"))	
+		}        	
+    	</div>        
+    }{		
+    	@if(interface.isDefined) {
+			@backButton(routes.DomainController.interface(interface.get.uuid))    		
+    	} else {
+			@backButton(routes.DomainController.element(elementChain.last.uuid, 1, 1))
+		}
+    }	
+}

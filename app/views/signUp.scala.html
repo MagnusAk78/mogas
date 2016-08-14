@@ -1,21 +1,27 @@
 @(signUpForm: Form[models.formdata.SignUpForm.Data])(implicit request: RequestHeader, messages: Messages, 
 	webJarAssets: WebJarAssets, flash: Flash)
 
-@import b4.inline.fieldConstructor
+@implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f("col-sm-4 col-md-3", "col-sm-8 col-md-9")) }
 @import templates._
 @import forms._
 @import components.buttons._
 @import components.media._
+@import helper._
 
 @main(utils.MainViewData(Messages("signUp"), utils.NavTypes.None), None, None) {
 	@title(Messages("signUp"))
-	@rowContentButtons() {
-		@formNormal(routes.SignUpController.submitSignUp, Messages("signUp")) {
-            @b4.text(signUpForm("firstName"), '_hiddenLabel -> Messages("first.name"), 'placeholder -> Messages("first.name"), 'class -> "form-control input-lg")
-            @b4.text(signUpForm("lastName"), '_hiddenLabel -> Messages("last.name"), 'placeholder -> Messages("last.name"), 'class -> "form-control input-lg")
-            @b4.text(signUpForm("email"), '_hiddenLabel -> Messages("email"), 'placeholder -> Messages("email"), 'class -> "form-control input-lg")
-            @b4.password(signUpForm("password"), '_hiddenLabel -> Messages("password"), 'placeholder -> Messages("password"), 'class -> "form-control input-lg")
-        }
+	@rowLargeSmall() {
+		
+		@helper.form(action = routes.SignUpController.submitSignUp()) {
+    		@helper.CSRF.formField
+    		
+            @helper.inputText(signUpForm("firstName"), 'class-> "form-control", '_hiddenLabel -> Messages("first.name"), 'placeholder -> Messages("first.name"))
+            @helper.inputText(signUpForm("lastName"), 'class-> "form-control", '_hiddenLabel -> Messages("last.name"), 'placeholder -> Messages("last.name"))    		
+    		@myHelper.inputEmail(signUpForm("email"), 'class-> "form-control", 'placeholder -> Messages("email"))
+    		@helper.inputPassword(signUpForm("password"), 'class-> "form-control", 'placeholder -> Messages("password"))
+    		@helper.checkbox(signUpForm("rememberMe"), 'class-> "form-control", 'placeholder -> Messages("rememberMe"), 'checked -> true)
+    		@submitButton(Messages("signUp"))	
+		}
     } {
     	@button(routes.SignInController.view, Messages("signIn"))
     }

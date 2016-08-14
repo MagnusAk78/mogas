@@ -70,8 +70,8 @@ class InstructionController @Inject() (
           }
           instructionListData <- instructionService.getInstructionList(page)
           objectChainList <- domainService.getAmlObjectChains(instructionListData.list)
-        } yield Ok(views.html.instructions.list(domainOpt, instructionListData.list, objectChainList,
-          instructionListData.paginateData, Some(domainRequest.identity), domainRequest.activeDomain))
+        } yield Ok(views.html.instructions.list(domainOpt, instructionListData, objectChainList,
+          Some(domainRequest.identity), domainRequest.activeDomain))
 
         responses recover {
           case e => InternalServerError(e.getMessage())
@@ -79,10 +79,11 @@ class InstructionController @Inject() (
     }
 
   def create(amlObjectUuid: String) = (generalActions.MySecuredAction andThen
-    generalActions.RequireActiveDomain) {
-      implicit mySecuredRequest =>
-        Ok(views.html.instructions.create(InstructionForm.form, amlObjectUuid, Some(mySecuredRequest.identity),
-          mySecuredRequest.activeDomain))
+    generalActions.AmlObjectAction(amlObjectUuid)) {
+      implicit amlObjectRequest =>
+        Ok(views.html.browse.createInstruction(InstructionForm.form, amlObjectRequest.myDomain,
+          amlObjectRequest.hierarchy, amlObjectRequest.elementChain, amlObjectRequest.interface,
+          Some(amlObjectRequest.identity), amlObjectRequest.activeDomain))
     }
 
   def submitCreate(amlObjectUuid: String) = (generalActions.MySecuredAction andThen
@@ -90,19 +91,20 @@ class InstructionController @Inject() (
       implicit amlObjectRequest =>
         InstructionForm.form.bindFromRequest().fold(
           formWithErrors => {
-            Future.successful(BadRequest(views.html.instructions.create(formWithErrors, amlObjectUuid,
+            Future.successful(BadRequest(views.html.browse.createInstruction(formWithErrors, amlObjectRequest.myDomain,
+              amlObjectRequest.hierarchy, amlObjectRequest.elementChain, amlObjectRequest.interface,
               Some(amlObjectRequest.identity), amlObjectRequest.activeDomain)))
           },
           formData => {
             val responses = for {
               optSavedInstruction <- instructionService.insertInstruction(Instruction.create(name = formData.name,
-                connectionToToDomain = amlObjectRequest.elementOrInterface.fold(_.connectionTo, _.connectionTo),
-                parentAmlObject = amlObjectRequest.elementOrInterface.fold(_.uuid, _.uuid),
+                connectionToToDomain = amlObjectRequest.myDomain.uuid,
+                parentAmlObject = amlObjectRequest.elementOrInterfaceUuid,
                 createdBy = amlObjectRequest.identity.uuid))
             } yield optSavedInstruction match {
               case Some(newInstruction) =>
                 //TODO: Change to edit when exist
-                Redirect(routes.InstructionController.list("", 1)).
+                Redirect(routes.InstructionController.instruction(newInstruction.uuid, 1)).
                   flashing("success" -> Messages("db.success.insert", newInstruction.name))
               case None =>
                 Redirect(routes.InstructionController.create(amlObjectUuid)).
@@ -175,25 +177,23 @@ class InstructionController @Inject() (
       implicit instructionRequest =>
 
         val responses = for {
-          domainOpt <- domainService.findOneDomain(Domain.queryByUuid(instructionRequest.instruction.connectionTo))
-          amlObjectOpt <- amlObjectService.findOneElementOrInterface(AmlObject.queryByUuid(instructionRequest.instruction.parent))
           instructionPartsListData <- instructionService.getInstructionPartList(instructionRequest.instruction, page)
-        } yield Ok(views.html.instructions.instruction(instructionRequest.instruction, amlObjectOpt.get, domainOpt.get,
-          instructionPartsListData.list, instructionPartsListData.paginateData, Some(instructionRequest.identity),
-          instructionRequest.activeDomain))
+        } yield Ok(views.html.instructions.instruction(instructionRequest.instruction, instructionRequest.myDomain,
+          instructionRequest.hierarchy, instructionRequest.elementChain, instructionRequest.interface,
+          instructionPartsListData, Some(instructionRequest.identity), instructionRequest.activeDomain))
 
         responses recover {
           case e => InternalServerError(e.getMessage())
         }
     }
 
-  def inspectPart(uuid: String, page: Int) = (generalActions.MySecuredAction andThen
+  def showPart(uuid: String, page: Int) = (generalActions.MySecuredAction andThen
     generalActions.RequireActiveDomain andThen generalActions.InstructionPartAction(uuid)).async {
       implicit instructionPartRequest =>
 
         val responses = for {
           instructionOpt <- instructionService.findOneInstruction(Instruction.queryByUuid(instructionPartRequest.instructionPart.parent))
-        } yield instructionOpt.map(instruction => Ok(views.html.instructions.inspectInstructionPart(
+        } yield instructionOpt.map(instruction => Ok(views.html.instructions.showPart(
           instructionPartRequest.instructionPart, instruction, page,
           Some(instructionPartRequest.identity), instructionPartRequest.activeDomain))).getOrElse(NotFound)
 
@@ -219,6 +219,7 @@ class InstructionController @Inject() (
                 orderNumber = nextOrderNumber,
                 parentInstruction = instructionUuid,
                 text = formData.text,
+                shortText = formData.shortText,
                 createdBy = instructionRequest.identity.uuid))
             } yield optSavedInstructionPart match {
               case Some(newInstructionPart) =>

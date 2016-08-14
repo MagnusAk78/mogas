@@ -8,7 +8,7 @@
 @main(utils.MainViewData(Messages("imageUpload"), modelType.navType), loggedInUser, activeDomain) {
 	@title(Messages("imageUpload"))
 	
-	@rowContentButtons() {	
+	@rowLargeSmall() {	
 		@formImageFileUpload(routes.FileController.submitImage(uuid, modelType.stringValue))
 	}{	
 	}

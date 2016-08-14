@@ -1,29 +1,29 @@
-@(domainOpt: Option[Domain], issues: List[Issue], 
-	parentObjectChains: List[utils.AmlObjectChain], paginateData: utils.PaginateData, 
+@(domainOpt: Option[Domain], issueListData: utils.ModelListData[Issue], parentObjectChains: List[utils.AmlObjectChain], 
 	loggedInUser: Option[User], activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, 
 	messages: Messages, lang: Lang, webJarAssets: WebJarAssets)    
 
-@import b4.inline.fieldConstructor
 @import templates._
 @import components.buttons._
 @import components.media._
+@import components.utils._
 @import forms._
 
 @main(utils.MainViewData(Messages("issues"), utils.NavTypes.Issues), loggedInUser, activeDomain) {
 	@title(Messages("issues"))
-	@rowContentButtons() {
+	@rowLargeSmall() {
     	@{
-            val mediaList = issues.map((issue: Issue) =>
+            val mediaList = issueListData.list.map((issue: Issue) =>
                 routes.FileController.getThumbnailImage(issue.uuid, models.Types.IssueType.stringValue))
-            val linkList = issues.map((issue: Issue) =>
+            val linkList = issueListData.list.map((issue: Issue) =>
                 controllers.routes.IssueController.issue(issue.uuid, 1))
-            val headingList = issues.map(_.name)
-            val textList = (issues, parentObjectChains).zipped map((issue, objectChain) => 
+            val headingList = issueListData.list.map(_.name)
+            val textList = (issueListData.list, parentObjectChains).zipped map((issue, objectChain) => 
             	objectChain.domain.name + " / " + objectChain.hierarchy.name + " / " +
             	objectChain.amlObjectChain.map(eoi => eoi.fold(_.name, _.name)).mkString(" / "))
-
-            displayPaginatedList(mediaList, linkList, headingList, textList, List(),
-            	paginateData, controllers.routes.IssueController.list(domainOpt.map(_.uuid).getOrElse(""), _))
+            	
+			paginate(issueListData.paginateData, 
+				controllers.routes.IssueController.list(domainOpt.map(_.uuid).getOrElse(""), _))
+			mediaListWithOneLink(mediaList, linkList, headingList, textList)
     	}
     }{
     }

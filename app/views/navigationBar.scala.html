@@ -1,6 +1,5 @@
 @(brandText: String, loggedInUser: Option[User])(implicit flash: Flash, messages: Messages)
 
-
 <nav class="navbar navbar-fixed-top navbar-dark bg-inverse">
 	<button class="navbar-toggler hidden-sm-up pull-right" type="button" data-toggle="collapse" data-target="#collapsingNavbar">
 		&#9776;
@@ -9,12 +8,12 @@
 		@brandText
 	</a>
     
-    
     <div class="collapse navbar-toggleable-xs" id="collapsingNavbar">
-        <ul class="nav navbar-nav pull-right">
+        <ul class="nav navbar-nav pull-right nav-top">
 
 			<li class="nav-item dropdown">
-            	<a class="nav-link" href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+            	<a class="nav-link" href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" 
+            		aria-haspopup="true" aria-expanded="false">
                 	@Messages("language")
                 	<span class="caret"/>
                 </a>

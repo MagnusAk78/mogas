@@ -1,4 +1,4 @@
-@(domains: List[Domain], paginateData: utils.PaginateData, loggedInUser: Option[User],
+@(domainListData: utils.ModelListData[Domain], loggedInUser: Option[User],
 	activeDomain: Option[Domain])(implicit flash: Flash,
     request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
 
@@ -8,26 +8,25 @@
 @import components.utils._
 
 @main(utils.MainViewData(Messages("domains"), utils.NavTypes.Domains), loggedInUser, activeDomain) {
-	@title(Messages("domains"))
-	@rowContentButtons() {
-    	@{
-            val mediaList = domains.map{ domain =>
-            	routes.FileController.getThumbnailImage(domain.uuid, models.Types.DomainType.stringValue)
-            }
-            
-            val linkList = domains.map(domain =>
-                controllers.routes.DomainController.domain(domain.uuid, 1))
-                
-            val headingList = domains.map(_.name)
-            val textList = domains.map(_.name)
+	
+	@{
+		val linkList = List(
+			controllers.routes.DomainController.list(domainListData.paginateData.page),
+			controllers.routes.DomainController.editActiveDomain(domainListData.paginateData.page),
+			controllers.routes.DomainController.create
+		)                
+        val captionList = List(
+        	Messages("list"), 
+        	Messages("chooseActiveDomain"), 
+        	Messages("create"))
+        	
+        val activeList = List(true, false, false)
 
-            displayPaginatedList(mediaList, linkList, headingList, textList, List(),
-            	paginateData, controllers.routes.DomainController.list(_))
-    	}
-    }{
-    	@editButton(controllers.routes.DomainController.editActiveDomain(paginateData.page),
-            Some(Messages("chooseActive", Messages("domain"))))
-            
-        @createButton(controllers.routes.DomainController.create)
-    }	
+        topNavigation(linkList, captionList, activeList)
+    }
+    	
+    @rowFullWidth() {
+   		@linkGridWithImageAndName(domainListData, controllers.routes.DomainController.list(_),
+				controllers.routes.DomainController.show(_), models.Types.DomainType)
+	}
 }

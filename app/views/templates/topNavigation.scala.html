@@ -1,0 +1,11 @@
+@(linkList: List[Call], captionList: List[String], activeList: List[Boolean])(implicit flash: Flash, messages: Messages)
+
+@rowFullWidth() {
+	<ul class="nav nav-tabs">
+	@for((link, caption, active) <- (linkList, captionList, activeList).zipped) {
+		<li class="nav-item">
+    		<a class="nav-link @if(active){active}" href="@link">@caption</a>
+  		</li>
+	}
+	</ul>
+}

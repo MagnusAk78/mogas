@@ -1,10 +1,11 @@
 changeImage = Change image
 create = Create
-createSome = Create {0}
 delete = Delete
 edit = Edit
-editSome = Edit {0}
 back = Back
+
+list = List
+listAll = List all
 
 user = user
 users = Users
@@ -18,12 +19,15 @@ instructions = Instructions
 issue = issue
 issues = Issues
 
-chooseActive = choose active {0}
-active = active: {0}
+noActiveDomain = No active Domain
+chooseActiveDomain = Choose active Domain
+
+createInstruction = Create new instruction
+createIssue = Create new issue
 
 accessDenied = Access Denied
 
-editAllowedUsers = Edit allowed users for {0}
+allowedUsers = Allowed users
 
 thereMustBeAtLeastOneAllowedUser = there must be at least one allowed user
 

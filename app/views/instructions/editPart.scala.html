@@ -2,20 +2,24 @@
 	loggedInUser: Option[models.User], activeDomain: Option[models.Domain])(implicit flash: Flash,
     request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
 
-@import b4.inline.fieldConstructor
+@implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f("col-sm-4 col-md-3", "col-sm-8 col-md-9")) }
 @import templates._
 @import components.buttons._
 @import components.media._
 @import forms._
+@import helper._
 
 @main(utils.MainViewData(Messages("edit", instruction.name), utils.NavTypes.Instructions), loggedInUser, activeDomain) {
 	@title(Messages("instructionPart", instructionPart.orderNumber, instruction.name))
 			
-	@rowContentButtons() {	
-		@rowEvenColumns() {
-    		@formNormal(routes.InstructionController.submitEditPart(instructionPart.uuid), Messages("update")) {
-    			@b4.textarea(instructionPartForm("text"), '_label -> Messages("text"), 'rows -> 5)
-    		}
+	@rowLargeSmall() {	
+		@rowLargeSmall() {
+			@helper.form(action = routes.InstructionController.submitEditPart(instruction.uuid)) {
+    			@helper.CSRF.formField
+    			@helper.inputText(instructionPartForm("shortText"), 'class-> "form-control", '_label -> Messages("shortText"))
+    			@helper.textarea(instructionPartForm("text"), 'class-> "form-control", '_label -> Messages("text"), 'rows -> 6)
+    			@submitButton(Messages("update"))	
+			}			
         }{	
 			<img class="img-responsive m-x-auto" src="@routes.FileController.getStandardImage(instructionPart.uuid, 
 				models.Types.InstructionPartType.stringValue)" alt="instruction part image">    			

@@ -64,12 +64,22 @@ package object actions {
     lazy val activeDomain = request.activeDomain
   }
 
-  case class AmlObjectRequest[A](elementOrInterface: ElementOrInterface, request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
+  case class AmlObjectRequest[A](myDomain: Domain, hierarchy: Hierarchy, elementChain: List[Element],
+      interface: Option[Interface], request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
     lazy val identity: User = request.identity
     lazy val activeDomain = request.activeDomain
+
+    lazy val elementOrInterfaceUuid = elementOrInterface.fold(_.uuid, _.uuid)
+
+    lazy val elementOrInterface: ElementOrInterface = interface match {
+      case Some(i) => Right(i)
+      case None => Left(elementChain.last)
+    }
   }
 
-  case class InstructionRequest[A](instruction: Instruction, request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
+  case class InstructionRequest[A](instruction: Instruction, myDomain: Domain, hierarchy: Hierarchy,
+    elementChain: List[Element], interface: Option[Interface], request: MySecuredRequest[A])
+      extends WrappedRequest[A](request) {
     lazy val identity: User = request.identity
     lazy val activeDomain = request.activeDomain
   }

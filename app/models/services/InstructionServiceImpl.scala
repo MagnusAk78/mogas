@@ -10,7 +10,6 @@ import scala.concurrent.Future
 import play.api.libs.json.Json
 import models.Domain
 import models.InstructionPart
-import views.html.domains.domain
 import models.AmlObject
 import utils.AmlObjectChain
 import play.api.libs.json.JsObject
@@ -19,7 +18,8 @@ import utils.ModelListData
 
 class InstructionServiceImpl @Inject() (val instructionDao: InstructionDAO,
   val instructionPartDao: InstructionPartDAO,
-  val amlObjectService: AmlObjectService)(implicit val ec: ExecutionContext)
+  val amlObjectService: AmlObjectService,
+  val fileService: FileService)(implicit val ec: ExecutionContext)
     extends InstructionService {
 
   override def getInstructionList(page: Int, domain: Option[Domain] = None): Future[ModelListData[Instruction]] = {
@@ -55,8 +55,12 @@ class InstructionServiceImpl @Inject() (val instructionDao: InstructionDAO,
     for {
       theList <- instructionDao.find(query, page, utils.DefaultValues.DefaultPageLength)
       count <- instructionDao.count(query)
+      il <- Future.sequence(theList.map(i => fileService.imageExists(i.uuid)))
+      vl <- Future.sequence(theList.map(i => fileService.videoExists(i.uuid)))
     } yield new ModelListData[Instruction] {
       override val list = theList
+      override val imageList = il
+      override val videoList = vl
       override val paginateData = PaginateData(page, count)
     }
   }
@@ -115,8 +119,12 @@ class InstructionServiceImpl @Inject() (val instructionDao: InstructionDAO,
     DefaultPageLength): Future[ModelListData[InstructionPart]] = for {
     theList <- instructionPartDao.find(query, page, utils.DefaultValues.DefaultPageLength)
     count <- instructionPartDao.count(query)
+    il <- Future.sequence(theList.map(i => fileService.imageExists(i.uuid)))
+    vl <- Future.sequence(theList.map(i => fileService.videoExists(i.uuid)))
   } yield new ModelListData[InstructionPart] {
     override val list = theList
+    override val imageList = il
+    override val videoList = vl
     override val paginateData = PaginateData(page, count)
   }
 
@@ -125,8 +133,12 @@ class InstructionServiceImpl @Inject() (val instructionDao: InstructionDAO,
     for {
       theList <- instructionPartDao.findAndSort(query, sort, page, utils.DefaultValues.DefaultPageLength)
       count <- instructionPartDao.count(query)
+      il <- Future.sequence(theList.map(i => fileService.imageExists(i.uuid)))
+      vl <- Future.sequence(theList.map(i => fileService.videoExists(i.uuid)))
     } yield new ModelListData[InstructionPart] {
       override val list = theList
+      override val imageList = il
+      override val videoList = vl
       override val paginateData = PaginateData(page, count)
     }
   }

@@ -29,6 +29,7 @@ POST    /domain/submit                               						controllers.DomainCon
 GET     /domain/create                                            			controllers.DomainController.create
 POST    /domain/:uuid/submit                               					controllers.DomainController.submitEdit(uuid: String)
 GET     /domain/:uuid/edit                           						controllers.DomainController.edit(uuid: String)
+GET     /domain/:uuid/show                           						controllers.DomainController.show(uuid: String)
 GET     /domain/:uuid/delete                         						controllers.DomainController.delete(uuid: String)
 
 GET     /domain/:uuid/list                           						controllers.DomainController.domain(uuid: String, page: Int=1)
@@ -75,10 +76,10 @@ POST    /instructionpart/submit/:instructionUuid                     		controlle
 GET     /instructionpart/create/:instructionUuid							controllers.InstructionController.createPart(instructionUuid: String)
 POST    /instructionpart/:uuid/submit                                       controllers.InstructionController.submitEditPart(uuid: String)
 GET     /instructionpart/:uuid/edit                                         controllers.InstructionController.editPart(uuid: String)
+GET     /instructionpart/:uuid/show/:page                                   controllers.InstructionController.showPart(uuid: String, page: Int)
 GET     /instructionpart/:uuid/delete                                       controllers.InstructionController.deletePart(uuid: String)
-GET     /instructionpart/:uuid/inspect/:page                                controllers.InstructionController.inspectPart(uuid: String, page: Int)
-GET    /instructionpart/:uuid/moveup/:page                                  controllers.InstructionController.movePartUp(uuid: String, page: Int)
-GET    /instructionpart/:uuid/movedown/:page                                controllers.InstructionController.movePartDown(uuid: String, page: Int)
+GET    	/instructionpart/:uuid/moveup/:page                                 controllers.InstructionController.movePartUp(uuid: String, page: Int)
+GET    	/instructionpart/:uuid/movedown/:page                               controllers.InstructionController.movePartDown(uuid: String, page: Int)
 
 #Issues
 POST    /issue/submit/:amlObjectUuid                     					controllers.IssueController.submitCreate(amlObjectUuid: String)
@@ -107,6 +108,5 @@ POST    /video/:uuid/submitVideo/:modelType   					controllers.FileController.su
 POST	/domain/:uuid/submitAmlFile								controllers.FileController.submitAmlFile(uuid: String)
 
 # Map static resources from the /public folder to the /assets URL path
-#GET     /assets/*file               		controllers.Assets.versioned(path="/public", file: Asset)
 GET     /assets/*file                   	controllers.Assets.at(path="/public/", file)
 GET     /webjars/*file                   	controllers.WebJarAssets.at(file)

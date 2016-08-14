@@ -8,7 +8,7 @@
 @main(utils.MainViewData(Messages("videoUpload"), modelType.navType), loggedInUser, activeDomain) {
 	@title(Messages("videoUpload"))
 	
-	@rowContentButtons() {	
+	@rowLargeSmall() {	
 		@formVideoFileUpload(routes.FileController.submitVideo(uuid, modelType.stringValue))
 	}{	
 	}

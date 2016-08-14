@@ -1,7 +1,7 @@
 @(link: play.api.mvc.Call, text: String, btnType: String = "btn-primary", 
 	icon: Option[String] = Option.empty[String])(implicit flash: Flash, messages: Messages)
 
-<a href="@link" class="btn @btnType btn-block text-left top10">
+<a href="@link" class="btn @btnType btn-block text-xs-left">
     @if(icon.isDefined) {
     	<i class="@icon.get"></i> @text
     } else {

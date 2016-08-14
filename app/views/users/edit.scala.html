@@ -2,30 +2,46 @@
 	activeDomain: Option[Domain])(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, 
 	flash: Flash)
 
-@import b4.inline.fieldConstructor
 @import templates._
 @import forms._
 @import components.buttons._
 @import components.media._
+@import helper._
+@implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f("col-sm-4 col-md-3", "col-sm-8 col-md-9")) }
 
 @main(utils.MainViewData(Messages("edit", user.name), utils.NavTypes.Users), loggedInUser, activeDomain) {
-	@title(Messages("edit", user.name))
-			
-	@rowContentButtons() {	
-		@rowEvenColumns() {
-    		@formNormal(routes.SignUpController.submitEdit(user.uuid), Messages("update")) {
-    			@b4.text(signUpForm("firstName"), '_hiddenLabel -> Messages("first.name"), 'placeholder -> Messages("first.name"), 'class -> "form-control input-lg")
-            	@b4.text(signUpForm("lastName"), '_hiddenLabel -> Messages("last.name"), 'placeholder -> Messages("last.name"), 'class -> "form-control input-lg")
-            	@b4.text(signUpForm("email"), '_hiddenLabel -> Messages("email"), 'placeholder -> Messages("email"), 'class -> "form-control input-lg")
-            	@b4.password(signUpForm("password"), '_hiddenLabel -> Messages("password"), 'placeholder -> Messages("password"), 'class -> "form-control input-lg")
-    		}
-        }{	
-    		@imageOrVideo(Some(routes.FileController.getStandardImage(loggedInUser.get.uuid, models.Types.UserType.stringValue)),
-    			Some(routes.FileController.getThumbnailImage(loggedInUser.get.uuid, models.Types.UserType.stringValue)), 
-    			None)
-    	}		
-	}{
+	@{
+		val linkList = List(controllers.routes.UserController.list(1))                
+        val captionList = List(Messages("list"))
+        val activeList = List(false)
+
+        topNavigation(linkList, captionList, activeList)
+    }
+    
+    
+	@rowLargeSmall() {
+		<h1>@user.name</h1>
+		<div class="m-t-1">
+		@helper.form(action = routes.SignUpController.submitEdit(user.uuid)) {
+    		@helper.CSRF.formField
+    		@helper.inputText(signUpForm("firstName"), 'class-> "form-control", 'placeholder -> Messages("firstName"))
+    		@helper.inputText(signUpForm("lastName"), 'class-> "form-control", 'placeholder -> Messages("lastName"))
+    		@helper.inputText(signUpForm("email"), 'class-> "form-control", 'placeholder -> Messages("email"))
+    		@helper.inputPassword(signUpForm("password"), 'class-> "form-control", 'placeholder -> Messages("password"))
+    		@submitButton(Messages("update"))    		
+		}
+		</div>
+		
+		<div class="m-t-2">
+			@smallImage(user.uuid, models.Types.UserType.stringValue)
+		</div>		
+    } {
 		@backButton(controllers.routes.UserController.show(user.uuid, 1))
-		@changeImageButton(user.uuid, models.Types.UserType)	
-	}
+				
+		@button(
+			routes.FileController.uploadImage(user.uuid, models.Types.UserType.stringValue),
+			Messages("changeImage"),
+			"btn-secondary",
+			Some("fa fa-photo fa-fw"))
+    }    
 }

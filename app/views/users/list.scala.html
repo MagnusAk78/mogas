@@ -1,4 +1,4 @@
-@(users: List[User], paginateData:utils.PaginateData, loggedInUser: Option[User], activeDomain: Option[Domain])(implicit flash: Flash,
+@(userListData: utils.ModelListData[User], loggedInUser: Option[User], activeDomain: Option[Domain])(implicit flash: Flash,
     messages: Messages, request: RequestHeader, webJarAssets: WebJarAssets)
 
 @import templates._
@@ -7,20 +7,16 @@
 
 @main(utils.MainViewData(Messages("users"), utils.NavTypes.Users), loggedInUser, activeDomain) {
 	
-	@title(Messages("users"))
-	@rowContentButtons() {
-    	@{
-			val mediaList = users.map{ user =>
-                routes.FileController.getThumbnailImage(user.uuid, models.Types.UserType.stringValue)
-            }
-            
-            val linkList = users.map((user: User) => controllers.routes.UserController.show(user.uuid, 1))
-            val headingList = users.map(_.name)
-            val textList = users.map(_.email)
+	@{
+		val linkList = List(controllers.routes.UserController.list(userListData.paginateData.page))                
+        val captionList = List(Messages("list"))
+        val activeList = List(true)
 
-            displayPaginatedList(mediaList, linkList, headingList, textList, List(),
-            	paginateData, controllers.routes.UserController.list(_))
-    	}
-    }{
-    }	
+        topNavigation(linkList, captionList, activeList)
+    }
+
+    @rowFullWidth() {
+   		@linkGridWithImageAndName(userListData, controllers.routes.UserController.list(_),
+				controllers.routes.UserController.show(_, 1), models.Types.UserType)
+	}
 }

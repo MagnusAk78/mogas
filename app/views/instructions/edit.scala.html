@@ -2,7 +2,8 @@
 	loggedInUser: Option[User], activeDomain: Option[models.Domain])(implicit flash: Flash, 
 	request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
 
-@import b4.inline.fieldConstructor
+@implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f("col-sm-4 col-md-3", "col-sm-8 col-md-9")) }
+@import helper._
 @import templates._
 @import components.buttons._
 @import components.media._
@@ -11,11 +12,13 @@
 @main(utils.MainViewData(Messages("edit", Messages("instruction")), utils.NavTypes.Instructions), loggedInUser, activeDomain) {
 	@title(Messages("editInstruction"))
 			
-	@rowContentButtons() {	
-		@rowEvenColumns() {
-			@formNormal(routes.InstructionController.submitEdit(instruction.uuid), Messages("update")) {
-        		@b4.text(instructionForm("name"), '_label -> Messages("name"))
-        	}        	
+	@rowLargeSmall() {	
+		@rowLargeSmall() {
+			@helper.form(action = routes.InstructionController.submitEdit(instruction.uuid)) {
+    			@helper.CSRF.formField
+    			@helper.inputText(instructionForm("name"), 'class-> "form-control", '_label -> Messages("name"))
+    			@submitButton(Messages("update"))	
+			}			
         }{	
     	}		
 	}{

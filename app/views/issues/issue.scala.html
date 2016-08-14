@@ -1,9 +1,7 @@
-@(issue: Issue, elementOrInterface: utils.ElementOrInterface, domain: Domain, issueUpdates: List[IssueUpdate], 
-	paginateData: utils.PaginateData, loggedInUser: Option[User], 
+@(issue: Issue, domain: Domain, issueUpdateListData: utils.ModelListData[IssueUpdate], loggedInUser: Option[User], 
 	activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
 	webJarAssets: WebJarAssets)
 
-@import b4.inline.fieldConstructor
 @import templates._
 @import components.buttons._
 @import components.media._
@@ -13,15 +11,15 @@
 @main(utils.MainViewData(issue.name, utils.NavTypes.Issues), loggedInUser, activeDomain) {
 	
 	@title(issue.name)
-	@rowContentButtons() {
-		@paginate(paginateData, controllers.routes.IssueController.issue(issue.uuid, _))
+	@rowLargeSmall() {
+		@paginate(issueUpdateListData.paginateData, controllers.routes.IssueController.issue(issue.uuid, _))
 		
 		<div class="hidden-lg-down">
-			@for(issueUpdateList <- issueUpdates.grouped(3)) {		
+			@for(issueUpdateList <- issueUpdateListData.list.grouped(3)) {		
 				<div class="row">
   					@for(issueUpdate <- issueUpdateList) {
   						<div class="col-xl-4">
-  							@displayIssueUpdate(issueUpdate, paginateData.page)
+  							@displayIssueUpdate(issueUpdate, issueUpdateListData.paginateData.page)
   						</div>
   					}
   				</div>
@@ -29,11 +27,11 @@
   		</div>
   		
   		<div class="hidden-xs-down hidden-xl-up">
-			@for(issueUpdateList <- issueUpdates.grouped(2)) {		
+			@for(issueUpdateList <- issueUpdateListData.list.grouped(2)) {		
 				<div class="row">
   						@for(issueUpdate <- issueUpdateList) {
   							<div class="col-sm-6 col-md-6 col-lg-6">
-  								@displayIssueUpdate(issueUpdate, paginateData.page)
+  								@displayIssueUpdate(issueUpdate, issueUpdateListData.paginateData.page)
   							</div>
   						}
   				</div>
@@ -41,16 +39,16 @@
   		</div>
   		
   		<div class="row hidden-sm-up">
-  			@for(issueUpdate <- issueUpdates) {		
-  				@displayIssueUpdate(issueUpdate, paginateData.page)
+  			@for(issueUpdate <- issueUpdateListData.list) {		
+  				@displayIssueUpdate(issueUpdate, issueUpdateListData.paginateData.page)
   			}  		
   		</div>  		
     }{
-        @backButton(controllers.routes.IssueController.list(domain.uuid, 1))
+        @backButton(controllers.routes.IssueController.list(domain.uuid, issueUpdateListData.paginateData.page))
         @createButton(controllers.routes.IssueController.createIssueUpdate(issue.uuid), Some(Messages("addMore")))
     }
     
-	@for(issueUpdate <- issueUpdates) {		
+	@for(issueUpdate <- issueUpdateListData.list) {		
   		@createModal(issueUpdate)
   	}    
 }

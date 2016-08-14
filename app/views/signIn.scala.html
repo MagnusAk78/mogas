@@ -3,20 +3,24 @@
 	messages: Messages, webJarAssets: WebJarAssets, lang: Lang, flash: Flash)
 
 @import com.mohiva.play.silhouette.impl.providers.oauth2.ClefProvider
-@import b4.vertical.fieldConstructor
+@implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f("col-sm-4 col-md-3", "col-sm-8 col-md-9")) }
+@import helper._
 @import templates._
 @import forms._
 @import components.buttons._
 
+
 @main(utils.MainViewData(Messages("signIn"), utils.NavTypes.None), None, None) {
 	@title(Messages("signIn"))
 	
-	@rowContentButtons() {
-		@formNormal(routes.SignInController.submit(), Messages("signIn")) {
-        	@b4.email(signInForm("email"), '_hiddenLabel -> Messages("email"), 'placeholder -> Messages("email"), 'class -> "form-control input-lg")
-            @b4.password(signInForm("password"), '_hiddenLabel -> Messages("password"), 'placeholder -> Messages("password"), 'class -> "form-control input-lg")
-            @b4.checkbox(signInForm("rememberMe"), '_text -> Messages("remember.me"), 'checked -> true)
-        }
+	@rowLargeSmall() {
+		@helper.form(action = routes.SignInController.submit()) {
+    		@helper.CSRF.formField
+    		@myHelper.inputEmail(signInForm("email"), 'class-> "form-control", 'placeholder -> Messages("email"))
+    		@helper.inputPassword(signInForm("password"), 'class-> "form-control", 'placeholder -> Messages("password"))
+    		@helper.checkbox(signInForm("rememberMe"), 'class-> "form-control", 'placeholder -> Messages("rememberMe"), 'checked -> true)
+    		@submitButton(Messages("signIn"))	
+		}		
 		
         @if(socialProviders.providers.nonEmpty) {
             <div class="social-providers">

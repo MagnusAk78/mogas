@@ -2,32 +2,75 @@
 	activeDomain: Option[models.Domain])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
 	lang: Lang, webJarAssets: WebJarAssets)
 
-@import b4.inline.fieldConstructor
 @import templates._
 @import components.buttons._
 @import components.media._
-@import forms._
+@import helper._
+@implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f("col-sm-4 col-md-3", "col-sm-8 col-md-9")) }
 
 @main(utils.MainViewData(Messages("edit", domain.name), utils.NavTypes.Domains), loggedInUser, activeDomain) {
-	@title(domain.name)
+	
+	@{
+		val linkList = List(
+			controllers.routes.DomainController.list(1),
+			controllers.routes.DomainController.editActiveDomain(1),
+			controllers.routes.DomainController.create
+		)                
+        val captionList = List(
+        	Messages("list"), 
+        	Messages("chooseActiveDomain"), 
+        	Messages("create"))
+        	
+        val activeList = List(false, false, false)
+
+        topNavigation(linkList, captionList, activeList)
+    }
+
+	@rowLargeSmall() {
+		<h1>@domain.name</h1>
+		<div class="m-t-1">
+		@helper.form(action = routes.DomainController.submitEdit(domain.uuid)) {
+    		@helper.CSRF.formField
+    		@helper.inputText(domainForm("name"), 'class-> "form-control", 'placeholder -> Messages("name"))
+    		@submitButton(Messages("update"))	
+		}
+		</div>
+		
+		<div class="m-t-2">
+		@helper.form(action = routes.FileController.submitAmlFile(domain.uuid), 'enctype -> "multipart/form-data") {
+    		@helper.CSRF.formField
+    		@helper.inputFile(models.formdata.FileUploadForm.form(models.formdata.AmlFileKeyString), 
+    			'class-> "form-control", '_label -> Messages("chooseAmlFile"))
+    		@submitButton(Messages("uploadAmlFile"), "btn-primary", Some("fa fa-upload fa-fw"))	
+		}		
+		</div>
+
+		<div class="m-t-2">
+			@button(controllers.routes.DomainController.parseAmlFiles(domain.uuid), Messages("parseAmlFiles"))
+		</div>
+		
+		<div class="m-t-2">
+			@smallImage(domain.uuid, models.Types.DomainType.stringValue)
+		</div>		
+    } {
+		@backButton(controllers.routes.DomainController.show(domain.uuid))
+				
+		@button(
+			routes.FileController.uploadImage(domain.uuid, models.Types.DomainType.stringValue),
+			Messages("changeImage"),
+			"btn-secondary",
+			Some("fa fa-photo fa-fw"))
 			
-	@rowContentButtons() {	
-		@rowEvenColumns() {
-    		@formNormal(routes.DomainController.submitEdit(domain.uuid), Messages("update")) {
-        		@b4.text(domainForm("name"), '_label -> Messages("name"))
-        	}
-			@formAmlFileUpload(routes.FileController.submitAmlFile(domain.uuid))
-			@button(controllers.routes.DomainController.parseAmlFiles(domain.uuid), Messages("parseAmlFiles"))        	
-        }{	
-    		@imageOrVideo(Some(routes.FileController.getStandardImage(domain.uuid, models.Types.DomainType.stringValue)),
-    			Some(routes.FileController.getThumbnailImage(domain.uuid, models.Types.DomainType.stringValue)), 
-    			None)
-    	}		
-	}{
-		@backButton(controllers.routes.DomainController.list(1))
-		@changeImageButton(domain.uuid, models.Types.DomainType)
-		@editButton(controllers.routes.DomainController.editAllowedUsers(domain.uuid, 1), 
-			Some(Messages("changeAllowedUsers")))
-		@deleteButton(controllers.routes.DomainController.delete(domain.uuid))	
-	}
+		@button(
+			controllers.routes.DomainController.editAllowedUsers(domain.uuid, 1),
+			Messages("allowedUsers"),
+			"btn-secondary",
+			Some("fa fa-pencil fa-fw"))
+				
+		@button(
+			controllers.routes.DomainController.delete(domain.uuid),
+			Messages("delete"),
+			"btn-danger",
+			Some("fa fa-trash-o fa-fw"))
+    }
 }

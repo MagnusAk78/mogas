@@ -2,7 +2,6 @@
 	activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
 	webJarAssets: WebJarAssets)
 
-@import b4.inline.fieldConstructor
 @import templates._
 @import components.buttons._
 @import components.media._
@@ -11,12 +10,12 @@
 
 @main(utils.MainViewData(Messages("edit", instruction.name + ": " + instructionPart.orderNumber), utils.NavTypes.Instructions), loggedInUser, activeDomain) {
 	
-	@rowContentButtons() {
+	@rowLargeSmall() {
 		<div class="card">
 			<img class="card-img-top img-responsive m-x-auto" src="@routes.FileController.getStandardImage(instructionPart.uuid, 
 				models.Types.InstructionPartType.stringValue)" alt="instruction part image">
 		
-			<div class="card-block text-left">
+			<div class="card-block text-xs-left">
 				<h4 class="card-title">@Messages("instructionPart", instructionPart.orderNumber, instruction.name)</h4>
 				<p class="card-text">@instructionPart.text</p>
 			</div>	
@@ -31,5 +30,7 @@
     }{
         @backButton(controllers.routes.InstructionController.instruction(instruction.uuid, page))
         @editButton(controllers.routes.InstructionController.editPart(instructionPart.uuid))
+    	@button(routes.InstructionController.movePartUp(instructionPart.uuid, page), Messages("moveUp"))
+    	@button(routes.InstructionController.movePartDown(instructionPart.uuid, page), Messages("moveDown"))        
     }
 }

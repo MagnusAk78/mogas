@@ -1,20 +1,11 @@
 @(submitTo: play.api.mvc.Call)(implicit flash: Flash, request: RequestHeader, messages: Messages)
 
-@import b4.inline.fieldConstructor
+@implicitField = @{ FieldConstructor(horizontalFieldConstructor.f("col-sm-4 col-md-3", "col-sm-8 col-md-9")) }
 @import components.buttons._
+@import helper._
 
-<fieldset>
-    @b4.form(submitTo, 'enctype -> "multipart/form-data") {
-    @helper.CSRF.formField
-
-    <div class="form-group">
-    	@b4.file(models.formdata.FileUploadForm.form(models.formdata.VideoFileKeyString), '_label -> Messages("chooseVideoFile"))
-    </div>
-
-    <div class="form-group">
-    	<div>
-    		@submitButton(Messages("uploadVideo"), "btn-primary", Some("fa fa-upload fa-fw"))
-        </div>
-    </div>
-    }
-</fieldset>
+@helper.form(action = submitTo, 'enctype -> "multipart/form-data") {
+	@helper.CSRF.formField
+	@helper.inputFile(models.formdata.FileUploadForm.form(models.formdata.VideoFileKeyString), 'class-> "form-control", '_label -> Messages("chooseVideoFile"))
+	@submitButton(Messages("uploadVideo"), "btn-primary", Some("fa fa-upload fa-fw"))	
+}

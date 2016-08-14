@@ -8,9 +8,11 @@ object InstructionPartForm {
 
   val form = Form[Data](
     mapping(
-      "text" -> nonEmptyText)(Data.apply)(Data.unapply))
+      "text" -> nonEmptyText,
+      "shortText" -> nonEmptyText)(Data.apply)(Data.unapply))
 
-  case class Data(text: String)
+  case class Data(text: String, shortText: String)
 
-  implicit def fromInstructionPartToData(instructionPart: InstructionPart): Data = Data(text = instructionPart.text)
+  implicit def fromInstructionPartToData(instructionPart: InstructionPart): Data = Data(text = instructionPart.text,
+    shortText = instructionPart.shortText)
 }

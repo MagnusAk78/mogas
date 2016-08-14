@@ -75,8 +75,12 @@ class DomainServiceImpl @Inject() (
     for {
       theList <- domainDao.find(query, page, utils.DefaultValues.DefaultPageLength)
       count <- domainDao.count(query)
+      il <- Future.sequence(theList.map(d => fileService.imageExists(d.uuid)))
+      vl <- Future.sequence(theList.map(d => fileService.videoExists(d.uuid)))
     } yield new ModelListData[Domain] {
       override val list = theList
+      override val imageList = il
+      override val videoList = vl
       override val paginateData = PaginateData(page, count)
     }
   }
@@ -130,8 +134,12 @@ class DomainServiceImpl @Inject() (
     for {
       theList <- hierarchyDao.find(query, page, utils.DefaultValues.DefaultPageLength)
       count <- hierarchyDao.count(query)
+      il <- Future.sequence(theList.map(h => fileService.imageExists(h.uuid)))
+      vl <- Future.sequence(theList.map(h => fileService.videoExists(h.uuid)))
     } yield new ModelListData[Hierarchy] {
       override val list = theList
+      override val imageList = il
+      override val videoList = vl
       override val paginateData = PaginateData(page, count)
     }
   }

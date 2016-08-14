@@ -1,7 +1,7 @@
 @(text: String, btnType: String = "btn-primary", 
 	icon: Option[String] = Some("fa fa-check-circle fa-fw"))(implicit flash: Flash, messages: Messages)
 
-<button id="submit" type="submit" value="submit" class="btn @btnType btn-block text-left">
+<button id="submit" type="submit" value="submit" class="btn @btnType btn-block text-xs-left">
 
     @if(icon.isDefined) {
     	<i class="@icon.get"></i> @text

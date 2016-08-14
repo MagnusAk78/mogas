@@ -1,12 +1,14 @@
 @(linkList: List[Call], textList: List[String])(implicit flash: Flash, messages: Messages)
 
 <ol class="breadcrumb">
-	@for((link, text) <- (linkList zip textList)) { 
-        <li>
+	@for((link, text) <- (linkList.reverse.tail.reverse, textList.reverse.tail.reverse).zipped) { 
+        <li class="breadcrumb-item">
             <a href="@link">
                 @text
             </a>
         </li>
     }
+    <li class="breadcrumb-item active">
+        @textList.last
+	</li>    
 </ol>
-

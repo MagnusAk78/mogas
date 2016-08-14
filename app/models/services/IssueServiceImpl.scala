@@ -10,7 +10,6 @@ import scala.concurrent.Future
 import play.api.libs.json.Json
 import models.Domain
 import models.IssueUpdate
-import views.html.domains.domain
 import models.AmlObject
 import utils.AmlObjectChain
 import play.api.libs.json.JsObject
@@ -18,8 +17,9 @@ import utils.RemoveResult
 import utils.ModelListData
 
 class IssueServiceImpl @Inject() (val issueDao: IssueDAO,
-                                  val issueUpdateDao: IssueUpdateDAO,
-                                  val amlObjectService: AmlObjectService)(implicit val ec: ExecutionContext)
+  val issueUpdateDao: IssueUpdateDAO,
+  val amlObjectService: AmlObjectService,
+  val fileService: FileService)(implicit val ec: ExecutionContext)
     extends IssueService {
 
   override def getIssueList(page: Int, domain: Option[Domain] = None): Future[ModelListData[Issue]] = {
@@ -34,12 +34,16 @@ class IssueServiceImpl @Inject() (val issueDao: IssueDAO,
   override def findOneIssue(query: JsObject): Future[Option[Issue]] = issueDao.find(query, 1, 1).map(_.headOption)
 
   override def findManyIssues(query: JsObject, page: Int = 1,
-                              pageSize: Int = utils.DefaultValues.DefaultPageLength): Future[ModelListData[Issue]] = {
+    pageSize: Int = utils.DefaultValues.DefaultPageLength): Future[ModelListData[Issue]] = {
     for {
       theList <- issueDao.find(query, page, utils.DefaultValues.DefaultPageLength)
       count <- issueDao.count(query)
+      il <- Future.sequence(theList.map(i => fileService.imageExists(i.uuid)))
+      vl <- Future.sequence(theList.map(i => fileService.videoExists(i.uuid)))
     } yield new ModelListData[Issue] {
       override val list = theList
+      override val imageList = il
+      override val videoList = vl
       override val paginateData = PaginateData(page, count)
     }
   }
@@ -60,23 +64,31 @@ class IssueServiceImpl @Inject() (val issueDao: IssueDAO,
   override def findOneIssueUpdate(query: JsObject): Future[Option[IssueUpdate]] = issueUpdateDao.find(query, 1, 1).map(_.headOption)
 
   override def findManyIssueUpdates(query: JsObject, page: Int = 1,
-                                    pageSize: Int = utils.DefaultValues.DefaultPageLength): Future[ModelListData[IssueUpdate]] = {
+    pageSize: Int = utils.DefaultValues.DefaultPageLength): Future[ModelListData[IssueUpdate]] = {
     for {
       theList <- issueUpdateDao.find(query, page, utils.DefaultValues.DefaultPageLength)
       count <- issueUpdateDao.count(query)
+      il <- Future.sequence(theList.map(i => fileService.imageExists(i.uuid)))
+      vl <- Future.sequence(theList.map(i => fileService.videoExists(i.uuid)))
     } yield new ModelListData[IssueUpdate] {
       override val list = theList
+      override val imageList = il
+      override val videoList = vl
       override val paginateData = PaginateData(page, count)
     }
   }
 
   override def findManySortedIssueUpdates(query: JsObject, sort: JsObject, page: Int = 1,
-                                          pageSize: Int = utils.DefaultValues.DefaultPageLength): Future[ModelListData[IssueUpdate]] = {
+    pageSize: Int = utils.DefaultValues.DefaultPageLength): Future[ModelListData[IssueUpdate]] = {
     for {
       theList <- issueUpdateDao.findAndSort(query, sort, page, utils.DefaultValues.DefaultPageLength)
       count <- issueUpdateDao.count(query)
+      il <- Future.sequence(theList.map(i => fileService.imageExists(i.uuid)))
+      vl <- Future.sequence(theList.map(i => fileService.videoExists(i.uuid)))
     } yield new ModelListData[IssueUpdate] {
       override val list = theList
+      override val imageList = il
+      override val videoList = vl
       override val paginateData = PaginateData(page, count)
     }
   }

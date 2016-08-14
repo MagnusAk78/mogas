@@ -2,23 +2,35 @@
 	activeDomain: Option[models.Domain])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
 	lang: Lang, webJarAssets: WebJarAssets)
 
-@import b4.inline.fieldConstructor
 @import templates._
 @import components.buttons._
 @import components.media._
-@import forms._
+@import helper._
+@implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f("col-sm-4 col-md-3", "col-sm-8 col-md-9")) }
 
 @main(utils.MainViewData(Messages("createNew", Messages("domain")), utils.NavTypes.Domains), loggedInUser, activeDomain) {
-	@title(Messages("createNew", "domain"))
+
+	@{
+		val linkList = List(
+			controllers.routes.DomainController.list(1),
+			controllers.routes.DomainController.editActiveDomain(1),
+			controllers.routes.DomainController.create
+		)                
+        val captionList = List(
+        	Messages("list"), 
+        	Messages("chooseActiveDomain"), 
+        	Messages("create"))
+        	
+        val activeList = List(false, false, true)
+
+        topNavigation(linkList, captionList, activeList)
+    }	
 			
-	@rowContentButtons() {	
-		@rowEvenColumns() {
-			@formNormal(routes.DomainController.submitCreate, Messages("create")) {
-        		@b4.text(domainForm("name"), '_label -> Messages("name"))
-        	}        	
-        }{	
-    	}		
-	}{
-		@backButton(controllers.routes.DomainController.list(1))
+	@rowLarge() {
+    	@helper.form(action = routes.DomainController.submitCreate) {
+    		@helper.CSRF.formField
+    		@helper.inputText(domainForm("name"), 'class-> "form-control", 'placeholder -> Messages("name"))
+    		@submitButton(Messages("create"))	
+		}	
 	}
 }

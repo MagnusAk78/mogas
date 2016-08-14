@@ -56,6 +56,7 @@ import java.io.BufferedInputStream
 import com.sksamuel.scrimage.nio.JpegWriter
 import models.services.DomainService
 import models.Domain
+import com.sksamuel.scrimage.Color
 
 @Singleton
 class FileController @Inject() (
@@ -215,7 +216,8 @@ class FileController @Inject() (
                   implicit val writer = JpegWriter().withCompression(50)
                   val inputStream = new BufferedInputStream(new ByteArrayInputStream(bytes))
                   val enumeratorThumbnail: Enumerator[Array[Byte]] = Enumerator.
-                    fromStream(Image.fromStream(inputStream).fit(Images.Thumbnail.xPixels, Images.Thumbnail.yPixels).
+                    fromStream(Image.fromStream(inputStream).fit(Images.Thumbnail.xPixels, Images.Thumbnail.yPixels, 
+                        Color.Black).
                       stream)
 
                   val dataThumbnail = JSONFileToSave(
@@ -270,7 +272,7 @@ class FileController @Inject() (
         case Types.ElementType => Redirect(routes.DomainController.element(uuid, 1, 1)).flashing("success" -> Messages("db.success.imageUpload"))
         case Types.InterfaceType => Redirect(routes.DomainController.interface(uuid)).flashing("success" -> Messages("db.success.imageUpload"))
         case Types.InstructionType => Redirect(routes.InstructionController.instruction(uuid, 1)).flashing("success" -> Messages("db.success.imageUpload"))
-        case Types.InstructionPartType => Redirect(routes.InstructionController.inspectPart(uuid, 1)).flashing("success" -> Messages("db.success.imageUpload"))
+        case Types.InstructionPartType => Redirect(routes.InstructionController.showPart(uuid, 1)).flashing("success" -> Messages("db.success.imageUpload"))
         case Types.IssueType => Redirect(routes.IssueController.issue(uuid, 1)).flashing("success" -> Messages("db.success.imageUpload"))
         case Types.IssueUpdateType => Redirect(routes.IssueController.inspectIssueUpdate(uuid, 1)).flashing("success" -> Messages("db.success.imageUpload"))
         case Types.UnknownType => Redirect(routes.DomainController.list(1)).flashing("error" -> Messages("error.unknownType"))
@@ -377,7 +379,7 @@ class FileController @Inject() (
         case Types.ElementType => Redirect(routes.DomainController.element(uuid, 1, 1)).flashing("success" -> Messages("db.success.videoUpload"))
         case Types.InterfaceType => Redirect(routes.DomainController.interface(uuid)).flashing("success" -> Messages("db.success.videoUpload"))
         case Types.InstructionType => Redirect(routes.InstructionController.instruction(uuid, 1)).flashing("success" -> Messages("db.success.videoUpload"))
-        case Types.InstructionPartType => Redirect(routes.InstructionController.inspectPart(uuid, 1)).flashing("success" -> Messages("db.success.videoUpload"))
+        case Types.InstructionPartType => Redirect(routes.InstructionController.showPart(uuid, 1)).flashing("success" -> Messages("db.success.videoUpload"))
         case Types.IssueType => Redirect(routes.IssueController.issue(uuid, 1)).flashing("success" -> Messages("db.success.videoUpload"))
         case Types.IssueUpdateType => Redirect(routes.IssueController.inspectIssueUpdate(uuid, 1)).flashing("success" -> Messages("db.success.videoUpload"))
         case Types.UnknownType => Redirect(routes.DomainController.list(1)).flashing("error" -> Messages("error.unknownType"))

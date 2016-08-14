@@ -1,57 +1,142 @@
-@(instruction: Instruction, elementOrInterface: utils.ElementOrInterface, domain: Domain, instructionParts: List[InstructionPart], 
-	paginateData: utils.PaginateData, loggedInUser: Option[User], 
+@(instruction: Instruction, domain: Domain, hierarchy: Hierarchy, 
+	elementChain: List[Element], interface: Option[Interface], 
+	instructionPartListData: utils.ModelListData[InstructionPart], loggedInUser: Option[User], 
 	activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
 	webJarAssets: WebJarAssets)
 
-@import b4.inline.fieldConstructor
 @import templates._
 @import components.buttons._
 @import components.media._
 @import components.utils._
 @import forms._
 
+@card(instructionPart: InstructionPart, image: Boolean, page: Int) = {
+<div class="card">
+	<a href="@routes.InstructionController.showPart(instructionPart.uuid, page)">
+		<h3 class="card-header">#@instructionPart.orderNumber</h3>
+	</a>
+	@if(image) {
+  		<a href="@routes.InstructionController.showPart(instructionPart.uuid, page)">
+  			<img class="card-img img-fluid" src="@routes.FileController.getThumbnailImage(instructionPart.uuid, 
+  				models.Types.InstructionPartType.stringValue)" alt="instruction part image">
+		</a>  				
+  	} else {
+  		<div class="card-block text-xs-center m-t-2">
+  			<i class="fa fa-camera-retro fa-5x"></i>	
+  		</div>
+  	}
+	<div  class="card-footer">
+		@if(instructionPart.shortText.length > 140) {
+    		@instructionPart.shortText.take(140)
+			<button type="button" class="btn btn-secondary btn-sm" data-toggle="modal" data-target="#@instructionPart.uuid">
+				...
+			</button>
+    	} else {
+    		@instructionPart.shortText 
+    	} 
+    </div >	
+</div>	
+}
+
+@cardDeck(iPLD: utils.ModelListData[InstructionPart], columns: Int, hiddenClasses: String) = {
+	<div class="@hiddenClasses">
+		@for((instructionPartList, imageList) <- (iPLD.list.grouped(columns) zip iPLD.imageList.grouped(columns))) {		
+			<div class="card-deck-wrapper">
+			<div class="card-deck">
+  				@for((instructionPart, image) <- (instructionPartList zip imageList)) {
+  					@card(instructionPart, image, iPLD.paginateData.page)
+  				}
+  				@for(i <- 1 to (columns - instructionPartList.length)) {
+  					<div class="card">
+
+  					</div>
+  				}
+  			</div>
+  			</div>
+  		}
+  	</div>	
+}
+
 @main(utils.MainViewData(instruction.name, utils.NavTypes.Instructions), loggedInUser, activeDomain) {
 	
-	@title(instruction.name)
-	@rowContentButtons() {
-		@paginate(paginateData, controllers.routes.InstructionController.instruction(instruction.uuid, _))
+	@{
+		val linkList = List(
+			controllers.routes.InstructionController.list("", instructionPartListData.paginateData.page)
+		)                
+        val captionList = List(
+        	Messages("listAll"))
+        	
+        val activeList = List(false)
+
+        topNavigation(linkList, captionList, activeList)
+    }	
+    
+	@rowFullWidth() {
+        @{
+            var linkList = List(controllers.routes.DomainController.domain(domain.uuid, 1),
+                controllers.routes.DomainController.hierarchy(hierarchy.uuid, 1))
+                
+            var textList = List(domain.name, hierarchy.name)
+
+            for(element <- elementChain) {
+                linkList = (controllers.routes.DomainController.element(element.uuid, 1, 1)
+                                :: linkList.reverse).reverse
+
+                textList = (element.name :: textList.reverse).reverse
+
+            }
+			if(interface.isDefined) {
+            	linkList = (controllers.routes.DomainController.interface(interface.get.uuid) ::
+                	linkList.reverse).reverse
+                	
+                textList = (interface.get.name :: textList.reverse).reverse
+            }
+
+            breadcrumb(linkList, textList)
+        }
+	
+        <h1 class="m-t-1">
+        	@instruction.name
+        </h1>        
+
+		@paginate(instructionPartListData.paginateData, 
+			controllers.routes.InstructionController.instruction(instruction.uuid, _))
 		
-		<div class="hidden-lg-down">
-			@for(instructionPartList <- instructionParts.grouped(3)) {		
+		<!-- XL -->
+		@cardDeck(instructionPartListData, 5, "hidden-lg-down")		
+  		
+		<!-- LG -->
+		@cardDeck(instructionPartListData, 4, "hidden-md-down hidden-xl-up")
+  		
+		<!-- MD -->
+		@cardDeck(instructionPartListData, 3, "hidden-sm-down hidden-lg-up")		
+  		
+		<!-- SM -->
+		@cardDeck(instructionPartListData, 2, "hidden-xs-down hidden-md-up")  	
+  		
+		<!-- XS -->		
+		<div class="hidden-sm-up">
+			@for((instructionPart, imgage) <- (instructionPartListData.list, instructionPartListData.imageList).zipped) {
 				<div class="row">
-  					@for(instructionPart <- instructionPartList) {
-  						<div class="col-xl-4">
-  							@displayInstructionPart(instructionPart, paginateData.page)
+  						<div class="col-xs-1">
   						</div>
-  					}
+  						<div class="col-xs-10">
+  							@card(instructionPart, imgage, instructionPartListData.paginateData.page)
+  						</div>
+  						<div class="col-xs-1">
+  						</div>
   				</div>
   			}
-  		</div>
-  		
-  		<div class="hidden-xs-down hidden-xl-up">
-			@for(instructionPartList <- instructionParts.grouped(2)) {		
-				<div class="row">
-  						@for(instructionPart <- instructionPartList) {
-  							<div class="col-sm-6 col-md-6 col-lg-6">
-  								@displayInstructionPart(instructionPart, paginateData.page)
-  							</div>
-  						}
-  				</div>
-  			}
-  		</div>
-  		
-  		<div class="row hidden-sm-up">
-  			@for(instructionPart <- instructionParts) {		
-  				@displayInstructionPart(instructionPart, paginateData.page)
-  			}  		
-  		</div>  		
+  		</div>	
+    }
+    
+    @rowLargeSmall() {
+    	@editButton(controllers.routes.InstructionController.edit(instruction.uuid), Some(Messages("edit")))
     }{
-        @backButton(controllers.routes.InstructionController.list(domain.uuid, 1))
-        @editButton(controllers.routes.InstructionController.edit(instruction.uuid), Some(Messages("edit")))
         @createButton(controllers.routes.InstructionController.createPart(instruction.uuid), Some(Messages("addMore")))
     }
     
-	@for(instructionPart <- instructionParts) {		
+	@for(instructionPart <- instructionPartListData.list) {		
   		@createModal(instructionPart)
   	}    
 }

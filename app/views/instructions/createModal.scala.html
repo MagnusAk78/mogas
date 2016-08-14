@@ -3,7 +3,7 @@
 
 @import components.buttons._
 
-@if(instructionPart.text.length > 140) {
+@if(instructionPart.shortText.length > 140) {
 <div class="modal" id="@instructionPart.uuid" tabindex="-1" role="dialog" aria-labelledby="@{instructionPart.uuid+"Label"}" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">

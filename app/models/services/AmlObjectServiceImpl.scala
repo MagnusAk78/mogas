@@ -29,7 +29,8 @@ import models.AmlObject
 
 class AmlObjectServiceImpl @Inject() (
     val elementDao: ElementDAO,
-    val interfaceDao: InterfaceDAO)(implicit ec: ExecutionContext) extends AmlObjectService {
+    val interfaceDao: InterfaceDAO,
+    val fileService: FileService)(implicit ec: ExecutionContext) extends AmlObjectService {
 
   override def findOneElementOrInterface(query: JsObject): Future[Option[ElementOrInterface]] = {
     val result = for {
@@ -72,12 +73,16 @@ class AmlObjectServiceImpl @Inject() (
     elementDao.find(query, 1, 1).map(_.headOption)
 
   override def findManyElements(query: JsObject, page: Int = 1,
-                                pageSize: Int = utils.DefaultValues.DefaultPageLength): Future[ModelListData[Element]] = {
+    pageSize: Int = utils.DefaultValues.DefaultPageLength): Future[ModelListData[Element]] = {
     for {
       theList <- elementDao.find(query, page, utils.DefaultValues.DefaultPageLength)
       count <- elementDao.count(query)
+      il <- Future.sequence(theList.map(e => fileService.imageExists(e.uuid)))
+      vl <- Future.sequence(theList.map(e => fileService.videoExists(e.uuid)))
     } yield new ModelListData[Element] {
       override val list = theList
+      override val imageList = il
+      override val videoList = vl
       override val paginateData = PaginateData(page, count)
     }
   }
@@ -96,12 +101,16 @@ class AmlObjectServiceImpl @Inject() (
     interfaceDao.find(query, 1, 1).map(_.headOption)
 
   override def findManyInterfaces(query: JsObject, page: Int = 1,
-                                  pageSize: Int = utils.DefaultValues.DefaultPageLength): Future[ModelListData[Interface]] = {
+    pageSize: Int = utils.DefaultValues.DefaultPageLength): Future[ModelListData[Interface]] = {
     for {
       theList <- interfaceDao.find(query, page, utils.DefaultValues.DefaultPageLength)
       count <- interfaceDao.count(query)
+      il <- Future.sequence(theList.map(i => fileService.imageExists(i.uuid)))
+      vl <- Future.sequence(theList.map(i => fileService.videoExists(i.uuid)))
     } yield new ModelListData[Interface] {
       override val list = theList
+      override val imageList = il
+      override val videoList = vl
       override val paginateData = PaginateData(page, count)
     }
   }

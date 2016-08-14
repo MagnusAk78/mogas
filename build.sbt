@@ -22,8 +22,8 @@ libraryDependencies ++= Seq(
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test,
   //Reactive mongo
   "org.reactivemongo" %% "play2-reactivemongo" % "0.11.14",
-  //Play with bootstrap
-  "com.adrianhurt" %% "play-bootstrap" % "1.1-P25-B4-SNAPSHOT",
+  "org.webjars" % "jquery" % "2.2.3",
+  "org.webjars" % "bootstrap" % "4.0.0-alpha.3",
   //Silhouette for authentication
   "com.mohiva" %% "play-silhouette" % "4.0.0-RC1",
   "com.mohiva" %% "play-silhouette-password-bcrypt" % "4.0.0-RC1",
@@ -41,6 +41,8 @@ libraryDependencies ++= Seq(
   //Scrimage that allows for rescaling of images etc.
   "com.sksamuel.scrimage" %% "scrimage-core" % "2.1.0"  
 )
+
+libraryDependencies += filters
 
 EclipseKeys.preTasks := Seq(compile in Compile)
 

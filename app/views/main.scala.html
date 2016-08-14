@@ -10,10 +10,13 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro' rel='stylesheet' type='text/css'>
+        
         <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
         
         <title>@mainViewData.title</title>
-        
+
         <link rel="stylesheet" href="@routes.WebJarAssets.at(webJarAssets.locate("bootstrap.min.css"))" />
         <link rel="stylesheet" href="@routes.Assets.at("font-awesome-4.6.3/css/font-awesome.min.css")" />
         <link rel="stylesheet" href="@routes.Assets.at("styles/b4d-styles.css")" />
@@ -27,19 +30,15 @@
         
     </head>
     <body>
-
-    	@if(activeDomain.isDefined) {
-        	@navigationBar(activeDomain.get.name, loggedInUser)
-		} else {
-        	@navigationBar(Messages("activeDomainNotSet"), loggedInUser)
-		}
+		@navigationBar(Messages("brandName"), loggedInUser)
+    	
 
 
 <div class="container-fluid" id="main">
 	<div class="row row-offcanvas row-offcanvas-left">
-		<div class="col-md-3 col-lg-2 sidebar-offcanvas" id="sidebar" role="navigation">
-		
-			<ul class="nav nav-pills nav-stacked">
+		<div class="col-md-3 col-lg-2 sidebar-offcanvas max-width-menu" id="sidebar" role="navigation">
+		        		
+			<ul class="nav nav-pills nav-stacked nav-left m-a">
 				@if(loggedInUser.isDefined) {
 				<li class="nav-item">
 					<a class="nav-link @if(mainViewData.navType == utils.NavTypes.Domains){active}" 
@@ -49,19 +48,7 @@
         		</li>
         		}
         
-        		@if(loggedInUser.isDefined && activeDomain.isDefined) {
-				<li class="alert alert-success">
-					@Messages("active", activeDomain.get.name)				
-				</li>        		
-        		}
-        		@if(loggedInUser.isDefined && activeDomain.isEmpty) {
-				<li class="alert alert-warning">
-  					<a class="alert-link" 
-					href="@routes.DomainController.editActiveDomain(1)">
-            			@Messages("chooseActive", Messages("domain"))
-            		</a>
-				</li>
-				}        		
+
 
 				@if(loggedInUser.isDefined && activeDomain.isDefined) {
 				<li class="nav-item">
@@ -93,6 +80,21 @@
         		</li>
         		}
 			</ul>		
+			
+		    @if(loggedInUser.isDefined && activeDomain.isDefined) {
+		        <div class="card card-inverse card-success text-xs-center m-y-1">
+  					<div class="card-block">
+      					<p class="card-text">@activeDomain.get.name</p>
+  					</div>
+				</div>
+			}
+        	@if(loggedInUser.isDefined && activeDomain.isEmpty) {
+        		<div class="card card-inverse card-warning text-xs-center m-y-1">
+  					<div class="card-block">
+  						<p class="card-text">@Messages("noActiveDomain")</p>
+  					</div>
+				</div>        			
+			}			
             	
         </div>
         <div class="col-md-9 col-lg-10 main">

@@ -2,7 +2,6 @@
 	activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
 	webJarAssets: WebJarAssets)
 
-@import b4.inline.fieldConstructor
 @import templates._
 @import components.buttons._
 @import components.media._
@@ -11,12 +10,12 @@
 
 @main(utils.MainViewData(issue.name, utils.NavTypes.Issues), loggedInUser, activeDomain) {
 	
-	@rowContentButtons() {
+	@rowLargeSmall() {
 		<div class="card">
 			<img class="card-img-top img-responsive m-x-auto" src="@routes.FileController.getStandardImage(issueUpdate.uuid, 
 				models.Types.IssueUpdateType.stringValue)" alt="issue part image">
 		
-			<div class="card-block text-left">
+			<div class="card-block text-xs-left">
 				<h4 class="card-title">@Messages("issueUpdate", issueUpdate.orderNumber, issue.name)</h4>
 				<p class="card-text">@issueUpdate.text</p>
 			</div>	

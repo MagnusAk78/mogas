@@ -21,7 +21,8 @@ import utils.PaginateData
  *
  * @param userDAO The user DAO implementation.
  */
-class UserServiceImpl @Inject() (val dao: UserDAO)(implicit val ec: ExecutionContext) extends UserService {
+class UserServiceImpl @Inject() (val dao: UserDAO, val fileService: FileService)(implicit val ec: ExecutionContext)
+    extends UserService {
 
   implicit val joWrites: OWrites[User] = User.userFormat
 
@@ -137,12 +138,16 @@ class UserServiceImpl @Inject() (val dao: UserDAO)(implicit val ec: ExecutionCon
   override def findOne(query: JsObject): Future[Option[User]] = dao.find(query, 1, 1).map(_.headOption)
 
   override def findMany(query: JsObject, page: Int = 1,
-                        pageSize: Int = utils.DefaultValues.DefaultPageLength): Future[ModelListData[User]] = {
+    pageSize: Int = utils.DefaultValues.DefaultPageLength): Future[ModelListData[User]] = {
     for {
       theList <- dao.find(query, page, utils.DefaultValues.DefaultPageLength)
       count <- dao.count(query)
+      il <- Future.sequence(theList.map(i => fileService.imageExists(i.uuid)))
+      vl <- Future.sequence(theList.map(i => fileService.videoExists(i.uuid)))
     } yield new ModelListData[User] {
       override val list = theList
+      override val imageList = il
+      override val videoList = vl
       override val paginateData = PaginateData(page, count)
     }
   }

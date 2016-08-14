@@ -1,0 +1,21 @@
+@(domain: Domain, hierarchy: Hierarchy, elementListData: utils.ModelListData[Element],
+    loggedInUser: Option[User], activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, 
+    messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
+
+@import templates._
+@import components.buttons._
+@import components.media._
+@import components.utils._
+
+@main(utils.MainViewData(hierarchy.name, utils.NavTypes.Browse), loggedInUser, activeDomain) {
+    @rowFullWidth() {
+        @{
+            val linkList = List(controllers.routes.DomainController.domain(domain.uuid, 1),
+                controllers.routes.DomainController.hierarchy(hierarchy.uuid, 1))
+            val textList = List(domain.name, hierarchy.name)
+            breadcrumb(linkList, textList)
+        }    	
+   		@linkGridWithImageAndName(elementListData, controllers.routes.DomainController.hierarchy(hierarchy.uuid, _),
+				controllers.routes.DomainController.element(_, 1, 1), models.Types.HierarchyType)
+	}      
+}

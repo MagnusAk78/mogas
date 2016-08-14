@@ -35,8 +35,7 @@ class UserController @Inject() (
       val responses = for {
         userListData <- userService.getUserList(page, mySecuredRequest.activeDomain.map(activeDomain =>
           activeDomain.allowedUsers).getOrElse(Set()))
-      } yield Ok(views.html.users.list(userListData.list, userListData.paginateData,
-        Some(mySecuredRequest.identity), mySecuredRequest.activeDomain))
+      } yield Ok(views.html.users.list(userListData, Some(mySecuredRequest.identity), mySecuredRequest.activeDomain))
 
       responses recover {
         case e => InternalServerError(e.getMessage())
@@ -46,9 +45,9 @@ class UserController @Inject() (
   def show(uuid: String, page: Int) =
     (generalActions.MySecuredAction andThen generalActions.UserAction(uuid)).async { implicit userRequest =>
       val responses = for {
-        domainList <- domainService.getDomainList(page, userRequest.user)
-      } yield Ok(views.html.users.details(userRequest.user, domainList.list, domainList.paginateData,
-        Some(userRequest.identity), userRequest.activeDomain))
+        domainListData <- domainService.getDomainList(page, userRequest.user)
+      } yield Ok(views.html.users.show(userRequest.user, domainListData, Some(userRequest.identity),
+        userRequest.activeDomain))
 
       responses recover {
         case e => InternalServerError(e.getMessage())

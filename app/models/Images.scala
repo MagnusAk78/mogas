@@ -20,8 +20,8 @@ object Images {
 
   final case object Thumbnail extends ImageSize {
     override val stringValue = "Thumbnail"
-    override val xPixels = 320
-    override val yPixels = 240
+    override val xPixels = 240
+    override val yPixels = 200
   }
 
   private val KeyImageBelongTo = "imageBelongTo"
@@ -29,7 +29,7 @@ object Images {
 
   private val KeyMetadata = "metadata"
 
-  def imageBelongToQuery(uuid: String): JsObject = Json.obj(KeyImageBelongTo -> JsString(uuid))
+  private def imageBelongToQuery(uuid: String): JsObject = Json.obj(KeyImageBelongTo -> JsString(uuid))
 
   def getImageMetadata(belongToUuid: String, imageSize: ImageSize) =
     Json.obj(

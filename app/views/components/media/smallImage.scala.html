@@ -1,0 +1,3 @@
+@(uuid: String, modelType: String)(implicit flash: Flash, messages: Messages)
+
+<img class="img-fluid" src="@routes.FileController.getThumbnailImage(uuid, modelType)"/>

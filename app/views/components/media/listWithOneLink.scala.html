@@ -1,0 +1,11 @@
+@(linkList: List[Call], headingList: List[String], textList: List[String])(implicit flash: Flash, messages: Messages)
+
+<div class="list-group">	
+	@for((link, heading, text) <- (linkList, headingList, textList).zipped) {
+    	<!-- a -->
+        <a href="@link" class="list-group-item list-group-item-action">
+        	<h2>@heading</h2>
+        	<p>@text</p>
+        </a>
+    }
+</div>

@@ -70,8 +70,8 @@ class IssueController @Inject() (
           }
           issueListData <- issueService.getIssueList(page)
           objectChainList <- domainService.getAmlObjectChains(issueListData.list)
-        } yield Ok(views.html.issues.list(domainOpt, issueListData.list, objectChainList,
-          issueListData.paginateData, Some(domainRequest.identity), domainRequest.activeDomain))
+        } yield Ok(views.html.issues.list(domainOpt, issueListData, objectChainList,
+          Some(domainRequest.identity), domainRequest.activeDomain))
 
         responses recover {
           case e => InternalServerError(e.getMessage())
@@ -79,10 +79,11 @@ class IssueController @Inject() (
     }
 
   def create(amlObjectUuid: String) = (generalActions.MySecuredAction andThen
-    generalActions.RequireActiveDomain) {
-      implicit mySecuredRequest =>
-        Ok(views.html.issues.create(IssueForm.form, amlObjectUuid, Some(mySecuredRequest.identity),
-          mySecuredRequest.activeDomain))
+    generalActions.AmlObjectAction(amlObjectUuid)) {
+      implicit amlObjectRequest =>
+        Ok(views.html.browse.createIssue(IssueForm.form, amlObjectRequest.myDomain,
+          amlObjectRequest.hierarchy, amlObjectRequest.elementChain, amlObjectRequest.interface,
+          Some(amlObjectRequest.identity), amlObjectRequest.activeDomain))
     }
 
   def submitCreate(amlObjectUuid: String) = (generalActions.MySecuredAction andThen
@@ -90,14 +91,15 @@ class IssueController @Inject() (
       implicit amlObjectRequest =>
         IssueForm.form.bindFromRequest().fold(
           formWithErrors => {
-            Future.successful(BadRequest(views.html.issues.create(formWithErrors, amlObjectUuid,
+            Future.successful(BadRequest(views.html.browse.createIssue(formWithErrors, amlObjectRequest.myDomain,
+              amlObjectRequest.hierarchy, amlObjectRequest.elementChain, amlObjectRequest.interface,
               Some(amlObjectRequest.identity), amlObjectRequest.activeDomain)))
           },
           formData => {
             val responses = for {
               optSavedIssue <- issueService.insertIssue(Issue.create(name = formData.name,
-                connectionToToDomain = amlObjectRequest.elementOrInterface.fold(_.connectionTo, _.connectionTo),
-                parentAmlObject = amlObjectRequest.elementOrInterface.fold(_.uuid, _.uuid),
+                connectionToToDomain = amlObjectRequest.myDomain.uuid,
+                parentAmlObject = amlObjectRequest.elementOrInterfaceUuid,
                 createdBy = amlObjectRequest.identity.uuid))
             } yield optSavedIssue match {
               case Some(newIssue) =>
@@ -123,9 +125,8 @@ class IssueController @Inject() (
           domainOpt <- domainService.findOneDomain(Domain.queryByUuid(issueRequest.issue.connectionTo))
           amlObjectOpt <- amlObjectService.findOneElementOrInterface(AmlObject.queryByUuid(issueRequest.issue.parent))
           issueUpdatesListData <- issueService.getIssueUpdateList(issueRequest.issue, page)
-        } yield Ok(views.html.issues.issue(issueRequest.issue, amlObjectOpt.get, domainOpt.get,
-          issueUpdatesListData.list, issueUpdatesListData.paginateData, Some(issueRequest.identity),
-          issueRequest.activeDomain))
+        } yield Ok(views.html.issues.issue(issueRequest.issue, domainOpt.get, issueUpdatesListData,
+          Some(issueRequest.identity), issueRequest.activeDomain))
 
         responses recover {
           case e => InternalServerError(e.getMessage())

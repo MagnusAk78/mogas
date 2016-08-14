@@ -1,0 +1,88 @@
+@(modelListData: utils.ModelListData[DbModel with NamedModel], paginateRoute: Int => Call, 
+	linkRoute: String => Call, modelType: models.Types.ModelType, 
+	isHighlighted: (String => Boolean) = (uuid => false))(implicit flash: Flash, messages: Messages)
+	
+@import components.utils._
+
+@paginate(modelListData.paginateData, paginateRoute)
+
+@card(title: String, imageSrc: Option[Call], link: Call, isHL: Boolean) = {
+@if(isHL) {
+	<div class="card card-inverse card-primary">
+} else {
+	<div class="card card-outline-secondary">
+}
+	@if(imageSrc.isDefined) {
+		<a href="@link">
+			<img class="card-img-top img-fluid text-xs-center" src="@imageSrc.get" alt="Card image">
+		</a>  				
+  	} else {
+  		<a href="@link">
+  			<div class="card-block text-xs-center m-t-2 black-link-icon">
+  				<i class="fa fa-camera-retro fa-5x"></i>
+  			</div>
+  		</a>
+  	}
+	<div class="card-block text-xs-center">
+		<a class="card-link" href="@link">
+			@title</a>
+	</div>
+</div>
+}
+
+@cardDeck(iMLD: utils.ModelListData[DbModel with models.NamedModel], columns: Int, iLinkRoute: String => Call, 
+	hiddenClasses: String) = {
+	<div class="@hiddenClasses">
+		@for((modelList, hasImageList) <- (iMLD.list.grouped(columns) zip iMLD.imageList.grouped(columns))) {		
+			<div class="card-deck-wrapper">
+			<div class="card-deck">
+  				@for((model, hasImage) <- (modelList zip hasImageList)) {
+  					@if(hasImage) {
+  						@card(model.name, Some(routes.FileController.getThumbnailImage(model.uuid, modelType.stringValue)), 
+  							iLinkRoute(model.uuid), isHighlighted(model.uuid))
+  					} else {
+  						@card(model.name, None, iLinkRoute(model.uuid), isHighlighted(model.uuid))
+  					}
+  				}
+  				@for(i <- 1 to (columns - modelList.length)) {
+  					<div class="card">
+
+  					</div>
+  				}  				
+  			</div>
+  			</div>
+  		}
+  	</div>	
+}
+
+<!-- XL -->
+@cardDeck(modelListData, 5, linkRoute, "hidden-lg-down")		
+  		
+<!-- LG -->
+@cardDeck(modelListData, 4, linkRoute, "hidden-md-down hidden-xl-up")
+  		
+<!-- MD -->
+@cardDeck(modelListData, 3, linkRoute, "hidden-sm-down hidden-lg-up")		
+  		
+<!-- SM -->
+@cardDeck(modelListData, 3, linkRoute, "hidden-xs-down hidden-md-up")
+
+<!-- XS -->		
+<div class="hidden-sm-up">
+	@for((model, hasImage) <- (modelListData.list zip modelListData.imageList)) {
+		<div class="row">
+			<div class="col-xs-3">
+		</div>
+  		<div class="col-xs-6">
+			@if(hasImage) {
+  				@card(model.name, Some(routes.FileController.getThumbnailImage(model.uuid, modelType.stringValue)), 
+  					linkRoute(model.uuid), isHighlighted(model.uuid))
+  			} else {
+  				@card(model.name, None, linkRoute(model.uuid), isHighlighted(model.uuid))
+  			}
+  		</div>
+  		<div class="col-xs-3">
+  		</div>
+	</div>
+	}
+</div>	

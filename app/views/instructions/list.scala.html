@@ -1,31 +1,42 @@
-@(domainOpt: Option[Domain], instructions: List[Instruction], 
-	parentObjectChains: List[utils.AmlObjectChain], paginateData: utils.PaginateData, 
-	loggedInUser: Option[User], activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, 
+@(domainOpt: Option[Domain], instructionListData: utils.ModelListData[Instruction], 
+	parentObjectChains: List[utils.AmlObjectChain],  loggedInUser: Option[User], 
+	activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, 
 	messages: Messages, lang: Lang, webJarAssets: WebJarAssets)    
 
-@import b4.inline.fieldConstructor
 @import templates._
 @import components.buttons._
 @import components.media._
+@import components.utils._
 @import forms._
 
 @main(utils.MainViewData(Messages("instructions"), utils.NavTypes.Instructions), loggedInUser, activeDomain) {
 	
-	@title(Messages("instructions"))
-	@rowContentButtons() {
+	@{
+		val linkList = List(
+			controllers.routes.InstructionController.list("", instructionListData.paginateData.page)
+		)                
+        val captionList = List(
+        	Messages("listAll"))
+        	
+        val activeList = List(true)
+
+        topNavigation(linkList, captionList, activeList)
+    }	
+	
+	@rowFullWidth() {
     	@{
-            val mediaList = instructions.map((instruction: Instruction) =>
-                routes.FileController.getThumbnailImage(instruction.uuid, models.Types.InstructionType.stringValue))
-            val linkList = instructions.map((instruction: Instruction) =>
+            val linkList = instructionListData.list.map((instruction: Instruction) =>
                 controllers.routes.InstructionController.instruction(instruction.uuid, 1))
-            val headingList = instructions.map(_.name)
-            val textList = (instructions, parentObjectChains).zipped map((instruction, objectChain) => 
+                
+            val headingList = instructionListData.list.map(_.name)
+            
+            val textList = (instructionListData.list, parentObjectChains).zipped map((instruction, objectChain) => 
             	objectChain.domain.name + " / " + objectChain.hierarchy.name + " / " +
             	objectChain.amlObjectChain.map(eoi => eoi.fold(_.name, _.name)).mkString(" / "))
-
-            displayPaginatedList(mediaList, linkList, headingList, textList, List(),
-            	paginateData, controllers.routes.InstructionController.list(domainOpt.map(_.uuid).getOrElse(""), _))
+            	
+			paginate(instructionListData.paginateData, controllers.routes.InstructionController.
+				list(domainOpt.map(_.uuid).getOrElse(""), _))
+			listWithOneLink(linkList, headingList, textList)            	
     	}
-    }{
     }
 }
