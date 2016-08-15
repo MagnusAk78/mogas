@@ -22,7 +22,7 @@ libraryDependencies ++= Seq(
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test,
   //Reactive mongo
   "org.reactivemongo" %% "play2-reactivemongo" % "0.11.14",
-  "org.webjars" % "jquery" % "2.2.3",
+  //"org.webjars" % "jquery" % "2.2.3", (Bootstrap include jquery 1.11.1)
   "org.webjars" % "bootstrap" % "4.0.0-alpha.3",
   //Silhouette for authentication
   "com.mohiva" %% "play-silhouette" % "4.0.0-RC1",
