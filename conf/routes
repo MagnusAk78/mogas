@@ -76,7 +76,7 @@ POST    /instructionpart/submit/:instructionUuid                     		controlle
 GET     /instructionpart/create/:instructionUuid							controllers.InstructionController.createPart(instructionUuid: String)
 POST    /instructionpart/:uuid/submit                                       controllers.InstructionController.submitEditPart(uuid: String)
 GET     /instructionpart/:uuid/edit                                         controllers.InstructionController.editPart(uuid: String)
-GET     /instructionpart/:uuid/show/:page                                   controllers.InstructionController.showPart(uuid: String, page: Int)
+GET     /instructionpart/:uuid/show/:page/:mediaType                        controllers.InstructionController.showPart(uuid: String, page: Int, mediaType: String)
 GET     /instructionpart/:uuid/delete                                       controllers.InstructionController.deletePart(uuid: String)
 GET    	/instructionpart/:uuid/moveup/:page                                 controllers.InstructionController.movePartUp(uuid: String, page: Int)
 GET    	/instructionpart/:uuid/movedown/:page                               controllers.InstructionController.movePartDown(uuid: String, page: Int)

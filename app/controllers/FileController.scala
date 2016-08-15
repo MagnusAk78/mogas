@@ -40,6 +40,7 @@ import utils.auth.DefaultEnv
 import play.api.libs.json.JsValue
 import models.Images
 import models.Types
+import models.MediaTypes
 import play.api.mvc.Result
 import java.io.File
 import play.api.mvc.ActionRefiner
@@ -57,6 +58,7 @@ import com.sksamuel.scrimage.nio.JpegWriter
 import models.services.DomainService
 import models.Domain
 import com.sksamuel.scrimage.Color
+import models.MediaTypes
 
 @Singleton
 class FileController @Inject() (
@@ -272,7 +274,7 @@ class FileController @Inject() (
         case Types.ElementType => Redirect(routes.DomainController.element(uuid, 1, 1)).flashing("success" -> Messages("db.success.imageUpload"))
         case Types.InterfaceType => Redirect(routes.DomainController.interface(uuid)).flashing("success" -> Messages("db.success.imageUpload"))
         case Types.InstructionType => Redirect(routes.InstructionController.instruction(uuid, 1)).flashing("success" -> Messages("db.success.imageUpload"))
-        case Types.InstructionPartType => Redirect(routes.InstructionController.showPart(uuid, 1)).flashing("success" -> Messages("db.success.imageUpload"))
+        case Types.InstructionPartType => Redirect(routes.InstructionController.showPart(uuid, 1, MediaTypes.MediaImage.stringValue)).flashing("success" -> Messages("db.success.imageUpload"))
         case Types.IssueType => Redirect(routes.IssueController.issue(uuid, 1)).flashing("success" -> Messages("db.success.imageUpload"))
         case Types.IssueUpdateType => Redirect(routes.IssueController.inspectIssueUpdate(uuid, 1)).flashing("success" -> Messages("db.success.imageUpload"))
         case Types.UnknownType => Redirect(routes.DomainController.list(1)).flashing("error" -> Messages("error.unknownType"))
@@ -379,7 +381,7 @@ class FileController @Inject() (
         case Types.ElementType => Redirect(routes.DomainController.element(uuid, 1, 1)).flashing("success" -> Messages("db.success.videoUpload"))
         case Types.InterfaceType => Redirect(routes.DomainController.interface(uuid)).flashing("success" -> Messages("db.success.videoUpload"))
         case Types.InstructionType => Redirect(routes.InstructionController.instruction(uuid, 1)).flashing("success" -> Messages("db.success.videoUpload"))
-        case Types.InstructionPartType => Redirect(routes.InstructionController.showPart(uuid, 1)).flashing("success" -> Messages("db.success.videoUpload"))
+        case Types.InstructionPartType => Redirect(routes.InstructionController.showPart(uuid, 1, MediaTypes.MediaVideo.stringValue)).flashing("success" -> Messages("db.success.videoUpload"))
         case Types.IssueType => Redirect(routes.IssueController.issue(uuid, 1)).flashing("success" -> Messages("db.success.videoUpload"))
         case Types.IssueUpdateType => Redirect(routes.IssueController.inspectIssueUpdate(uuid, 1)).flashing("success" -> Messages("db.success.videoUpload"))
         case Types.UnknownType => Redirect(routes.DomainController.list(1)).flashing("error" -> Messages("error.unknownType"))

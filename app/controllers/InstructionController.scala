@@ -44,6 +44,7 @@ import models.InstructionPart
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import models.AmlObject
+import models.MediaTypes
 
 @Singleton
 class InstructionController @Inject() (
@@ -187,14 +188,14 @@ class InstructionController @Inject() (
         }
     }
 
-  def showPart(uuid: String, page: Int) = (generalActions.MySecuredAction andThen
+  def showPart(uuid: String, page: Int, mediaType: String) = (generalActions.MySecuredAction andThen
     generalActions.RequireActiveDomain andThen generalActions.InstructionPartAction(uuid)).async {
       implicit instructionPartRequest =>
 
         val responses = for {
           instructionOpt <- instructionService.findOneInstruction(Instruction.queryByUuid(instructionPartRequest.instructionPart.parent))
         } yield instructionOpt.map(instruction => Ok(views.html.instructions.showPart(
-          instructionPartRequest.instructionPart, instruction, page,
+          instructionPartRequest.instructionPart, instruction, page, MediaTypes.fromString(mediaType),
           Some(instructionPartRequest.identity), instructionPartRequest.activeDomain))).getOrElse(NotFound)
 
         responses recover {

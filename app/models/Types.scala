@@ -59,9 +59,7 @@ object Types {
     override val navType = NavTypes.None
   }
 
-  def fromString(modelType: String): ModelType = {
-    modelType match {
-      case DomainType.stringValue => DomainType
+  def fromString(modelType: String): ModelType = modelType match {
       case UserType.stringValue => UserType
       case DomainType.stringValue => DomainType
       case HierarchyType.stringValue => HierarchyType
@@ -72,6 +70,5 @@ object Types {
       case IssueType.stringValue => IssueType
       case IssueUpdateType.stringValue => IssueUpdateType
       case _ => UnknownType
-    }
-  }
+      }
 }

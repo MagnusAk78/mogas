@@ -10,51 +10,26 @@
 @import components.utils._
 @import forms._
 
-@card(instructionPart: InstructionPart, image: Boolean, page: Int) = {
-<div class="card">
-	<a href="@routes.InstructionController.showPart(instructionPart.uuid, page)">
-		<h3 class="card-header">#@instructionPart.orderNumber</h3>
-	</a>
-	@if(image) {
-  		<a href="@routes.InstructionController.showPart(instructionPart.uuid, page)">
-  			<img class="card-img img-fluid" src="@routes.FileController.getThumbnailImage(instructionPart.uuid, 
-  				models.Types.InstructionPartType.stringValue)" alt="instruction part image">
-		</a>  				
-  	} else {
-  		<div class="card-block text-xs-center m-t-2">
-  			<i class="fa fa-camera-retro fa-5x"></i>	
-  		</div>
-  	}
-	<div  class="card-footer">
-		@if(instructionPart.shortText.length > 140) {
-    		@instructionPart.shortText.take(140)
-			<button type="button" class="btn btn-secondary btn-sm" data-toggle="modal" data-target="#@instructionPart.uuid">
-				...
-			</button>
-    	} else {
-    		@instructionPart.shortText 
-    	} 
-    </div >	
-</div>	
+@createModal(instructionPart: InstructionPart) = {
+@if(instructionPart.shortText.length > 140) {
+<div class="modal" id="@instructionPart.uuid" tabindex="-1" role="dialog" aria-labelledby="@{instructionPart.uuid+"Label"}" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        @instructionPart.text
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 }
-
-@cardDeck(iPLD: utils.ModelListData[InstructionPart], columns: Int, hiddenClasses: String) = {
-	<div class="@hiddenClasses">
-		@for((instructionPartList, imageList) <- (iPLD.list.grouped(columns) zip iPLD.imageList.grouped(columns))) {		
-			<div class="card-deck-wrapper">
-			<div class="card-deck">
-  				@for((instructionPart, image) <- (instructionPartList zip imageList)) {
-  					@card(instructionPart, image, iPLD.paginateData.page)
-  				}
-  				@for(i <- 1 to (columns - instructionPartList.length)) {
-  					<div class="card">
-
-  					</div>
-  				}
-  			</div>
-  			</div>
-  		}
-  	</div>	
 }
 
 @main(utils.MainViewData(instruction.name, utils.NavTypes.Instructions), loggedInUser, activeDomain) {
@@ -70,67 +45,31 @@
 
         topNavigation(linkList, captionList, activeList)
     }	
-    
-	@rowFullWidth() {
-        @{
-            var linkList = List(controllers.routes.DomainController.domain(domain.uuid, 1),
-                controllers.routes.DomainController.hierarchy(hierarchy.uuid, 1))
-                
-            var textList = List(domain.name, hierarchy.name)
 
-            for(element <- elementChain) {
-                linkList = (controllers.routes.DomainController.element(element.uuid, 1, 1)
-                                :: linkList.reverse).reverse
-
-                textList = (element.name :: textList.reverse).reverse
-
-            }
-			if(interface.isDefined) {
-            	linkList = (controllers.routes.DomainController.interface(interface.get.uuid) ::
-                	linkList.reverse).reverse
-                	
-                textList = (interface.get.name :: textList.reverse).reverse
-            }
-
-            breadcrumb(linkList, textList)
-        }
+    @rowFullWidth() {
+    	@{
+    		val newInstructionPartListData = new utils.ModelListData[DbModel with NamedModel with HasShortText] {
+    		override val list = instructionPartListData.list map( instructionPart =>
+    			 new DbModel with NamedModel with HasShortText {
+    			override val uuid = instructionPart.uuid
+    			override val name = instruction.name + ": " + instructionPart.orderNumber
+    			override val shortText = instructionPart.shortText.take(140)
+    			override val asJsObject = play.api.libs.json.Json.obj()
+    			})
+    			
+    		override val paginateData = instructionPartListData.paginateData
+    		override val imageList = instructionPartListData.imageList
+    		override val videoList = instructionPartListData.videoList
+    	}
+   		
+   		linkGridWithImageNameAndText(newInstructionPartListData, 
+   			controllers.routes.InstructionController.instruction(instruction.uuid, _),
+				routes.InstructionController.showPart(_, 1, models.MediaTypes.MediaImage.stringValue), 
+				models.Types.InstructionPartType)
+		}
+	}
 	
-        <h1 class="m-t-1">
-        	@instruction.name
-        </h1>        
-
-		@paginate(instructionPartListData.paginateData, 
-			controllers.routes.InstructionController.instruction(instruction.uuid, _))
-		
-		<!-- XL -->
-		@cardDeck(instructionPartListData, 5, "hidden-lg-down")		
-  		
-		<!-- LG -->
-		@cardDeck(instructionPartListData, 4, "hidden-md-down hidden-xl-up")
-  		
-		<!-- MD -->
-		@cardDeck(instructionPartListData, 3, "hidden-sm-down hidden-lg-up")		
-  		
-		<!-- SM -->
-		@cardDeck(instructionPartListData, 2, "hidden-xs-down hidden-md-up")  	
-  		
-		<!-- XS -->		
-		<div class="hidden-sm-up">
-			@for((instructionPart, imgage) <- (instructionPartListData.list, instructionPartListData.imageList).zipped) {
-				<div class="row">
-  						<div class="col-xs-1">
-  						</div>
-  						<div class="col-xs-10">
-  							@card(instructionPart, imgage, instructionPartListData.paginateData.page)
-  						</div>
-  						<div class="col-xs-1">
-  						</div>
-  				</div>
-  			}
-  		</div>	
-    }
-    
-    @rowLargeSmall() {
+	@rowLargeSmall() {
     	@editButton(controllers.routes.InstructionController.edit(instruction.uuid), Some(Messages("edit")))
     }{
         @createButton(controllers.routes.InstructionController.createPart(instruction.uuid), Some(Messages("addMore")))
@@ -138,5 +77,5 @@
     
 	@for(instructionPart <- instructionPartListData.list) {		
   		@createModal(instructionPart)
-  	}    
+  	} 
 }

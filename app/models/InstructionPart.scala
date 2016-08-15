@@ -9,20 +9,20 @@ case class InstructionPart(
   override val parent: String,
   override val createdBy: String,
   override val text: String,
-  val shortText: String) extends DbModel with OrderedModel with ChildOf[Instruction] with CreatedBy
-    with HasText {
+  override val shortText: String) extends DbModel with OrderedModel with ChildOf[Instruction] with CreatedBy
+    with HasText with HasShortText {
 
   override def asJsObject: JsObject = {
     InstructionPart.orderedModelJsObject(this) ++
       InstructionPart.childOfJsObject(this) ++
       InstructionPart.createdByJsObject(this) ++
       InstructionPart.hasTextJsObject(this) ++
-      Json.obj(InstructionPart.KeyShortText -> JsString(shortText))
+      InstructionPart.hasShortTextJsObject(this)
   }
 }
 
 object InstructionPart extends DbModelComp[InstructionPart] with ChildOfComp[Instruction] with CreatedByComp
-    with HasTextComp with OrderedModelComp {
+    with HasTextComp with OrderedModelComp with HasShortTextComp {
   implicit val instructionPartFormat = Json.format[InstructionPart]
 
   private val KeyShortText = "shortText"

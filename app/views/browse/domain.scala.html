@@ -8,10 +8,10 @@
 @import components.utils._
 
 @main(utils.MainViewData(domain.name, utils.NavTypes.Browse), loggedInUser, activeDomain) {
-	
-    @breadcrumb(List(controllers.routes.DomainController.domain(domain.uuid, 1)), List(domain.name))
-    
+
     @rowFullWidth() {
+    	@breadcrumb(List(controllers.routes.DomainController.domain(domain.uuid, 1)), List(domain.name))
+    	
    		@linkGridWithImageAndName(hierarchiesListData, controllers.routes.DomainController.domain(domain.uuid, _),
 				controllers.routes.DomainController.hierarchy(_, 1), models.Types.HierarchyType)
 	}    

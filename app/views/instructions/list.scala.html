@@ -22,21 +22,27 @@
 
         topNavigation(linkList, captionList, activeList)
     }	
-	
-	@rowFullWidth() {
+
+    @rowFullWidth() {
     	@{
-            val linkList = instructionListData.list.map((instruction: Instruction) =>
-                controllers.routes.InstructionController.instruction(instruction.uuid, 1))
-                
-            val headingList = instructionListData.list.map(_.name)
-            
-            val textList = (instructionListData.list, parentObjectChains).zipped map((instruction, objectChain) => 
-            	objectChain.domain.name + " / " + objectChain.hierarchy.name + " / " +
-            	objectChain.amlObjectChain.map(eoi => eoi.fold(_.name, _.name)).mkString(" / "))
-            	
-			paginate(instructionListData.paginateData, controllers.routes.InstructionController.
-				list(domainOpt.map(_.uuid).getOrElse(""), _))
-			listWithOneLink(linkList, headingList, textList)            	
+    	val newInstructionListData = new utils.ModelListData[DbModel with NamedModel with HasShortText] {
+    		override val list = (instructionListData.list, parentObjectChains).zipped map((instruction, objectChain) =>
+    			 new DbModel with NamedModel with HasShortText {
+    			override val uuid = instruction.uuid
+    			override val name = instruction.name
+    			override val shortText = objectChain.domain.name + " / " + objectChain.hierarchy.name + " / " +
+            	objectChain.amlObjectChain.map(eoi => eoi.fold(_.name, _.name)).mkString(" / ")
+    			override val asJsObject = play.api.libs.json.Json.obj()
+    			})
+    			
+    		override val paginateData = instructionListData.paginateData
+    		override val imageList = instructionListData.imageList
+    		override val videoList = instructionListData.videoList
     	}
-    }
+    	
+   		linkGridWithNameAndText(newInstructionListData, 
+   			controllers.routes.InstructionController.list(domainOpt.map(_.uuid).getOrElse(""), _),
+				controllers.routes.InstructionController.instruction(_, 1))
+		}
+	}      
 }

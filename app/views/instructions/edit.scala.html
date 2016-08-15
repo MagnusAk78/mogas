@@ -22,7 +22,7 @@
         }{	
     	}		
 	}{
-		@backButton(controllers.routes.InstructionController.list("", 1))
+		@backButton(controllers.routes.InstructionController.instruction(instruction.uuid, 1))
 		@changeImageButton(instruction.uuid, models.Types.InstructionType)
 		@deleteButton(controllers.routes.InstructionController.delete(instruction.uuid))		
 	}

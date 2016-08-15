@@ -1,6 +1,6 @@
-@(instructionPart: InstructionPart, instruction: Instruction, page: Int, loggedInUser: Option[User], 
-	activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
-	webJarAssets: WebJarAssets)
+@(instructionPart: InstructionPart, instruction: Instruction, page: Int, mediaType: models.MediaTypes.MediaType,
+	loggedInUser: Option[User], activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, 
+	messages: Messages, webJarAssets: WebJarAssets)
 
 @import templates._
 @import components.buttons._
@@ -8,29 +8,60 @@
 @import components.utils._
 @import forms._
 
-@main(utils.MainViewData(Messages("edit", instruction.name + ": " + instructionPart.orderNumber), utils.NavTypes.Instructions), loggedInUser, activeDomain) {
-	
-	@rowLargeSmall() {
-		<div class="card">
-			<img class="card-img-top img-responsive m-x-auto" src="@routes.FileController.getStandardImage(instructionPart.uuid, 
-				models.Types.InstructionPartType.stringValue)" alt="instruction part image">
-		
-			<div class="card-block text-xs-left">
-				<h4 class="card-title">@Messages("instructionPart", instructionPart.orderNumber, instruction.name)</h4>
-				<p class="card-text">@instructionPart.text</p>
-			</div>	
-		</div>
-		
-		<div align="center" class="embed-responsive embed-responsive-4by3">
-    		<video controls class="embed-responsive-item">
-        		<source src="@routes.FileController.getVideo(instructionPart.uuid, models.Types.InstructionPartType.stringValue)">
-    		</video>
-		</div>		
+@main(utils.MainViewData(Messages("edit", instruction.name + ": " + instructionPart.orderNumber), 
+	utils.NavTypes.Instructions), loggedInUser, activeDomain) {
+	@{
+		val linkList = List(
+			controllers.routes.InstructionController.list("", page)
+		)                
+        val captionList = List(
+        	Messages("listAll"))
+        	
+        val activeList = List(false)
+
+        topNavigation(linkList, captionList, activeList)
+    }
+    
+	@{
+		val linkList = List(
+			controllers.routes.InstructionController.showPart(instructionPart.uuid, page, 
+				models.MediaTypes.MediaImage.stringValue),
+			controllers.routes.InstructionController.showPart(instructionPart.uuid, page, 
+				models.MediaTypes.MediaVideo.stringValue)
+		)                
+        val captionList = List(
+        	Messages("image"),
+        	Messages("video")
+        	)
+        	
+        val activeList = List(
+        	mediaType == models.MediaTypes.MediaImage,
+        	mediaType == models.MediaTypes.MediaVideo
+        	)
+
+        topNavigation(linkList, captionList, activeList)
+    }
+    
+    @rowLargeSmall() {
+    	@if(mediaType == models.MediaTypes.MediaImage) {
+    		<img class="img-fluid" src="@routes.FileController.getStandardImage(instructionPart.uuid, 
+				models.Types.InstructionPartType.stringValue)" alt="@instructionPart.shortText">
+    	}
+    	@if(mediaType == models.MediaTypes.MediaVideo) {
+    		<div class="embed-responsive embed-responsive-16by9">
+			<video controls>
+  				<source src="@routes.FileController.getVideo(instructionPart.uuid, models.Types.InstructionPartType.stringValue)">
+  					Your browser does not support the video tag.
+			</video>    		
+    		</div>
+    	}
+    } {
+    	<h4>@{ instruction.name + ": " + instructionPart.orderNumber }</h4>
+    	<p>@instructionPart.text</p>
     	
-    }{
-        @backButton(controllers.routes.InstructionController.instruction(instruction.uuid, page))
+		@backButton(controllers.routes.InstructionController.instruction(instruction.uuid, page))
         @editButton(controllers.routes.InstructionController.editPart(instructionPart.uuid))
     	@button(routes.InstructionController.movePartUp(instructionPart.uuid, page), Messages("moveUp"))
-    	@button(routes.InstructionController.movePartDown(instructionPart.uuid, page), Messages("moveDown"))        
+    	@button(routes.InstructionController.movePartDown(instructionPart.uuid, page), Messages("moveDown"))    	
     }
 }

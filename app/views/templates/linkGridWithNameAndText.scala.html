@@ -1,0 +1,61 @@
+@(modelListData: utils.ModelListData[DbModel with NamedModel with HasShortText], paginateRoute: Int => Call, 
+	linkRoute: String => Call, isHighlighted: (String => Boolean) = (uuid => false))(implicit flash: Flash, 
+	messages: Messages)
+	
+@import components.utils._
+
+@paginate(modelListData.paginateData, paginateRoute)
+
+@card(title: String, shortText: String, link: Call, isHL: Boolean) = {
+@if(isHL) {
+	<div class="card card-inverse card-primary">
+} else {
+	<div class="card card-outline-secondary">
+}
+	<div class="card-block">
+		<a class="card-link" href="@link">
+		<h4 class="card-title text-xs-left">@title</h4>
+		</a>
+		<p class="card-text text-xs-left">@shortText</p>
+	</div>
+</div>
+}
+
+@cardDeck(iMLD: utils.ModelListData[DbModel with NamedModel with HasShortText], columns: Int, iLinkRoute: String => Call, 
+	hiddenClasses: String) = {
+	<div class="@hiddenClasses">
+		@for((modelList, hasImageList) <- (iMLD.list.grouped(columns) zip iMLD.imageList.grouped(columns))) {		
+			<div class="card-deck-wrapper">
+			<div class="card-deck">
+  				@for(model <- modelList) {
+  					@card(model.name, model.shortText, iLinkRoute(model.uuid), isHighlighted(model.uuid))
+  				}
+  				@for(i <- 1 to (columns - modelList.length)) {
+  					<div class="card">
+
+  					</div>
+  				}  				
+  			</div>
+  			</div>
+  		}
+  	</div>	
+}
+
+<!-- XL -->
+@cardDeck(modelListData, 2, linkRoute, "hidden-lg-down")		
+  		
+<!-- LG -->
+@cardDeck(modelListData, 2, linkRoute, "hidden-md-down hidden-xl-up")
+  		
+<!-- MD -->
+<!-- SM -->
+<!-- XS -->		
+<div class="hidden-lg-up">
+	@for((model, hasImage) <- (modelListData.list zip modelListData.imageList)) {
+		<div class="row">
+  		<div class="col-xs-12">
+			@card(model.name, model.shortText, linkRoute(model.uuid), isHighlighted(model.uuid))
+  		</div>
+	</div>
+	}
+</div>	
