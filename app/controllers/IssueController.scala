@@ -44,6 +44,7 @@ import models.IssueUpdate
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import models.AmlObject
+import viewdata._
 
 @Singleton
 class IssueController @Inject() (
@@ -71,7 +72,7 @@ class IssueController @Inject() (
           issueListData <- issueService.getIssueList(page)
           objectChainList <- domainService.getAmlObjectChains(issueListData.list)
         } yield Ok(views.html.issues.list(domainOpt, issueListData, objectChainList,
-          Some(domainRequest.identity), domainRequest.activeDomain))
+          UserStatus(Some(domainRequest.identity), domainRequest.activeDomain)))
 
         responses recover {
           case e => InternalServerError(e.getMessage())
@@ -83,7 +84,7 @@ class IssueController @Inject() (
       implicit amlObjectRequest =>
         Ok(views.html.browse.createIssue(IssueForm.form, amlObjectRequest.myDomain,
           amlObjectRequest.hierarchy, amlObjectRequest.elementChain, amlObjectRequest.interface,
-          Some(amlObjectRequest.identity), amlObjectRequest.activeDomain))
+          UserStatus(Some(amlObjectRequest.identity), amlObjectRequest.activeDomain)))
     }
 
   def submitCreate(amlObjectUuid: String) = (generalActions.MySecuredAction andThen
@@ -93,7 +94,7 @@ class IssueController @Inject() (
           formWithErrors => {
             Future.successful(BadRequest(views.html.browse.createIssue(formWithErrors, amlObjectRequest.myDomain,
               amlObjectRequest.hierarchy, amlObjectRequest.elementChain, amlObjectRequest.interface,
-              Some(amlObjectRequest.identity), amlObjectRequest.activeDomain)))
+              UserStatus(Some(amlObjectRequest.identity), amlObjectRequest.activeDomain))))
           },
           formData => {
             val responses = for {
@@ -126,7 +127,7 @@ class IssueController @Inject() (
           amlObjectOpt <- amlObjectService.findOneElementOrInterface(AmlObject.queryByUuid(issueRequest.issue.parent))
           issueUpdatesListData <- issueService.getIssueUpdateList(issueRequest.issue, page)
         } yield Ok(views.html.issues.issue(issueRequest.issue, domainOpt.get, issueUpdatesListData,
-          Some(issueRequest.identity), issueRequest.activeDomain))
+          UserStatus(Some(issueRequest.identity), issueRequest.activeDomain)))
 
         responses recover {
           case e => InternalServerError(e.getMessage())
@@ -141,7 +142,7 @@ class IssueController @Inject() (
           issueOpt <- issueService.findOneIssue(Issue.queryByUuid(issueUpdateRequest.issueUpdate.parent))
         } yield issueOpt.map(issue => Ok(views.html.issues.inspectIssueUpdate(
           issueUpdateRequest.issueUpdate, issue, page,
-          Some(issueUpdateRequest.identity), issueUpdateRequest.activeDomain))).getOrElse(NotFound)
+          UserStatus(Some(issueUpdateRequest.identity), issueUpdateRequest.activeDomain)))).getOrElse(NotFound)
 
         responses recover {
           case e => InternalServerError(e.getMessage())
@@ -156,7 +157,7 @@ class IssueController @Inject() (
         IssueUpdateForm.form.bindFromRequest().fold(
           formWithErrors => {
             Future.successful(BadRequest(views.html.issues.createIssueUpdate(issueRequest.issue,
-              formWithErrors, Some(issueRequest.identity), issueRequest.activeDomain)))
+              formWithErrors, UserStatus(Some(issueRequest.identity), issueRequest.activeDomain))))
           },
           formData => {
             val responses = for {
@@ -188,7 +189,7 @@ class IssueController @Inject() (
       implicit issueRequest =>
 
         Ok(views.html.issues.createIssueUpdate(issueRequest.issue, IssueUpdateForm.form,
-          Some(issueRequest.identity), issueRequest.activeDomain))
+          UserStatus(Some(issueRequest.identity), issueRequest.activeDomain)))
     }
 
   def submitEditIssueUpdate(uuid: String) = (generalActions.MySecuredAction andThen
@@ -202,8 +203,8 @@ class IssueController @Inject() (
               issueOpt <- issueService.findOneIssue(Issue.queryByUuid(issueUpdateRequest.issueUpdate.parent))
             } yield issueOpt.map(issue => Ok(views.html.issues.editIssueUpdate(issue,
               issueUpdateRequest.issueUpdate,
-              formWithErrors, Some(issueUpdateRequest.identity),
-              issueUpdateRequest.activeDomain))).getOrElse(NotFound)
+              formWithErrors, UserStatus(Some(issueUpdateRequest.identity),
+              issueUpdateRequest.activeDomain)))).getOrElse(NotFound)
 
             responses recover {
               case e => InternalServerError(e.getMessage())
@@ -239,8 +240,8 @@ class IssueController @Inject() (
           issueOpt <- issueService.findOneIssue(Issue.queryByUuid(issueUpdateRequest.issueUpdate.parent))
         } yield issueOpt.map(issue => Ok(views.html.issues.editIssueUpdate(issue,
           issueUpdateRequest.issueUpdate,
-          IssueUpdateForm.form.fill(issueUpdateRequest.issueUpdate), Some(issueUpdateRequest.identity),
-          issueUpdateRequest.activeDomain))).getOrElse(NotFound)
+          IssueUpdateForm.form.fill(issueUpdateRequest.issueUpdate), UserStatus(Some(issueUpdateRequest.identity),
+          issueUpdateRequest.activeDomain)))).getOrElse(NotFound)
 
         responses recover {
           case e => InternalServerError(e.getMessage())

@@ -5,27 +5,31 @@ import play.api.libs.json._
 
 case class Instruction(
   override val uuid: String,
+  override val modelType: String,
   override val name: String,
   override val connectionTo: String,
   override val parent: String,
-  override val createdBy: String) extends DbModel with NamedModel with ConnectionTo[Domain] with ChildOf[AmlObject]
+  override val createdBy: String) extends DbModel with JsonImpl with HasModelType with NamedModel with ConnectionTo[Domain] with ChildOf[AmlObject]
     with CreatedBy {
 
   override def asJsObject: JsObject = {
-    Instruction.connectionToJsObject(this) ++ Instruction.namedModelJsObject(this) ++
-      Instruction.childOfJsObject(this) ++ Instruction.createdByJsObject(this)
+    Instruction.hasModelTypeJsObject(this) ++ 
+    Instruction.connectionToJsObject(this) ++ 
+    Instruction.namedModelJsObject(this) ++
+    Instruction.childOfJsObject(this) ++ 
+    Instruction.createdByJsObject(this)
   }
 }
 
-object Instruction extends DbModelComp[Instruction] with ChildOfComp[AmlObject] with ConnectionToComp[Domain]
+object Instruction extends DbModelComp[Instruction] with HasModelTypeComp with ChildOfComp[AmlObject] with ConnectionToComp[Domain]
     with CreatedByComp with NamedModelComp {
   implicit val instructionFormat = Json.format[Instruction]
 
   private val KeyCreatedByUser = "createdByUser"
 
   def create(name: String, connectionToToDomain: String, parentAmlObject: String, createdBy: String) =
-    Instruction(uuid = UUID.randomUUID.toString, name = name, connectionTo = connectionToToDomain,
-      parent = parentAmlObject, createdBy = createdBy)
+    Instruction(uuid = UUID.randomUUID.toString, modelType=Types.InstructionType.stringValue,
+        name = name, connectionTo = connectionToToDomain, parent = parentAmlObject, createdBy = createdBy)
 }
 
 /**

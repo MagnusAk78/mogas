@@ -1,7 +1,8 @@
+@import viewdata._
+
 @(domainOpt: Option[Domain], instructionListData: utils.ModelListData[Instruction], 
-	parentObjectChains: List[utils.AmlObjectChain],  loggedInUser: Option[User], 
-	activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, 
-	messages: Messages, lang: Lang, webJarAssets: WebJarAssets)    
+	parentObjectChains: List[utils.AmlObjectChain],  userStatus: UserStatus)(implicit flash: Flash, 
+	request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)    
 
 @import templates._
 @import components.buttons._
@@ -9,7 +10,7 @@
 @import components.utils._
 @import forms._
 
-@main(utils.MainViewData(Messages("instructions"), utils.NavTypes.Instructions), loggedInUser, activeDomain) {
+@main(MainViewData(Messages("instructions"), utils.NavTypes.Instructions, userStatus)) {
 	
 	@{
 		val linkList = List(
@@ -32,7 +33,6 @@
     			override val name = instruction.name
     			override val shortText = objectChain.domain.name + " / " + objectChain.hierarchy.name + " / " +
             	objectChain.amlObjectChain.map(eoi => eoi.fold(_.name, _.name)).mkString(" / ")
-    			override val asJsObject = play.api.libs.json.Json.obj()
     			})
     			
     		override val paginateData = instructionListData.paginateData

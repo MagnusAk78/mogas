@@ -1,5 +1,7 @@
-@(instructionPart: InstructionPart, instruction: Instruction, page: Int, mediaType: models.MediaTypes.MediaType,
-	loggedInUser: Option[User], activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, 
+@import viewdata._
+
+@(instructionPart: InstructionPart, instruction: Instruction, page: Int, mediaData: utils.MediaData,
+	userStatus: UserStatus)(implicit flash: Flash, request: RequestHeader, 
 	messages: Messages, webJarAssets: WebJarAssets)
 
 @import templates._
@@ -8,8 +10,8 @@
 @import components.utils._
 @import forms._
 
-@main(utils.MainViewData(Messages("edit", instruction.name + ": " + instructionPart.orderNumber), 
-	utils.NavTypes.Instructions), loggedInUser, activeDomain) {
+@main(MainViewData(Messages("edit", instruction.name + ": " + instructionPart.orderNumber), 
+	utils.NavTypes.Instructions, userStatus)) {
 	@{
 		val linkList = List(
 			controllers.routes.InstructionController.list("", page)
@@ -35,25 +37,33 @@
         	)
         	
         val activeList = List(
-        	mediaType == models.MediaTypes.MediaImage,
-        	mediaType == models.MediaTypes.MediaVideo
+        	mediaData.mediaType == models.MediaTypes.MediaImage,
+        	mediaData.mediaType == models.MediaTypes.MediaVideo
         	)
 
         topNavigation(linkList, captionList, activeList)
     }
     
     @rowLargeSmall() {
-    	@if(mediaType == models.MediaTypes.MediaImage) {
+    	@if(mediaData.mediaType == models.MediaTypes.MediaImage) {
+    		@if(mediaData.hasMedia) {
     		<img class="img-fluid" src="@routes.FileController.getStandardImage(instructionPart.uuid, 
 				models.Types.InstructionPartType.stringValue)" alt="@instructionPart.shortText">
+			} else {
+				<i class="fa fa-camera-retro fa-5x"></i>
+			}
     	}
-    	@if(mediaType == models.MediaTypes.MediaVideo) {
+    	@if(mediaData.mediaType == models.MediaTypes.MediaVideo) {
+    		@if(mediaData.hasMedia) {
     		<div class="embed-responsive embed-responsive-16by9">
 			<video controls>
   				<source src="@routes.FileController.getVideo(instructionPart.uuid, models.Types.InstructionPartType.stringValue)">
   					Your browser does not support the video tag.
 			</video>    		
     		</div>
+    		} else {
+				<i class="fa fa-video-camera fa-5x"></i>
+			}
     	}
     } {
     	<h4>@{ instruction.name + ": " + instructionPart.orderNumber }</h4>

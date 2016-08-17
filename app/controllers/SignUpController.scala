@@ -9,7 +9,6 @@ import com.mohiva.play.silhouette.api.repositories.AuthInfoRepository
 import com.mohiva.play.silhouette.api.services.AvatarService
 import com.mohiva.play.silhouette.api.util.PasswordHasher
 import com.mohiva.play.silhouette.impl.providers._
-import com.sksamuel.scrimage.Image
 
 import models.formdata.SignUpForm
 import javax.inject.Inject
@@ -45,6 +44,7 @@ import utils.auth.DefaultEnv
 import akka.stream.Materializer
 import play.api.libs.iteratee.Iteratee
 import controllers.actions.GeneralActions
+import viewdata._
 
 /**
  * The `Sign Up` controller.
@@ -89,7 +89,7 @@ class SignUpController @Inject() (
       case Some(user) => {
         if (user.uuid == request.identity.uuid) {
           //TODO: Use sign up form and edit
-          Ok(views.html.users.edit(user, SignUpForm.form.fill(user), Some(request.identity), activeDomainOpt))
+          Ok(views.html.users.edit(user, SignUpForm.form.fill(user), UserStatus(Some(request.identity), activeDomainOpt)))
         } else {
           Redirect(routes.UserController.list(1))
         }
@@ -145,7 +145,7 @@ class SignUpController @Inject() (
     generalActions.UserAction(uuid)).async { implicit userRequest =>
       SignUpForm.form.bindFromRequest.fold(
         errorForm => Future.successful(BadRequest(views.html.users.edit(userRequest.user, errorForm,
-          Some(userRequest.identity), None))),
+          UserStatus(Some(userRequest.identity), None)))),
         data => {
 
           val newLoginInfo = LoginInfo(CredentialsProvider.ID, data.email)

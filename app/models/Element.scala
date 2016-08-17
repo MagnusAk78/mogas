@@ -5,6 +5,7 @@ import play.api.libs.json._
 
 case class Element(
   override val uuid: String,
+  override val modelType: String,
   override val connectionTo: String,
   override val amlId: String,
   override val parent: String,
@@ -12,10 +13,11 @@ case class Element(
   override val name: String,
   override val elements: Set[String],
   parentIsHierarchy: Boolean,
-  interfaces: Set[String]) extends DbModel with AmlObject
+  interfaces: Set[String]) extends DbModel with JsonImpl with HasModelType with AmlObject
     with ChildOf[ElementParent] with ElementParent {
 
   override def asJsObject: JsObject =
+    Element.hasModelTypeJsObject(this) ++
     Element.amlObjectJsObject(this) ++
       Element.childOfJsObject(this) ++
       Element.elementParentJsObject(this) ++
@@ -23,7 +25,7 @@ case class Element(
         Element.KeyInterfaces -> Json.toJson(interfaces))
 }
 
-object Element extends DbModelComp[Element] with AmlObjectComp with ChildOfComp[ElementParent]
+object Element extends DbModelComp[Element] with HasModelTypeComp with AmlObjectComp with ChildOfComp[ElementParent]
     with ElementParentComp {
 
   implicit val elementFormat = Json.format[Element]
@@ -34,8 +36,8 @@ object Element extends DbModelComp[Element] with AmlObjectComp with ChildOfComp[
   def create(connectionToDomain: String, name: String, parent: String, parentIsHierarchy: Boolean = false,
              orderNumber: Int, amlId: String, elements: Set[String] = Set.empty,
              interfaces: Set[String] = Set.empty) =
-    Element(uuid = UUID.randomUUID.toString, connectionTo = connectionToDomain, name = name, parent = parent,
-      parentIsHierarchy = parentIsHierarchy, orderNumber = orderNumber, amlId = amlId,
+    Element(uuid = UUID.randomUUID.toString, modelType = Types.ElementType.stringValue, connectionTo = connectionToDomain, 
+        name = name, parent = parent, parentIsHierarchy = parentIsHierarchy, orderNumber = orderNumber, amlId = amlId,
       elements = elements, interfaces = interfaces)
 }
 

@@ -2,6 +2,7 @@ package models.daos
 
 import scala.concurrent.Future
 import models.DbModel
+import models.JsonImpl
 import reactivemongo.play.json.collection.JSONCollection
 import play.api.libs.json.JsObject
 import scala.concurrent.ExecutionContext
@@ -13,9 +14,8 @@ import reactivemongo.play.json.JSONSerializationPack
 import play.modules.reactivemongo.json._
 import reactivemongo.api.QueryOpts
 import models.DbModelComp
-import models.DbModel
 
-abstract class BaseModelDAO[M <: DbModel](implicit exec: ExecutionContext, implicit val joWrites: OWrites[M],
+abstract class BaseModelDAO[M <: DbModel with JsonImpl](implicit exec: ExecutionContext, implicit val joWrites: OWrites[M],
                                           implicit val joReads: Reads[M]) {
 
   protected def collection: Future[JSONCollection]

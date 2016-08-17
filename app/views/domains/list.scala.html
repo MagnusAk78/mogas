@@ -1,5 +1,6 @@
-@(domainListData: utils.ModelListData[Domain], loggedInUser: Option[User],
-	activeDomain: Option[Domain])(implicit flash: Flash,
+@import viewdata._
+
+@(domainListData: utils.ModelListData[Domain], userStatus: UserStatus)(implicit flash: Flash,
     request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
 
 @import templates._
@@ -7,7 +8,7 @@
 @import components.media._
 @import components.utils._
 
-@main(utils.MainViewData(Messages("domains"), utils.NavTypes.Domains), loggedInUser, activeDomain) {
+@main(MainViewData(Messages("domains"), utils.NavTypes.Domains, userStatus)) {
 	
 	@{
 		val linkList = List(

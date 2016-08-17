@@ -7,8 +7,9 @@
 @import components.buttons._
 @import components.media._
 @import helper._
+@import viewdata._
 
-@main(utils.MainViewData(Messages("signUp"), utils.NavTypes.None), None, None) {
+@main(MainViewData(Messages("signUp"), utils.NavTypes.None, UserStatus(None, None))) {
 	@title(Messages("signUp"))
 	@rowLargeSmall() {
 		

@@ -1,14 +1,15 @@
+@import viewdata._
+
 @(domain: Domain, hierarchy: Hierarchy, elementChain: List[Element], 
-	interface: Interface, loggedInUser: Option[User], 
-	activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, messages: Messages, lang: Lang, 
-	webJarAssets: WebJarAssets)
+	interface: Interface, userStatus: UserStatus)(implicit flash: Flash, 
+	request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
 
 @import templates._
 @import components.buttons._
 @import components.media._
 @import components.utils._
 
-@main(utils.MainViewData(interface.name, utils.NavTypes.Browse), loggedInUser, activeDomain) {
+@main(MainViewData(interface.name, utils.NavTypes.Browse, userStatus)) {
 	
 	@rowLargeSmall() {
         @{

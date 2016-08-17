@@ -7,15 +7,18 @@ import play.api.libs.json._
 
 case class User(
     override val uuid: String,
+    override val modelType: String,
     override val name: String,
     val loginInfo: LoginInfo,
     val firstName: String,
     val lastName: String,
     val email: String,
     val avatarURL: Option[String],
-    val activeDomain: String) extends DbModel with Identity with NamedModel {
+    val activeDomain: String) extends DbModel with JsonImpl with HasModelType with Identity with NamedModel {
 
-  override def asJsObject: JsObject = User.namedModelJsObject(this) ++
+  override def asJsObject: JsObject =
+    User.hasModelTypeJsObject(this) ++
+    User.namedModelJsObject(this) ++
     JsObject(Seq.empty ++
       Seq(User.KeyLoginInfo -> Json.toJson(loginInfo)) ++
       Seq(User.KeyFirstName -> JsString(firstName)) ++
@@ -25,7 +28,7 @@ case class User(
       Seq(User.KeyActiveDomain -> JsString(activeDomain)))
 }
 
-object User extends DbModelComp[User] with NamedModelComp {
+object User extends DbModelComp[User] with HasModelTypeComp with NamedModelComp {
   implicit val userFormat = Json.format[User]
 
   private val KeyLoginInfo = "loginInfo"
@@ -42,9 +45,9 @@ object User extends DbModelComp[User] with NamedModelComp {
     email: String,
     avatarURL: Option[String] = None,
     activeDomain: String = UuidNotSet) =
-    User(uuid = UUID.randomUUID.toString, loginInfo = loginInfo, firstName = firstName,
-      lastName = lastName, name = name, email = email, avatarURL = avatarURL,
-      activeDomain = activeDomain)
+    User(uuid = UUID.randomUUID.toString, modelType=Types.UserType.stringValue, loginInfo = loginInfo, 
+        firstName = firstName, lastName = lastName, name = name, email = email, avatarURL = avatarURL,
+        activeDomain = activeDomain)
 
   def queryByLoginInfo(loginInfo: LoginInfo): JsObject = Json.obj(KeyLoginInfo -> Json.toJson(loginInfo))
 

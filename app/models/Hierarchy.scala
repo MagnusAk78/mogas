@@ -5,26 +5,28 @@ import play.api.libs.json._
 
 case class Hierarchy(
   override val uuid: String,
+  override val modelType: String,
   override val parent: String,
   override val name: String,
   override val orderNumber: Int,
-  override val elements: Set[String]) extends DbModel with ChildOf[Domain] with ElementParent
-    with NamedModel with OrderedModel {
+  override val elements: Set[String]) extends DbModel with JsonImpl with HasModelType with 
+    ChildOf[Domain] with ElementParent with NamedModel with OrderedModel {
 
   override def asJsObject: JsObject = {
+    Hierarchy.hasModelTypeJsObject(this) ++
     Hierarchy.childOfJsObject(this) ++
       Hierarchy.elementParentJsObject(this) ++
       Hierarchy.namedModelJsObject(this) ++ Hierarchy.orderedModelJsObject(this)
   }
 }
 
-object Hierarchy extends DbModelComp[Hierarchy] with ChildOfComp[Domain] with ElementParentComp
+object Hierarchy extends DbModelComp[Hierarchy] with HasModelTypeComp with ChildOfComp[Domain] with ElementParentComp
     with NamedModelComp with OrderedModelComp {
   implicit val hierarchyFormat = Json.format[Hierarchy]
 
   def create(name: String, parentDomain: String, orderNumber: Int, elements: Set[String] = Set.empty) =
-    Hierarchy(uuid = UUID.randomUUID.toString, name = name, parent = parentDomain, orderNumber = orderNumber,
-      elements = elements)
+    Hierarchy(uuid = UUID.randomUUID.toString, modelType=Types.HierarchyType.stringValue, name = name, 
+        parent = parentDomain, orderNumber = orderNumber, elements = elements)
 }
 
 /*

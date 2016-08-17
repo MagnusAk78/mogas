@@ -1,11 +1,13 @@
-@(userListData: utils.ModelListData[User], loggedInUser: Option[User], activeDomain: Option[Domain])(implicit flash: Flash,
+@import viewdata._
+
+@(userListData: utils.ModelListData[User], userStatus: UserStatus)(implicit flash: Flash,
     messages: Messages, request: RequestHeader, webJarAssets: WebJarAssets)
 
 @import templates._
 @import components.utils._
 @import components.media._
 
-@main(utils.MainViewData(Messages("users"), utils.NavTypes.Users), loggedInUser, activeDomain) {
+@main(MainViewData(Messages("users"), utils.NavTypes.Users, userStatus)) {
 	
 	@{
 		val linkList = List(controllers.routes.UserController.list(userListData.paginateData.page))                

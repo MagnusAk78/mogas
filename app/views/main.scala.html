@@ -1,5 +1,6 @@
-@(mainViewData: utils.MainViewData, loggedInUser: Option[models.User], activeDomain: Option[models.Domain])(content: Html)(implicit flash: Flash, 
-	messages: Messages, webJarAssets: WebJarAssets, lang: Lang)
+@import viewdata._
+
+@(mainViewData: MainViewData)(content: Html)(implicit flash: Flash, messages: Messages, webJarAssets: WebJarAssets, lang: Lang)
 
 @import templates._
 
@@ -30,7 +31,7 @@
         
     </head>
     <body>
-		@navigationBar(Messages("brandName"), loggedInUser)
+		@navigationBar(Messages("brandName"), mainViewData.userStatus.loggedInUser)
     	
 
 
@@ -39,7 +40,7 @@
 		<div class="col-md-3 col-lg-2 sidebar-offcanvas max-width-menu" id="sidebar" role="navigation">
 		        		
 			<ul class="nav nav-pills nav-stacked nav-left m-a">
-				@if(loggedInUser.isDefined) {
+				@if(mainViewData.userStatus.loggedInUser.isDefined) {
 				<li class="nav-item">
 					<a class="nav-link @if(mainViewData.navType == utils.NavTypes.Domains){active}" 
 					href="@routes.DomainController.list(1)">
@@ -50,7 +51,7 @@
         
 
 
-				@if(loggedInUser.isDefined && activeDomain.isDefined) {
+				@if(mainViewData.userStatus.loggedInUser.isDefined && mainViewData.userStatus.activeDomain.isDefined) {
 				<li class="nav-item">
 					<a class="nav-link @if(mainViewData.navType == utils.NavTypes.Users){active}" 
 					href="@routes.UserController.list(1)">
@@ -60,7 +61,7 @@
         		
         		<li class="nav-item">
 					<a class="nav-link @if(mainViewData.navType == utils.NavTypes.Browse){active}" 
-					href="@routes.DomainController.domain(activeDomain.get.uuid, 1)">
+					href="@routes.DomainController.domain(mainViewData.userStatus.activeDomain.get.uuid, 1)">
             			@Messages("browse")
             		</a>
         		</li>
@@ -81,14 +82,14 @@
         		}
 			</ul>		
 			
-		    @if(loggedInUser.isDefined && activeDomain.isDefined) {
+		    @if(mainViewData.userStatus.loggedInUser.isDefined && mainViewData.userStatus.activeDomain.isDefined) {
 		        <div class="card card-inverse card-success text-xs-center m-y-1">
   					<div class="card-block">
-      					<p class="card-text">@activeDomain.get.name</p>
+      					<p class="card-text">@mainViewData.userStatus.activeDomain.get.name</p>
   					</div>
 				</div>
 			}
-        	@if(loggedInUser.isDefined && activeDomain.isEmpty) {
+        	@if(mainViewData.userStatus.loggedInUser.isDefined && mainViewData.userStatus.activeDomain.isEmpty) {
         		<div class="card card-inverse card-warning text-xs-center m-y-1">
   					<div class="card-block">
   						<p class="card-text">@Messages("noActiveDomain")</p>

@@ -1,6 +1,7 @@
-@(domainForm: Form[models.formdata.DomainForm.Data], loggedInUser: Option[models.User], 
-	activeDomain: Option[models.Domain])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
-	lang: Lang, webJarAssets: WebJarAssets)
+@import viewdata._
+
+@(domainForm: Form[models.formdata.DomainForm.Data], userStatus: UserStatus)(implicit flash: Flash, 
+	request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
 
 @import templates._
 @import components.buttons._
@@ -8,7 +9,7 @@
 @import helper._
 @implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f("col-sm-4 col-md-3", "col-sm-8 col-md-9")) }
 
-@main(utils.MainViewData(Messages("createNew", Messages("domain")), utils.NavTypes.Domains), loggedInUser, activeDomain) {
+@main(MainViewData(Messages("createNew", Messages("domain")), utils.NavTypes.Domains, userStatus)) {
 
 	@{
 		val linkList = List(

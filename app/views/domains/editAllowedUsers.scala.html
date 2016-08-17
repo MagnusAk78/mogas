@@ -1,13 +1,14 @@
-@(domain: Domain, userListData: utils.ModelListData[User], loggedInUser: Option[User], 
-	activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
-	webJarAssets: WebJarAssets)
+@import viewdata._
+
+@(domain: Domain, userListData: utils.ModelListData[User], userStatus: UserStatus)(implicit flash: Flash, 
+	request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets)
 
 @import templates._
 @import components.media._
 @import components.buttons._
 @import components.utils._
 
-@main(utils.MainViewData(Messages("editAllowedUsers", domain.name), utils.NavTypes.Domains), loggedInUser, activeDomain) {
+@main(MainViewData(Messages("editAllowedUsers", domain.name), utils.NavTypes.Domains, userStatus)) {
 
 	@{
 		val linkList = List(

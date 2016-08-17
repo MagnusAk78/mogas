@@ -1,8 +1,8 @@
-@(instruction: Instruction, domain: Domain, hierarchy: Hierarchy, 
-	elementChain: List[Element], interface: Option[Interface], 
-	instructionPartListData: utils.ModelListData[InstructionPart], loggedInUser: Option[User], 
-	activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
-	webJarAssets: WebJarAssets)
+@import viewdata._
+
+@(instruction: Instruction, domain: Domain, hierarchy: Hierarchy, elementChain: List[Element], 
+	interface: Option[Interface], instructionPartListData: utils.ModelListData[InstructionPart], 
+	userStatus: UserStatus)(implicit flash: Flash, request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets)
 
 @import templates._
 @import components.buttons._
@@ -32,7 +32,7 @@
 }
 }
 
-@main(utils.MainViewData(instruction.name, utils.NavTypes.Instructions), loggedInUser, activeDomain) {
+@main(MainViewData(instruction.name, utils.NavTypes.Instructions, userStatus)) {
 	
 	@{
 		val linkList = List(
@@ -45,6 +45,32 @@
 
         topNavigation(linkList, captionList, activeList)
     }	
+    
+	@{	 
+            var linkList = List(controllers.routes.DomainController.domain(domain.uuid, 1),
+                controllers.routes.DomainController.hierarchy(hierarchy.uuid, 1))
+                
+            var textList = List(domain.name, hierarchy.name)
+
+            for(element <- elementChain) {
+                linkList = linkList ::: List(controllers.routes.DomainController.element(element.uuid, 1, 1))
+
+                textList = textList ::: List(element.name)
+            }
+            
+            interface match {
+            	case Some(i) => {
+            		linkList = linkList ::: List(controllers.routes.DomainController.interface(i.uuid))
+            		textList = textList ::: List(i.name)
+            	}
+            	case None =>
+            }
+            
+            linkList = linkList ::: List(controllers.routes.InstructionController.instruction(instruction.uuid, 1))
+            textList = textList ::: List(instruction.name)
+
+            breadcrumb(linkList, textList)
+        }
 
     @rowFullWidth() {
     	@{
@@ -54,7 +80,6 @@
     			override val uuid = instructionPart.uuid
     			override val name = instruction.name + ": " + instructionPart.orderNumber
     			override val shortText = instructionPart.shortText.take(140)
-    			override val asJsObject = play.api.libs.json.Json.obj()
     			})
     			
     		override val paginateData = instructionPartListData.paginateData

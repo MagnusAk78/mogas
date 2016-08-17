@@ -23,6 +23,7 @@ import play.api.Logger
 import controllers.actions.GeneralActions
 import models.Domain
 import models.services.DomainService
+import viewdata._
 
 /**
  * The basic application controller.
@@ -59,7 +60,7 @@ class ApplicationController @Inject() (
         case None => Future.successful(None)
       }
     } yield userOpt match {
-      case Some(user) => Ok(views.html.welcome(userOpt, activeDomain))
+      case Some(user) => Ok(views.html.welcome(UserStatus(userOpt, activeDomain)))
       case None => Redirect(routes.SignInController.view())
     }
 

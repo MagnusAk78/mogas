@@ -1,5 +1,7 @@
-@(user: User, signUpForm: Form[models.formdata.SignUpForm.Data], loggedInUser: Option[User], 
-	activeDomain: Option[Domain])(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, 
+@import viewdata._
+@import models.formdata._
+
+@(user: User, signUpForm: Form[SignUpForm.Data], userStatus: UserStatus)(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, 
 	flash: Flash)
 
 @import templates._
@@ -9,7 +11,7 @@
 @import helper._
 @implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f("col-sm-4 col-md-3", "col-sm-8 col-md-9")) }
 
-@main(utils.MainViewData(Messages("edit", user.name), utils.NavTypes.Users), loggedInUser, activeDomain) {
+@main(MainViewData(Messages("edit", user.name), utils.NavTypes.Users, userStatus)) {
 	@{
 		val linkList = List(controllers.routes.UserController.list(1))                
         val captionList = List(Messages("list"))

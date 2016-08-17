@@ -1,15 +1,16 @@
-@(uuid: String, modelType: models.Types.ModelType, loggedInUser: Option[models.User], 
-	activeDomain: Option[models.Domain])(implicit flash: Flash, request: RequestHeader, messages: Messages, 
+@import viewdata._
+
+@(genericModelData: GenericModelData, userStatus: UserStatus)(implicit flash: Flash, request: RequestHeader, messages: Messages, 
 	lang: Lang, webJarAssets: WebJarAssets)
 
 @import templates._
 @import forms._
 
-@main(utils.MainViewData(Messages("videoUpload"), modelType.navType), loggedInUser, activeDomain) {
+@main(MainViewData(Messages("videoUpload"), genericModelData.navType, userStatus)) {
 	@title(Messages("videoUpload"))
 	
 	@rowLargeSmall() {	
-		@formVideoFileUpload(routes.FileController.submitVideo(uuid, modelType.stringValue))
+		@formVideoFileUpload(routes.FileController.submitVideo(genericModelData.dbModel.uuid, genericModelData.dbModel.modelType))
 	}{	
 	}
 }

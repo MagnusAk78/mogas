@@ -5,7 +5,7 @@ import play.api.libs.json.JsString
 import play.api.libs.json.Json
 import play.api.libs.json.JsNumber
 
-trait AmlObject extends DbModel with NamedModel with ConnectionTo[Domain] with OrderedModel {
+trait AmlObject extends DbModel with JsonImpl with NamedModel with ConnectionTo[Domain] with OrderedModel {
   val amlId: String
 }
 

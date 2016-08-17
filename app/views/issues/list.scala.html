@@ -1,5 +1,7 @@
+@import viewdata._
+
 @(domainOpt: Option[Domain], issueListData: utils.ModelListData[Issue], parentObjectChains: List[utils.AmlObjectChain], 
-	loggedInUser: Option[User], activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, 
+	userStatus: UserStatus)(implicit flash: Flash, request: RequestHeader, 
 	messages: Messages, lang: Lang, webJarAssets: WebJarAssets)    
 
 @import templates._
@@ -8,7 +10,7 @@
 @import components.utils._
 @import forms._
 
-@main(utils.MainViewData(Messages("issues"), utils.NavTypes.Issues), loggedInUser, activeDomain) {
+@main(MainViewData(Messages("issues"), utils.NavTypes.Issues, userStatus)) {
 	@title(Messages("issues"))
 	@rowLargeSmall() {
     	@{

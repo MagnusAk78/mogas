@@ -39,12 +39,15 @@ import models.services.InstructionService
 import models.formdata.InstructionForm
 import models.Instruction
 import models.services.AmlObjectService
+import models.services.FileService
 import models.formdata.InstructionPartForm
 import models.InstructionPart
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import models.AmlObject
 import models.MediaTypes
+import utils.MediaData
+import viewdata._
 
 @Singleton
 class InstructionController @Inject() (
@@ -54,6 +57,7 @@ class InstructionController @Inject() (
   val amlObjectService: AmlObjectService,
   val domainService: DomainService,
   val instructionService: InstructionService,
+  val fileService: FileService,
   implicit val webJarAssets: WebJarAssets)(implicit exec: ExecutionContext, materialize: Materializer)
     extends Controller with I18nSupport {
 
@@ -72,7 +76,7 @@ class InstructionController @Inject() (
           instructionListData <- instructionService.getInstructionList(page)
           objectChainList <- domainService.getAmlObjectChains(instructionListData.list)
         } yield Ok(views.html.instructions.list(domainOpt, instructionListData, objectChainList,
-          Some(domainRequest.identity), domainRequest.activeDomain))
+          UserStatus(Some(domainRequest.identity), domainRequest.activeDomain)))
 
         responses recover {
           case e => InternalServerError(e.getMessage())
@@ -84,7 +88,7 @@ class InstructionController @Inject() (
       implicit amlObjectRequest =>
         Ok(views.html.browse.createInstruction(InstructionForm.form, amlObjectRequest.myDomain,
           amlObjectRequest.hierarchy, amlObjectRequest.elementChain, amlObjectRequest.interface,
-          Some(amlObjectRequest.identity), amlObjectRequest.activeDomain))
+          UserStatus(Some(amlObjectRequest.identity), amlObjectRequest.activeDomain)))
     }
 
   def submitCreate(amlObjectUuid: String) = (generalActions.MySecuredAction andThen
@@ -94,7 +98,7 @@ class InstructionController @Inject() (
           formWithErrors => {
             Future.successful(BadRequest(views.html.browse.createInstruction(formWithErrors, amlObjectRequest.myDomain,
               amlObjectRequest.hierarchy, amlObjectRequest.elementChain, amlObjectRequest.interface,
-              Some(amlObjectRequest.identity), amlObjectRequest.activeDomain)))
+              UserStatus(Some(amlObjectRequest.identity), amlObjectRequest.activeDomain))))
           },
           formData => {
             val responses = for {
@@ -122,8 +126,8 @@ class InstructionController @Inject() (
     generalActions.RequireActiveDomain andThen generalActions.InstructionAction(uuid)) {
       implicit myInstructionRequest =>
         Ok(views.html.instructions.edit(myInstructionRequest.instruction,
-          InstructionForm.form.fill(myInstructionRequest.instruction), Some(myInstructionRequest.identity),
-          myInstructionRequest.activeDomain))
+          InstructionForm.form.fill(myInstructionRequest.instruction), UserStatus(Some(myInstructionRequest.identity),
+          myInstructionRequest.activeDomain)))
     }
 
   def submitEdit(uuid: String) = (generalActions.MySecuredAction andThen
@@ -132,7 +136,7 @@ class InstructionController @Inject() (
         InstructionForm.form.bindFromRequest().fold(
           formWithErrors => {
             Future.successful(BadRequest(views.html.instructions.edit(myInstructionRequest.instruction, formWithErrors,
-              Some(myInstructionRequest.identity), myInstructionRequest.activeDomain)))
+              UserStatus(Some(myInstructionRequest.identity), myInstructionRequest.activeDomain))))
           },
           formData => {
             val responses = for {
@@ -181,7 +185,7 @@ class InstructionController @Inject() (
           instructionPartsListData <- instructionService.getInstructionPartList(instructionRequest.instruction, page)
         } yield Ok(views.html.instructions.instruction(instructionRequest.instruction, instructionRequest.myDomain,
           instructionRequest.hierarchy, instructionRequest.elementChain, instructionRequest.interface,
-          instructionPartsListData, Some(instructionRequest.identity), instructionRequest.activeDomain))
+          instructionPartsListData, UserStatus(Some(instructionRequest.identity), instructionRequest.activeDomain)))
 
         responses recover {
           case e => InternalServerError(e.getMessage())
@@ -191,12 +195,18 @@ class InstructionController @Inject() (
   def showPart(uuid: String, page: Int, mediaType: String) = (generalActions.MySecuredAction andThen
     generalActions.RequireActiveDomain andThen generalActions.InstructionPartAction(uuid)).async {
       implicit instructionPartRequest =>
+        
+        
 
         val responses = for {
           instructionOpt <- instructionService.findOneInstruction(Instruction.queryByUuid(instructionPartRequest.instructionPart.parent))
+          mediaExists <- MediaTypes.fromString(mediaType) match {
+            case MediaTypes.MediaImage => fileService.imageExists(uuid)
+            case MediaTypes.MediaVideo => fileService.videoExists(uuid)
+          }
         } yield instructionOpt.map(instruction => Ok(views.html.instructions.showPart(
-          instructionPartRequest.instructionPart, instruction, page, MediaTypes.fromString(mediaType),
-          Some(instructionPartRequest.identity), instructionPartRequest.activeDomain))).getOrElse(NotFound)
+          instructionPartRequest.instructionPart, instruction, page, MediaData(MediaTypes.fromString(mediaType), mediaExists),
+          UserStatus(Some(instructionPartRequest.identity), instructionPartRequest.activeDomain)))).getOrElse(NotFound)
 
         responses recover {
           case e => InternalServerError(e.getMessage())
@@ -211,7 +221,7 @@ class InstructionController @Inject() (
         InstructionPartForm.form.bindFromRequest().fold(
           formWithErrors => {
             Future.successful(BadRequest(views.html.instructions.createPart(instructionRequest.instruction,
-              formWithErrors, Some(instructionRequest.identity), instructionRequest.activeDomain)))
+              formWithErrors, UserStatus(Some(instructionRequest.identity), instructionRequest.activeDomain))))
           },
           formData => {
             val responses = for {
@@ -225,7 +235,7 @@ class InstructionController @Inject() (
             } yield optSavedInstructionPart match {
               case Some(newInstructionPart) =>
                 //TODO: Change to edit when exist
-                Redirect(routes.InstructionController.instruction(instructionUuid, 1)).
+                Redirect(routes.InstructionController.showPart(newInstructionPart.uuid, 1, MediaTypes.MediaImage.stringValue)).
                   flashing("success" -> Messages("db.success.insert", newInstructionPart.uuid))
               case None =>
                 Redirect(routes.InstructionController.createPart(instructionUuid)).
@@ -243,7 +253,7 @@ class InstructionController @Inject() (
       implicit instructionRequest =>
 
         Ok(views.html.instructions.createPart(instructionRequest.instruction, InstructionPartForm.form,
-          Some(instructionRequest.identity), instructionRequest.activeDomain))
+          UserStatus(Some(instructionRequest.identity), instructionRequest.activeDomain)))
     }
 
   def submitEditPart(uuid: String) = (generalActions.MySecuredAction andThen
@@ -257,8 +267,8 @@ class InstructionController @Inject() (
               instructionOpt <- instructionService.findOneInstruction(Instruction.queryByUuid(instructionPartRequest.instructionPart.parent))
             } yield instructionOpt.map(instruction => Ok(views.html.instructions.editPart(instruction,
               instructionPartRequest.instructionPart,
-              formWithErrors, Some(instructionPartRequest.identity),
-              instructionPartRequest.activeDomain))).getOrElse(NotFound)
+              formWithErrors, UserStatus(Some(instructionPartRequest.identity),
+              instructionPartRequest.activeDomain)))).getOrElse(NotFound)
 
             responses recover {
               case e => InternalServerError(e.getMessage())
@@ -294,8 +304,8 @@ class InstructionController @Inject() (
           instructionOpt <- instructionService.findOneInstruction(Instruction.queryByUuid(instructionPartRequest.instructionPart.parent))
         } yield instructionOpt.map(instruction => Ok(views.html.instructions.editPart(instruction,
           instructionPartRequest.instructionPart,
-          InstructionPartForm.form.fill(instructionPartRequest.instructionPart), Some(instructionPartRequest.identity),
-          instructionPartRequest.activeDomain))).getOrElse(NotFound)
+          InstructionPartForm.form.fill(instructionPartRequest.instructionPart), UserStatus(Some(instructionPartRequest.identity),
+          instructionPartRequest.activeDomain)))).getOrElse(NotFound)
 
         responses recover {
           case e => InternalServerError(e.getMessage())

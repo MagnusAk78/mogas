@@ -1,6 +1,8 @@
-@(instruction: Instruction, instructionPartForm: Form[models.formdata.InstructionPartForm.Data],   
-	loggedInUser: Option[User], activeDomain: Option[models.Domain])(implicit flash: Flash, request: RequestHeader, 
-	messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
+@import viewdata._
+@import models.formdata._
+
+@(instruction: Instruction, instructionPartForm: Form[InstructionPartForm.Data], userStatus: UserStatus)(implicit flash: Flash, 
+	request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
 
 @implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f("col-sm-4 col-md-3", "col-sm-8 col-md-9")) }
 @import templates._
@@ -8,7 +10,7 @@
 @import components.media._
 @import helper._
 
-@main(utils.MainViewData(Messages("edit", instruction.name), utils.NavTypes.Instructions), loggedInUser, activeDomain) {
+@main(MainViewData(Messages("edit", instruction.name), utils.NavTypes.Instructions, userStatus)) {
 	@title(Messages("edit", instruction.name))
 			
 	@rowLargeSmall() {	

@@ -38,6 +38,8 @@ import models.formdata.DomainForm
 import models.Domain
 import models.services.AmlObjectService
 import play.api.Logger
+import viewdata.HierarchyData
+import viewdata._
 
 @Singleton
 class DomainController @Inject() (
@@ -53,8 +55,8 @@ class DomainController @Inject() (
     (generalActions.MySecuredAction).async { implicit mySecuredRequest =>
       val responses = for {
         domainListData <- domainService.getDomainList(page, mySecuredRequest.identity)
-      } yield Ok(views.html.domains.list(domainListData, Some(mySecuredRequest.identity),
-        mySecuredRequest.activeDomain))
+      } yield Ok(views.html.domains.list(domainListData, UserStatus(Some(mySecuredRequest.identity),
+        mySecuredRequest.activeDomain)))
 
       responses recover {
         case e => InternalServerError(e.getMessage())
@@ -67,7 +69,7 @@ class DomainController @Inject() (
       val responses = for {
         hierarchyListData <- domainService.getHierarchyList(page, domainRequest.myDomain)
       } yield Ok(views.html.browse.domain(domainRequest.myDomain, hierarchyListData,
-        Some(domainRequest.identity), domainRequest.activeDomain))
+        UserStatus(Some(domainRequest.identity), domainRequest.activeDomain)))
 
       responses recover {
         case e => InternalServerError(e.getMessage())
@@ -80,8 +82,8 @@ class DomainController @Inject() (
 
         val responses = for {
           elementListData <- amlObjectService.getElementList(page, hierarchyRequest.hierarchy)
-        } yield Ok(views.html.browse.hierarchy(hierarchyRequest.myDomain, hierarchyRequest.hierarchy,
-          elementListData, Some(hierarchyRequest.identity), hierarchyRequest.activeDomain))
+        } yield Ok(views.html.browse.hierarchy(HierarchyData(hierarchyRequest.myDomain, hierarchyRequest.hierarchy),
+          elementListData, UserStatus(Some(hierarchyRequest.identity), hierarchyRequest.activeDomain)))
 
         responses recover {
           case e => InternalServerError(e.getMessage())
@@ -96,8 +98,8 @@ class DomainController @Inject() (
           elementListData <- amlObjectService.getElementList(elementPage, elementRequest.elementChain.last)
           interfaceListData <- amlObjectService.getInterfaceList(interfacePage, elementRequest.elementChain.last)
         } yield Ok(views.html.browse.element(elementRequest.myDomain, elementRequest.hierarchy,
-          elementRequest.elementChain, elementListData, interfaceListData, Some(elementRequest.identity),
-          elementRequest.activeDomain))
+          elementRequest.elementChain, elementListData, interfaceListData, UserStatus(Some(elementRequest.identity),
+          elementRequest.activeDomain)))
 
         responses recover {
           case e => InternalServerError(e.getMessage())
@@ -108,8 +110,8 @@ class DomainController @Inject() (
     (generalActions.MySecuredAction andThen generalActions.RequireActiveDomain andThen
       generalActions.InterfaceAction(uuid)) { implicit interfaceRequest =>
         Ok(views.html.browse.interface(interfaceRequest.myDomain, interfaceRequest.hierarchy,
-          interfaceRequest.elementChain, interfaceRequest.interface, Some(interfaceRequest.identity),
-          interfaceRequest.activeDomain))
+          interfaceRequest.elementChain, interfaceRequest.interface, UserStatus(Some(interfaceRequest.identity),
+          interfaceRequest.activeDomain)))
       }
 
   def parseAmlFiles(uuid: String) = (generalActions.MySecuredAction andThen
@@ -124,14 +126,14 @@ class DomainController @Inject() (
     }
 
   def create = generalActions.MySecuredAction { implicit mySecuredRequest =>
-    Ok(views.html.domains.create(DomainForm.form, Some(mySecuredRequest.identity), mySecuredRequest.activeDomain))
+    Ok(views.html.domains.create(DomainForm.form, UserStatus(Some(mySecuredRequest.identity), mySecuredRequest.activeDomain)))
   }
 
   def submitCreate = generalActions.MySecuredAction.async { implicit mySecuredRequest =>
     DomainForm.form.bindFromRequest().fold(
       formWithErrors => {
-        Future.successful(BadRequest(views.html.domains.create(formWithErrors, Some(mySecuredRequest.identity),
-          mySecuredRequest.activeDomain)))
+        Future.successful(BadRequest(views.html.domains.create(formWithErrors, UserStatus(Some(mySecuredRequest.identity),
+          mySecuredRequest.activeDomain))))
       },
       formData => {
         Logger.info("submitCreate: " + formData.toString)
@@ -157,13 +159,13 @@ class DomainController @Inject() (
     (generalActions.MySecuredAction andThen generalActions.DomainAction(uuid)) { implicit domainRequest =>
 
       Ok(views.html.domains.edit(domainRequest.myDomain, DomainForm.form.fill(domainRequest.myDomain),
-        Some(domainRequest.identity), domainRequest.activeDomain))
+        UserStatus(Some(domainRequest.identity), domainRequest.activeDomain)))
     }
 
   def show(uuid: String) =
     (generalActions.MySecuredAction andThen generalActions.DomainAction(uuid)) { implicit domainRequest =>
 
-      Ok(views.html.domains.show(domainRequest.myDomain, Some(domainRequest.identity), domainRequest.activeDomain))
+      Ok(views.html.domains.show(domainRequest.myDomain, UserStatus(Some(domainRequest.identity), domainRequest.activeDomain)))
     }
 
   def submitEdit(uuid: String) = (generalActions.MySecuredAction andThen generalActions.DomainAction(uuid)).
@@ -171,7 +173,7 @@ class DomainController @Inject() (
       DomainForm.form.bindFromRequest().fold(
         formWithErrors => {
           Future.successful(BadRequest(views.html.domains.edit(domainRequest.myDomain, formWithErrors,
-            Some(domainRequest.identity), domainRequest.activeDomain)))
+            UserStatus(Some(domainRequest.identity), domainRequest.activeDomain))))
         },
         formData => {
           val responses = for {
@@ -213,8 +215,8 @@ class DomainController @Inject() (
     generalActions.MySecuredAction.async { implicit mySecuredRequest =>
       val responses = for {
         domainListData <- domainService.getDomainList(page, mySecuredRequest.identity)
-      } yield Ok(views.html.domains.editActivateDomain(domainListData, Some(mySecuredRequest.identity),
-        mySecuredRequest.activeDomain))
+      } yield Ok(views.html.domains.editActivateDomain(domainListData, UserStatus(Some(mySecuredRequest.identity),
+        mySecuredRequest.activeDomain)))
       responses recover {
         case e => InternalServerError(e.getMessage())
       }
@@ -236,8 +238,8 @@ class DomainController @Inject() (
           })
         }
         domainListData <- domainService.getDomainList(page, mySecuredRequest.identity)
-      } yield Ok(views.html.domains.editActivateDomain(domainListData, Some(mySecuredRequest.identity),
-        newActiveDomain))
+      } yield Ok(views.html.domains.editActivateDomain(domainListData, UserStatus(Some(mySecuredRequest.identity),
+        newActiveDomain)))
 
       responses recover {
         case e => InternalServerError(e.getMessage())
@@ -248,8 +250,8 @@ class DomainController @Inject() (
     (generalActions.MySecuredAction andThen generalActions.DomainAction(uuid)).async { implicit domainRequest =>
       val responses = for {
         userListData <- userService.getUserList(page, domainRequest.myDomain.allowedUsers)
-      } yield Ok(views.html.domains.editAllowedUsers(domainRequest.myDomain, userListData, Some(domainRequest.identity),
-        domainRequest.activeDomain))
+      } yield Ok(views.html.domains.editAllowedUsers(domainRequest.myDomain, userListData, UserStatus(Some(domainRequest.identity),
+        domainRequest.activeDomain)))
 
       responses recover {
         case e => InternalServerError(e.getMessage())

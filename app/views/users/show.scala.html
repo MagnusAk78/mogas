@@ -1,13 +1,14 @@
-@(user: User, domainListData: utils.ModelListData[Domain], loggedInUser: Option[User], 
-	activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, messages: Messages,
-    webJarAssets: WebJarAssets)
+@import viewdata._
+
+@(user: User, domainListData: utils.ModelListData[Domain], userStatus: UserStatus)(implicit flash: Flash, 
+	request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets)
 
 @import templates._
 @import components.utils._
 @import components.buttons._
 @import components.media._
 
-@main(utils.MainViewData(user.name, utils.NavTypes.Users), loggedInUser, activeDomain) {
+@main(MainViewData(user.name, utils.NavTypes.Users, userStatus)) {
 	
 	@{
 		val linkList = List(controllers.routes.UserController.list(1))                
@@ -42,7 +43,7 @@
 			@largeImage(user.uuid, models.Types.UserType.stringValue)
 		</div>
     } {
-    	@if(loggedInUser.isDefined && loggedInUser.get.uuid == user.uuid) {
+    	@if(userStatus.loggedInUser.isDefined && userStatus.loggedInUser.get.uuid == user.uuid) {
 			@button(
 				routes.SignUpController.edit(user.uuid),
 				Messages("edit"),

@@ -1,4 +1,6 @@
-@(domainListData: utils.ModelListData[Domain], loggedInUser: Option[User], activeDomain: Option[Domain])(implicit
+@import viewdata._
+
+@(domainListData: utils.ModelListData[Domain], userStatus: UserStatus)(implicit
     flash: Flash, request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets)
 
 @import templates._
@@ -6,7 +8,7 @@
 @import components.buttons._
 @import components.utils._
 
-@main(utils.MainViewData(Messages("chooseActive", Messages("domain")), utils.NavTypes.Domains), loggedInUser, activeDomain) {
+@main(MainViewData(Messages("chooseActive", Messages("domain")), utils.NavTypes.Domains, userStatus)) {
 	
 	@{
 		val linkList = List(
@@ -27,6 +29,6 @@
     @rowFullWidth() {
    		@linkGridWithImageAndName(domainListData, controllers.routes.DomainController.list(_),
 			controllers.routes.DomainController.setActiveDomain(_, domainListData.paginateData.page), 
-			models.Types.DomainType, (uuid: String) => activeDomain.map(_.uuid == uuid).getOrElse(false))
+			models.Types.DomainType, (uuid: String) => userStatus.activeDomain.map(_.uuid == uuid).getOrElse(false))
 	}
 }

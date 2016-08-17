@@ -1,4 +1,6 @@
-@(loggedInUser: Option[User], activeDomain: Option[Domain])(implicit flash: Flash, request: RequestHeader, 
+@import viewdata._
+
+@(userStatus: UserStatus)(implicit flash: Flash, request: RequestHeader, 
 	messages: Messages, webJarAssets: WebJarAssets)
 
 @import templates._
@@ -6,10 +8,10 @@
 @import components.utils._
 @import components.buttons._
 
-@main(utils.MainViewData(Messages("welcome"), utils.NavTypes.None), loggedInUser, activeDomain) {
+@main(MainViewData(Messages("welcome"), utils.NavTypes.None, userStatus)) {
 	<h3 class="display-1 hidden-xs-down">
     	@Messages("welcome") 
     </h3>
-	<p class="lead">@loggedInUser.map(_.name).getOrElse("")</p>	
+	<p class="lead">@userStatus.loggedInUser.map(_.name).getOrElse("")</p>	
 	
 }

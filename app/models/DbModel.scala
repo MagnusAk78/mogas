@@ -8,11 +8,13 @@ import play.api.libs.json._
  */
 trait DbModel {
   val uuid: String
+}
 
+trait JsonImpl {
   def asJsObject: JsObject
 }
 
-trait DbModelComp[M <: DbModel] {
+trait DbModelComp[M <: DbModel with JsonImpl] {
 
   private val KeyUUID = "uuid"
 

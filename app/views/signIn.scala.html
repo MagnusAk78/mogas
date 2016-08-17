@@ -2,6 +2,7 @@
 	socialProviders: com.mohiva.play.silhouette.impl.providers.SocialProviderRegistry)(implicit request: RequestHeader, 
 	messages: Messages, webJarAssets: WebJarAssets, lang: Lang, flash: Flash)
 
+@import viewdata._
 @import com.mohiva.play.silhouette.impl.providers.oauth2.ClefProvider
 @implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f("col-sm-4 col-md-3", "col-sm-8 col-md-9")) }
 @import helper._
@@ -10,7 +11,7 @@
 @import components.buttons._
 
 
-@main(utils.MainViewData(Messages("signIn"), utils.NavTypes.None), None, None) {
+@main(MainViewData(Messages("signIn"), utils.NavTypes.None, UserStatus(None, None))) {
 	@title(Messages("signIn"))
 	
 	@rowLargeSmall() {

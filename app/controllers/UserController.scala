@@ -20,6 +20,7 @@ import utils.PaginateData
 import utils.auth.DefaultEnv
 import controllers.actions.GeneralActions
 import controllers.actions.MySecuredRequest
+import viewdata._
 
 @Singleton
 class UserController @Inject() (
@@ -35,7 +36,7 @@ class UserController @Inject() (
       val responses = for {
         userListData <- userService.getUserList(page, mySecuredRequest.activeDomain.map(activeDomain =>
           activeDomain.allowedUsers).getOrElse(Set()))
-      } yield Ok(views.html.users.list(userListData, Some(mySecuredRequest.identity), mySecuredRequest.activeDomain))
+      } yield Ok(views.html.users.list(userListData, UserStatus(Some(mySecuredRequest.identity), mySecuredRequest.activeDomain)))
 
       responses recover {
         case e => InternalServerError(e.getMessage())
@@ -46,8 +47,8 @@ class UserController @Inject() (
     (generalActions.MySecuredAction andThen generalActions.UserAction(uuid)).async { implicit userRequest =>
       val responses = for {
         domainListData <- domainService.getDomainList(page, userRequest.user)
-      } yield Ok(views.html.users.show(userRequest.user, domainListData, Some(userRequest.identity),
-        userRequest.activeDomain))
+      } yield Ok(views.html.users.show(userRequest.user, domainListData, UserStatus(Some(userRequest.identity),
+        userRequest.activeDomain)))
 
       responses recover {
         case e => InternalServerError(e.getMessage())

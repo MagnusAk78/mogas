@@ -1,5 +1,7 @@
+@import viewdata._
+
 @(issue: Issue, issueUpdateForm: Form[models.formdata.IssueUpdateForm.Data],   
-	loggedInUser: Option[User], activeDomain: Option[models.Domain])(implicit flash: Flash, request: RequestHeader, 
+	userStatus: UserStatus)(implicit flash: Flash, request: RequestHeader, 
 	messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
 
 @implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f("col-sm-4 col-md-3", "col-sm-8 col-md-9")) }
@@ -9,7 +11,7 @@
 @import components.media._
 @import forms._
 
-@main(utils.MainViewData(Messages("edit", issue.name), utils.NavTypes.Issues), loggedInUser, activeDomain) {
+@main(MainViewData(Messages("edit", issue.name), utils.NavTypes.Issues, userStatus)) {
 	@title(Messages("edit", issue.name))
 			
 	@rowLargeSmall() {	

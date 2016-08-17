@@ -41,6 +41,8 @@ import play.api.libs.json.JsValue
 import models.Images
 import models.Types
 import models.MediaTypes
+import models.DbModel
+import models.HasModelType
 import play.api.mvc.Result
 import java.io.File
 import play.api.mvc.ActionRefiner
@@ -59,6 +61,7 @@ import models.services.DomainService
 import models.Domain
 import com.sksamuel.scrimage.Color
 import models.MediaTypes
+import viewdata._
 
 @Singleton
 class FileController @Inject() (
@@ -109,7 +112,10 @@ class FileController @Inject() (
 
   def uploadImage(uuid: String, modelTypeString: String) = generalActions.MySecuredAction { implicit request =>
     val modelType = models.Types.fromString(modelTypeString)
-    Ok(views.html.imageUpload(uuid, modelType, Some(request.identity), request.activeDomain))
+    Ok(views.html.imageUpload(GenericModelData(new DbModel with HasModelType {
+      override val uuid: String = uuid
+      override val modelType: String = modelTypeString
+    }), UserStatus(Some(request.identity), request.activeDomain)))
   }
 
   def getThumbnailImage(uuid: String, modelTypeString: String) = generalActions.MySecuredAction async { implicit request =>
@@ -147,7 +153,10 @@ class FileController @Inject() (
 
   def uploadVideo(uuid: String, modelTypeString: String) = generalActions.MySecuredAction { implicit request =>
     val modelType = models.Types.fromString(modelTypeString)
-    Ok(views.html.videoUpload(uuid, modelType, Some(request.identity), request.activeDomain))
+    Ok(views.html.videoUpload(GenericModelData(new DbModel with HasModelType {
+      override val uuid: String = uuid
+      override val modelType: String = modelTypeString
+    }), UserStatus(Some(request.identity), request.activeDomain)))
   }
 
   def getVideo(uuid: String, modelTypeString: String) = generalActions.MySecuredAction async { implicit request =>
