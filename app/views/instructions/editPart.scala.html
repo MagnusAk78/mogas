@@ -12,7 +12,7 @@
 @import forms._
 @import helper._
 
-@main(MainViewData(Messages("edit", instruction.name), utils.NavTypes.Instructions, userStatus)) {
+@main(MainViewData(Messages("edit", instruction.name), viewdata.NavTypes.Instructions, userStatus)) {
 	@title(Messages("instructionPart", instructionPart.orderNumber, instruction.name))
 			
 	@rowLargeSmall() {	

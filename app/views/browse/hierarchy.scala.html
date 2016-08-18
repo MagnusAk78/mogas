@@ -9,7 +9,7 @@
 @import components.media._
 @import components.utils._
 
-@main(MainViewData(hierarchyData.hierarchy.name, utils.NavTypes.Browse, userStatus)) {
+@main(MainViewData(hierarchyData.hierarchy.name, viewdata.NavTypes.Browse, userStatus)) {
     @rowFullWidth() {
         @{
             val linkList = List(controllers.routes.DomainController.domain(hierarchyData.domain.uuid, 1),

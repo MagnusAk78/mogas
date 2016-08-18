@@ -12,7 +12,7 @@
 @import helper._
 @implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f("col-sm-4 col-md-3", "col-sm-8 col-md-9")) }
 
-@main(MainViewData(Messages("createInstruction"), utils.NavTypes.Browse, userStatus)) {
+@main(MainViewData(Messages("createInstruction"), viewdata.NavTypes.Browse, userStatus)) {
 	
 	@rowLargeSmall() {
         @{

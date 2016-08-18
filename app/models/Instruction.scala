@@ -9,8 +9,10 @@ case class Instruction(
   override val name: String,
   override val connectionTo: String,
   override val parent: String,
-  override val createdBy: String) extends DbModel with JsonImpl with HasModelType with NamedModel with ConnectionTo[Domain] with ChildOf[AmlObject]
-    with CreatedBy {
+  override val createdBy: String) extends DbModel 
+    with JsonImpl with HasModelType with HasName with HasConnectionTo 
+    with HasParent 
+    with HasCreatedBy {
 
   override def asJsObject: JsObject = {
     Instruction.hasModelTypeJsObject(this) ++ 
@@ -21,8 +23,9 @@ case class Instruction(
   }
 }
 
-object Instruction extends DbModelComp[Instruction] with HasModelTypeComp with ChildOfComp[AmlObject] with ConnectionToComp[Domain]
-    with CreatedByComp with NamedModelComp {
+object Instruction extends DbModelComp[Instruction] with HasModelTypeComp with 
+  HasParentComp[DbModel with HasAmlId] 
+  with HasConnectionToComp[Domain] with HasCreatedByComp with HasNameComp {
   implicit val instructionFormat = Json.format[Instruction]
 
   private val KeyCreatedByUser = "createdByUser"
@@ -32,59 +35,3 @@ object Instruction extends DbModelComp[Instruction] with HasModelTypeComp with C
         name = name, connectionTo = connectionToToDomain, parent = parentAmlObject, createdBy = createdBy)
 }
 
-/**
- *
- * object Instruction {
- *
- * val instructionPartsKey = "instructionParts"
- *
- * val titleKey = "title"
- *
- * val domainKey = "domain"
- *
- * val refersToElementKey = "refersToElement"
- *
- * /**
- * Forms and validation
- * */
- *
- * val instructionForm: Form[Instruction] = {
- * Form(mapping("id" -> optional(nonEmptyText).verifying((optionalIdString: Option[String]) => optionalIdString match {
- * case Some(objectIdString) => {
- * ObjectId.isValid(objectIdString)
- * }
- * case None => true
- * }),
- * "domain" -> nonEmptyText.verifying(DomainDAO.findOneById(_).nonEmpty),
- * "refersToElement" -> nonEmptyText,
- * "createdBy" -> nonEmptyText.verifying(UserDAO.findOneById(_).nonEmpty),
- * "title" -> nonEmptyText)
- * (Instruction.instructionFormApply)(Instruction.instructionFormUnapply))
- * }
- *
- * def instructionFormApply(optionalIdString: Option[String], domainIdString: String, domainElementIdString: String,
- * createdByIdString: String, title: String): Instruction = {
- *
- * val objectId = optionalIdString match {
- * case Some(idString) => new ObjectId(idString)
- * case None => new ObjectId()
- * }
- *
- * val existingInstruction = InstructionDAO.findOneById(objectId)
- *
- * val instruction = Instruction(_id = objectId, domain = new ObjectId(domainIdString),
- * refersToElement = new ObjectId(domainElementIdString), createdBy = new ObjectId(createdByIdString),
- * title = title)
- *
- * Logger.info("instructionFormApply instruction: " + instruction.toString)
- *
- * instruction
- * }
- *
- * def instructionFormUnapply(instruction: Instruction) = {
- * Logger.info("instructionFormUnapply instruction: " + instruction.toString)
- * Some(Some(instruction._id.toString), instruction.domain.toString, instruction.refersToElement.toString,
- * instruction.createdBy.toString, instruction.title)
- * }
- * }
- */

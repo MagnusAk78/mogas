@@ -1,5 +1,6 @@
-@(signUpForm: Form[models.formdata.SignUpForm.Data])(implicit request: RequestHeader, messages: Messages, 
-	webJarAssets: WebJarAssets, flash: Flash)
+@import models.formdata._
+
+@(signUpForm: Form[SignUpForm.Data])(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, flash: Flash)
 
 @implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f("col-sm-4 col-md-3", "col-sm-8 col-md-9")) }
 @import templates._
@@ -9,7 +10,7 @@
 @import helper._
 @import viewdata._
 
-@main(MainViewData(Messages("signUp"), utils.NavTypes.None, UserStatus(None, None))) {
+@main(MainViewData(Messages("signUp"), viewdata.NavTypes.None, UserStatus(None, None))) {
 	@title(Messages("signUp"))
 	@rowLargeSmall() {
 		

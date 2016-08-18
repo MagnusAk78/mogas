@@ -13,7 +13,6 @@ import models.Element
 import models.Interface
 import models.Instruction
 import models.InstructionPart
-import utils.ElementOrInterface
 import models.IssueUpdate
 import models.Issue
 
@@ -69,12 +68,7 @@ package object actions {
     lazy val identity: User = request.identity
     lazy val activeDomain = request.activeDomain
 
-    lazy val elementOrInterfaceUuid = elementOrInterface.fold(_.uuid, _.uuid)
-
-    lazy val elementOrInterface: ElementOrInterface = interface match {
-      case Some(i) => Right(i)
-      case None => Left(elementChain.last)
-    }
+    lazy val elementOrInterfaceUuid = interface.map(i => i.uuid).getOrElse(elementChain.last.uuid)
   }
 
   case class InstructionRequest[A](instruction: Instruction, myDomain: Domain, hierarchy: Hierarchy,
@@ -90,7 +84,9 @@ package object actions {
     lazy val activeDomain = request.activeDomain
   }
 
-  case class IssueRequest[A](issue: Issue, request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
+  case class IssueRequest[A](issue: Issue, myDomain: Domain, hierarchy: Hierarchy,
+    elementChain: List[Element], interface: Option[Interface], request: MySecuredRequest[A]) 
+      extends WrappedRequest[A](request) {
     lazy val identity: User = request.identity
     lazy val activeDomain = request.activeDomain
   }

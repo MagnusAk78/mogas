@@ -8,7 +8,7 @@
 @import components.buttons._
 @import components.media._
 
-@main(MainViewData(user.name, utils.NavTypes.Users, userStatus)) {
+@main(MainViewData(user.name, viewdata.NavTypes.Users, userStatus)) {
 	
 	@{
 		val linkList = List(controllers.routes.UserController.list(1))                

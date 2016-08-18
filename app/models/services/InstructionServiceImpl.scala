@@ -10,8 +10,7 @@ import scala.concurrent.Future
 import play.api.libs.json.Json
 import models.Domain
 import models.InstructionPart
-import models.AmlObject
-import utils.AmlObjectChain
+import models.HasAmlId
 import play.api.libs.json.JsObject
 import utils.RemoveResult
 import utils.ModelListData
@@ -23,7 +22,7 @@ class InstructionServiceImpl @Inject() (val instructionDao: InstructionDAO,
     extends InstructionService {
 
   override def getInstructionList(page: Int, domain: Option[Domain] = None): Future[ModelListData[Instruction]] = {
-    val selector = domain.map(f => Instruction.queryByConnectionTo(f)).getOrElse(Instruction.queryAll)
+    val selector = domain.map(f => Instruction.queryByHasConnectionTo(f)).getOrElse(Instruction.queryAll)
     findManyInstructions(selector, page, utils.DefaultValues.DefaultPageLength)
   }
 

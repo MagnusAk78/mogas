@@ -8,7 +8,7 @@
 @import components.media._
 @import components.utils._
 
-@main(MainViewData(domain.name, utils.NavTypes.Browse, userStatus)) {
+@main(MainViewData(domain.name, viewdata.NavTypes.Browse, userStatus)) {
 
     @rowFullWidth() {
     	@breadcrumb(List(controllers.routes.DomainController.domain(domain.uuid, 1)), List(domain.name))

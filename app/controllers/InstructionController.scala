@@ -44,7 +44,7 @@ import models.formdata.InstructionPartForm
 import models.InstructionPart
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import models.AmlObject
+import models.HasAmlId
 import models.MediaTypes
 import utils.MediaData
 import viewdata._
@@ -74,7 +74,7 @@ class InstructionController @Inject() (
             }
           }
           instructionListData <- instructionService.getInstructionList(page)
-          objectChainList <- domainService.getAmlObjectChains(instructionListData.list)
+          objectChainList <- domainService.getAmlObjectDatas(instructionListData.list)
         } yield Ok(views.html.instructions.list(domainOpt, instructionListData, objectChainList,
           UserStatus(Some(domainRequest.identity), domainRequest.activeDomain)))
 

@@ -23,9 +23,9 @@ import play.api.Logger
 import java.io.ByteArrayOutputStream
 import java.io.BufferedOutputStream
 import java.io.ByteArrayInputStream
-import models.ChildOf
-import models.AmlObject
-import models.NamedModel
+import models.HasParent
+import models.HasAmlId
+import models.HasName
 import play.api.libs.streams.Streams
 import akka.stream.scaladsl.Source
 import play.modules.reactivemongo.JSONFileToSave
@@ -38,9 +38,10 @@ import models.services.misc.AmlInterface
 import models.services.misc.AmlHierarchy
 import models.services.misc.AmlHelper
 import models.services.misc.AmlElement
-import utils.AmlObjectChain
-import utils.ElementOrInterface
+import viewdata.AmlObjectData
+import models.HasModelType
 import models.User
+import models.DbModel
 
 class DomainServiceImpl @Inject() (
   val domainDao: DomainDAO,
@@ -185,7 +186,7 @@ class DomainServiceImpl @Inject() (
 
     for {
       optionalOldIE <- {
-        val query = Element.queryByAmlId(amlElement.amlId) ++ Element.queryByConnectionTo(domain)
+        val query = Element.queryByAmlId(amlElement.amlId) ++ Element.queryByHasConnectionTo(domain)
         amlObjectService.findOneElement(query)
       }
 
@@ -229,7 +230,7 @@ class DomainServiceImpl @Inject() (
     amlInterface: AmlInterface): Future[String] = {
     for {
       existingInterface <- {
-        val query = Interface.queryByAmlId(amlInterface.amlId) ++ Interface.queryByConnectionTo(domain)
+        val query = Interface.queryByAmlId(amlInterface.amlId) ++ Interface.queryByHasConnectionTo(domain)
         amlObjectService.findOneInterface(query)
       }
       updatedOrNewUuid <- existingInterface match {
@@ -253,19 +254,20 @@ class DomainServiceImpl @Inject() (
     } yield updatedOrNewUuid
   }
 
-  override def getAmlObjectChains(children: List[ChildOf[AmlObject]]): Future[List[AmlObjectChain]] =
-    Future.successful(children.map(child => getAmlObjectChain(child.parent)))
+  override def getAmlObjectDatas(children: List[DbModel with HasParent]): Future[List[AmlObjectData]] =
+    Future.successful(children.map(child => getAmlObjectData(child.parent)))
 
-  private def getAmlObjectChain(uuid: String): AmlObjectChain = {
-    val chain = genereateAmlObjectChain(uuid, List())
-    val hierarchy = Await.result(findOneHierarchy(Hierarchy.queryByUuid(chain.head.fold(_.parent, _.parent))),
+  private def getAmlObjectData(uuid: String): AmlObjectData = {
+    val chain = genereateAmlObjectData(uuid, List())
+    val hierarchy = Await.result(findOneHierarchy(Hierarchy.queryByUuid(chain.head.parent)),
       Duration("3s")).get
     val domain = Await.result(findOneDomain(Domain.queryByUuid(hierarchy.parent)), Duration("3s")).get
 
-    AmlObjectChain(chain, hierarchy, domain)
+    AmlObjectData(domain, hierarchy, chain)
   }
 
-  private def genereateAmlObjectChain(uuid: String, list: List[ElementOrInterface]): List[ElementOrInterface] = {
+  private def genereateAmlObjectData(uuid: String, list: List[DbModel with HasName with HasAmlId with HasModelType with HasParent]): 
+  List[DbModel with HasName with HasAmlId with HasModelType with HasParent] = {
     val optElement = Await.result(amlObjectService.findOneElement(Element.queryByUuid(uuid)), Duration("3s"))
     Logger.info("optElement: " + optElement)
     val optInterface = optElement.map(element => None).
@@ -273,9 +275,9 @@ class DomainServiceImpl @Inject() (
         Duration("3s")))
 
     optElement match {
-      case Some(element) => genereateAmlObjectChain(element.parent, Left(element) :: list)
+      case Some(element) => genereateAmlObjectData(element.parent, element :: list)
       case None => optInterface match {
-        case Some(interface) => genereateAmlObjectChain(interface.parent, Right(interface) :: list)
+        case Some(interface) => genereateAmlObjectData(interface.parent, interface :: list)
         case None => list
       }
     }

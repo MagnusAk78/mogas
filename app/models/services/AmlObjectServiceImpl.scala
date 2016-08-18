@@ -17,36 +17,21 @@ import models.Interface
 import models.daos.InterfaceDAO
 import play.api.Logger
 import play.api.libs.json.JsObject
-import utils.AmlObjectChain
-import utils.ElementOrInterface
 import views.html.instructions.instruction
 import models.daos.ElementDAO
 import utils.PaginateData
 import utils.ModelListData
-import models.ElementParent
-import models.ChildOf
-import models.AmlObject
+import models.HasElements
+import models.HasAmlId
+import models.DbModel
 
 class AmlObjectServiceImpl @Inject() (
     val elementDao: ElementDAO,
     val interfaceDao: InterfaceDAO,
     val fileService: FileService)(implicit ec: ExecutionContext) extends AmlObjectService {
 
-  override def findOneElementOrInterface(query: JsObject): Future[Option[ElementOrInterface]] = {
-    val result = for {
-      eOpt <- findOneElement(query)
-      iOpt <- eOpt.map(e => Future.successful(None)).getOrElse(findOneInterface(query))
-    } yield eOpt match {
-      case Some(e) => Some(Left(e))
-      case None => iOpt.map(i => Right(i))
-    }
 
-    result recover {
-      case e => None
-    }
-  }
-
-  override def getElementList(page: Int, parent: ElementParent): Future[ModelListData[Element]] =
+  override def getElementList(page: Int, parent: DbModel with HasElements): Future[ModelListData[Element]] =
     findManyElements(Element.queryByParent(parent), page, utils.DefaultValues.DefaultPageLength)
 
   override def getElementChain(uuid: String): Future[List[Element]] = {

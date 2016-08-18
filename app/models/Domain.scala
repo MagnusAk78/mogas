@@ -8,7 +8,7 @@ case class Domain(
     override val modelType: String,
     override val name: String,
     val allowedUsers: Set[String],
-    hierachies: Set[String]) extends DbModel with JsonImpl with HasModelType with NamedModel {
+    hierachies: Set[String]) extends DbModel with JsonImpl with HasModelType with HasName {
 
   override def asJsObject: JsObject =
     JsObject(
@@ -18,7 +18,7 @@ case class Domain(
       Json.obj(Domain.KeyAllowedUsers -> Json.toJson(allowedUsers))
 }
 
-object Domain extends DbModelComp[Domain] with HasModelTypeComp with ChildOfComp[Domain] with NamedModelComp {
+object Domain extends DbModelComp[Domain] with HasModelTypeComp with HasParentComp[Domain] with HasNameComp {
   implicit val domainFormat = Json.format[Domain]
 
   private val KeyAllowedUsers = "allowedUsers"

@@ -34,16 +34,13 @@ import play.api.mvc.Flash
 import controllers.actions._
 import utils.RemoveResult
 import models.formdata.DomainForm
-import models.Domain
+import models._
 import models.services.IssueService
 import models.formdata.IssueForm
-import models.Issue
 import models.services.AmlObjectService
 import models.formdata.IssueUpdateForm
-import models.IssueUpdate
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import models.AmlObject
 import viewdata._
 
 @Singleton
@@ -70,7 +67,7 @@ class IssueController @Inject() (
             }
           }
           issueListData <- issueService.getIssueList(page)
-          objectChainList <- domainService.getAmlObjectChains(issueListData.list)
+          objectChainList <- domainService.getAmlObjectDatas(issueListData.list)
         } yield Ok(views.html.issues.list(domainOpt, issueListData, objectChainList,
           UserStatus(Some(domainRequest.identity), domainRequest.activeDomain)))
 
@@ -82,9 +79,13 @@ class IssueController @Inject() (
   def create(amlObjectUuid: String) = (generalActions.MySecuredAction andThen
     generalActions.AmlObjectAction(amlObjectUuid)) {
       implicit amlObjectRequest =>
-        Ok(views.html.browse.createIssue(IssueForm.form, amlObjectRequest.myDomain,
-          amlObjectRequest.hierarchy, amlObjectRequest.elementChain, amlObjectRequest.interface,
-          UserStatus(Some(amlObjectRequest.identity), amlObjectRequest.activeDomain)))
+        
+        val amlObjectChain = List[DbModel with HasName with HasModelType]() ::: 
+          amlObjectRequest.elementChain ::: amlObjectRequest.interface.map(List(_)).getOrElse(List())
+         
+        Ok(views.html.browse.createIssue(IssueForm.form, AmlObjectData(amlObjectRequest.myDomain,
+          amlObjectRequest.hierarchy, amlObjectChain), UserStatus(Some(amlObjectRequest.identity), 
+              amlObjectRequest.activeDomain)))
     }
 
   def submitCreate(amlObjectUuid: String) = (generalActions.MySecuredAction andThen
@@ -92,9 +93,13 @@ class IssueController @Inject() (
       implicit amlObjectRequest =>
         IssueForm.form.bindFromRequest().fold(
           formWithErrors => {
-            Future.successful(BadRequest(views.html.browse.createIssue(formWithErrors, amlObjectRequest.myDomain,
-              amlObjectRequest.hierarchy, amlObjectRequest.elementChain, amlObjectRequest.interface,
-              UserStatus(Some(amlObjectRequest.identity), amlObjectRequest.activeDomain))))
+            
+            val amlObjectChain = List[DbModel with HasName with HasModelType]() ::: 
+              amlObjectRequest.elementChain ::: amlObjectRequest.interface.map(List(_)).getOrElse(List())
+            
+            Future.successful(BadRequest(views.html.browse.createIssue(formWithErrors, AmlObjectData(amlObjectRequest.myDomain,
+              amlObjectRequest.hierarchy, amlObjectChain), UserStatus(Some(amlObjectRequest.identity), 
+                  amlObjectRequest.activeDomain))))
           },
           formData => {
             val responses = for {
@@ -123,10 +128,8 @@ class IssueController @Inject() (
       implicit issueRequest =>
 
         val responses = for {
-          domainOpt <- domainService.findOneDomain(Domain.queryByUuid(issueRequest.issue.connectionTo))
-          amlObjectOpt <- amlObjectService.findOneElementOrInterface(AmlObject.queryByUuid(issueRequest.issue.parent))
           issueUpdatesListData <- issueService.getIssueUpdateList(issueRequest.issue, page)
-        } yield Ok(views.html.issues.issue(issueRequest.issue, domainOpt.get, issueUpdatesListData,
+        } yield Ok(views.html.issues.issue(issueRequest.issue, issueRequest.myDomain, issueUpdatesListData,
           UserStatus(Some(issueRequest.identity), issueRequest.activeDomain)))
 
         responses recover {

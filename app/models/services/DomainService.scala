@@ -7,9 +7,10 @@ import utils.PaginateData
 import play.api.libs.json.JsObject
 import utils.RemoveResult
 import utils.ModelListData
-import utils.AmlObjectChain
-import models.ChildOf
-import models.AmlObject
+import viewdata.AmlObjectData
+import models.HasParent
+import models.DbModel
+import models.HasAmlId
 import models.User
 
 trait DomainService {
@@ -40,5 +41,5 @@ trait DomainService {
   def findManyHierarchies(query: JsObject, page: Int = 1,
     pageSize: Int = utils.DefaultValues.DefaultPageLength): Future[ModelListData[Hierarchy]]
 
-  def getAmlObjectChains(children: List[ChildOf[AmlObject]]): Future[List[AmlObjectChain]]
+  def getAmlObjectDatas(children: List[DbModel with HasParent]): Future[List[AmlObjectData]]
 }

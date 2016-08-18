@@ -1,8 +1,8 @@
 @import viewdata._
 
-@(domainOpt: Option[Domain], issueListData: utils.ModelListData[Issue], parentObjectChains: List[utils.AmlObjectChain], 
-	userStatus: UserStatus)(implicit flash: Flash, request: RequestHeader, 
-	messages: Messages, lang: Lang, webJarAssets: WebJarAssets)    
+@(domainOpt: Option[Domain], issueListData: utils.ModelListData[Issue], 
+	parentAmlObjectDataList: List[AmlObjectData], userStatus: UserStatus)(implicit flash: Flash, 
+	request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)    
 
 @import templates._
 @import components.buttons._
@@ -10,7 +10,7 @@
 @import components.utils._
 @import forms._
 
-@main(MainViewData(Messages("issues"), utils.NavTypes.Issues, userStatus)) {
+@main(MainViewData(Messages("issues"), viewdata.NavTypes.Issues, userStatus)) {
 	@title(Messages("issues"))
 	@rowLargeSmall() {
     	@{
@@ -19,9 +19,9 @@
             val linkList = issueListData.list.map((issue: Issue) =>
                 controllers.routes.IssueController.issue(issue.uuid, 1))
             val headingList = issueListData.list.map(_.name)
-            val textList = (issueListData.list, parentObjectChains).zipped map((issue, objectChain) => 
-            	objectChain.domain.name + " / " + objectChain.hierarchy.name + " / " +
-            	objectChain.amlObjectChain.map(eoi => eoi.fold(_.name, _.name)).mkString(" / "))
+            val textList = (issueListData.list, parentAmlObjectDataList).zipped map((issue, parentAmlObjectData) => 
+            	parentAmlObjectData.domain.name + " / " + parentAmlObjectData.hierarchy.name + " / " +
+            	parentAmlObjectData.amlObjectChain.map(_.name).mkString(" / "))
             	
 			paginate(issueListData.paginateData, 
 				controllers.routes.IssueController.list(domainOpt.map(_.uuid).getOrElse(""), _))

@@ -12,7 +12,7 @@ case class IssueUpdate(
   override val text: String,
   val created: Long,
   val priority: Int,
-  val closed: Boolean) extends DbModel with JsonImpl with HasModelType with OrderedModel with ChildOf[Issue] with CreatedBy
+  val closed: Boolean) extends DbModel with JsonImpl with HasModelType with OrderedModel with HasParent with HasCreatedBy
     with HasText {
 
   override def asJsObject: JsObject = {
@@ -27,7 +27,7 @@ case class IssueUpdate(
   }
 }
 
-object IssueUpdate extends DbModelComp[IssueUpdate] with HasModelTypeComp with ChildOfComp[Issue] with CreatedByComp
+object IssueUpdate extends DbModelComp[IssueUpdate] with HasModelTypeComp with HasParentComp[Issue] with HasCreatedByComp
     with HasTextComp with OrderedModelComp {
   implicit val issueUpdateFormat = Json.format[IssueUpdate]
 

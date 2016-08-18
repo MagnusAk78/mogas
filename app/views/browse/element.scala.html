@@ -1,23 +1,22 @@
 @import viewdata._
 
-@(domain: Domain, hierarchy: Hierarchy, elementChain: List[Element], elementListData: utils.ModelListData[Element], 
-	interfaceListData: utils.ModelListData[Interface], userStatus: UserStatus)(implicit flash: Flash, 
-	request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
+@(elementData: ElementData, elementListData: utils.ModelListData[Element], interfaceListData: utils.ModelListData[Interface], 
+	userStatus: UserStatus)(implicit flash: Flash, request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
 
 @import templates._
 @import components.media._
 @import components.buttons._
 @import components.utils._
 
-@main(MainViewData(elementChain.last.name, utils.NavTypes.Browse, userStatus)) {
+@main(MainViewData(elementData.elementChain.last.name, viewdata.NavTypes.Browse, userStatus)) {
 	
     @rowFullWidth() {
         @{
-        	var linkList = List(controllers.routes.DomainController.domain(domain.uuid, 1),
-                	controllers.routes.DomainController.hierarchy(hierarchy.uuid, 1))
-            var textList = List(domain.name, hierarchy.name)
+        	var linkList = List(controllers.routes.DomainController.domain(elementData.domain.uuid, 1),
+                	controllers.routes.DomainController.hierarchy(elementData.hierarchy.uuid, 1))
+            var textList = List(elementData.domain.name, elementData.hierarchy.name)
             
-            for(element <- elementChain) {
+            for(element <- elementData.elementChain) {
 				linkList = (controllers.routes.DomainController.element(element.uuid, 1, 1)
                 	:: linkList.reverse).reverse
 
@@ -26,35 +25,35 @@
 
             breadcrumb(linkList, textList)
         }    	
-   		@linkGridWithImageAndName(elementListData, controllers.routes.DomainController.element(elementChain.last.uuid, 
+   		@linkGridWithImageAndName(elementListData, controllers.routes.DomainController.element(elementData.elementChain.last.uuid, 
 				_, interfaceListData.paginateData.page),
 				controllers.routes.DomainController.element(_, 1, 1), models.Types.ElementType)
 				
-		@linkGridWithImageAndName(interfaceListData, controllers.routes.DomainController.element(elementChain.last.uuid,
+		@linkGridWithImageAndName(interfaceListData, controllers.routes.DomainController.element(elementData.elementChain.last.uuid,
 				elementListData.paginateData.page, _),
 				controllers.routes.DomainController.interface(_), models.Types.InterfaceType)				
 	} 	
 
 	@rowLargeSmall() {
     	<div class="m-t-1">
-    		@smallImage(elementChain.last.uuid, models.Types.ElementType.stringValue)
+    		@smallImage(elementData.elementChain.last.uuid, models.Types.ElementType.stringValue)
     	</div>
     }{
     	@button(
-			routes.FileController.uploadImage(elementChain.last.uuid, models.Types.ElementType.stringValue),
+			routes.FileController.uploadImage(elementData.elementChain.last.uuid, models.Types.ElementType.stringValue),
 			Messages("changeImage"),
 			"btn-secondary",
 			Some("fa fa-photo fa-fw"))
 			
 		@button(
-			routes.InstructionController.create(elementChain.last.uuid),
+			routes.InstructionController.create(elementData.elementChain.last.uuid),
 			Messages("createInstruction"),
 			"btn-info",
 			Some("fa fa-pencil fa-fw"))
 			
 			
 		@button(
-			routes.IssueController.create(elementChain.last.uuid),
+			routes.IssueController.create(elementData.elementChain.last.uuid),
 			Messages("createIssue"),
 			"btn-warning",
 			Some("fa fa-pencil fa-fw"))

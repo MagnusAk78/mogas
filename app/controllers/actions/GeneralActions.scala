@@ -203,7 +203,23 @@ class GeneralActionsImpl @Inject() (
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
         optionIssue <- issueService.findOneIssue(Issue.queryByUuid(uuid))
-      } yield optionIssue.map(i => IssueRequest(i, mySecuredRequest)).toRight(NotFound)
+        optInterface <- amlObjectService.findOneInterface(Interface.queryByUuid(optionIssue.get.parent))
+        optElement <- optInterface match {
+          case Some(i) => Future.successful(None)
+          case None => amlObjectService.findOneElement(Element.queryByUuid(optionIssue.get.parent))
+        }
+        elements <- optInterface match {
+          case Some(interface) => amlObjectService.getElementChain(interface.parent)
+          case None => amlObjectService.getElementChain(optElement.get.uuid)
+        }
+        optHierarchy <- domainService.findOneHierarchy(Hierarchy.queryByUuid(elements.head.parent))
+        optDomain <- domainService.findOneDomain(Domain.queryByUuid(optHierarchy.get.parent))
+      } yield if (optionIssue.isDefined && optHierarchy.isDefined && optDomain.isDefined) {
+        Right(IssueRequest(optionIssue.get, optDomain.get, optHierarchy.get, elements, optInterface,
+          mySecuredRequest))
+      } else {
+        Left(NotFound)
+      }
     }
   }
 

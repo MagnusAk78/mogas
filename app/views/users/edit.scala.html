@@ -11,7 +11,7 @@
 @import helper._
 @implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f("col-sm-4 col-md-3", "col-sm-8 col-md-9")) }
 
-@main(MainViewData(Messages("edit", user.name), utils.NavTypes.Users, userStatus)) {
+@main(MainViewData(Messages("edit", user.name), viewdata.NavTypes.Users, userStatus)) {
 	@{
 		val linkList = List(controllers.routes.UserController.list(1))                
         val captionList = List(Messages("list"))

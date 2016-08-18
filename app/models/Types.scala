@@ -1,7 +1,7 @@
 package models
 
-import utils.NavTypes._
-import utils._
+import viewdata.NavTypes._
+import viewdata.NavTypes
 
 object Types {
   sealed trait ModelType {

@@ -1,6 +1,6 @@
 package viewdata
 
-import utils.NavTypes
+import viewdata.NavTypes
 import models.User
 import models.Domain
 

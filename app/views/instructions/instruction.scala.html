@@ -32,7 +32,7 @@
 }
 }
 
-@main(MainViewData(instruction.name, utils.NavTypes.Instructions, userStatus)) {
+@main(MainViewData(instruction.name, viewdata.NavTypes.Instructions, userStatus)) {
 	
 	@{
 		val linkList = List(
@@ -74,9 +74,9 @@
 
     @rowFullWidth() {
     	@{
-    		val newInstructionPartListData = new utils.ModelListData[DbModel with NamedModel with HasShortText] {
+    		val newInstructionPartListData = new utils.ModelListData[DbModel with HasName with HasShortText] {
     		override val list = instructionPartListData.list map( instructionPart =>
-    			 new DbModel with NamedModel with HasShortText {
+    			 new DbModel with HasName with HasShortText {
     			override val uuid = instructionPart.uuid
     			override val name = instruction.name + ": " + instructionPart.orderNumber
     			override val shortText = instructionPart.shortText.take(140)

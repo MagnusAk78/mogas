@@ -1,4 +1,6 @@
-@(signInForm: Form[models.formdata.SignInForm.Data], 
+@import models.formdata._
+
+@(signInForm: Form[SignInForm.Data], 
 	socialProviders: com.mohiva.play.silhouette.impl.providers.SocialProviderRegistry)(implicit request: RequestHeader, 
 	messages: Messages, webJarAssets: WebJarAssets, lang: Lang, flash: Flash)
 
@@ -11,7 +13,7 @@
 @import components.buttons._
 
 
-@main(MainViewData(Messages("signIn"), utils.NavTypes.None, UserStatus(None, None))) {
+@main(MainViewData(Messages("signIn"), viewdata.NavTypes.None, UserStatus(None, None))) {
 	@title(Messages("signIn"))
 	
 	@rowLargeSmall() {

@@ -14,7 +14,7 @@ case class User(
     val lastName: String,
     val email: String,
     val avatarURL: Option[String],
-    val activeDomain: String) extends DbModel with JsonImpl with HasModelType with Identity with NamedModel {
+    val activeDomain: String) extends DbModel with JsonImpl with HasModelType with Identity with HasName {
 
   override def asJsObject: JsObject =
     User.hasModelTypeJsObject(this) ++
@@ -28,7 +28,7 @@ case class User(
       Seq(User.KeyActiveDomain -> JsString(activeDomain)))
 }
 
-object User extends DbModelComp[User] with HasModelTypeComp with NamedModelComp {
+object User extends DbModelComp[User] with HasModelTypeComp with HasNameComp {
   implicit val userFormat = Json.format[User]
 
   private val KeyLoginInfo = "loginInfo"

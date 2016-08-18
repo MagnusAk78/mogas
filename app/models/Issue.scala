@@ -9,7 +9,8 @@ case class Issue(
     override val modelType: String,
     override val name: String,
     override val connectionTo: String,
-    override val parent: String) extends DbModel with JsonImpl with HasModelType with NamedModel with ConnectionTo[Domain] with ChildOf[AmlObject] {
+    override val parent: String) extends DbModel with JsonImpl with HasModelType with HasName 
+    with HasConnectionTo with HasParent {
 
   override def asJsObject: JsObject = {
     Issue.hasModelTypeJsObject(this) ++
@@ -19,8 +20,9 @@ case class Issue(
   }
 }
 
-object Issue extends DbModelComp[Issue] with HasModelTypeComp with ChildOfComp[AmlObject] with ConnectionToComp[Domain]
-    with CreatedByComp with NamedModelComp {
+object Issue extends DbModelComp[Issue] with HasModelTypeComp 
+    with HasParentComp[DbModel with HasAmlId] with HasConnectionToComp[Domain]
+    with HasCreatedByComp with HasNameComp {
   implicit val issueFormat = Json.format[Issue]
 
   private val KeyCreatedByUser = "createdByUser"

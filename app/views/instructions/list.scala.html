@@ -1,7 +1,7 @@
 @import viewdata._
 
 @(domainOpt: Option[Domain], instructionListData: utils.ModelListData[Instruction], 
-	parentObjectChains: List[utils.AmlObjectChain],  userStatus: UserStatus)(implicit flash: Flash, 
+	parentAmlObjectDataList: List[AmlObjectData],  userStatus: UserStatus)(implicit flash: Flash, 
 	request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)    
 
 @import templates._
@@ -10,7 +10,7 @@
 @import components.utils._
 @import forms._
 
-@main(MainViewData(Messages("instructions"), utils.NavTypes.Instructions, userStatus)) {
+@main(MainViewData(Messages("instructions"), viewdata.NavTypes.Instructions, userStatus)) {
 	
 	@{
 		val linkList = List(
@@ -26,13 +26,13 @@
 
     @rowFullWidth() {
     	@{
-    	val newInstructionListData = new utils.ModelListData[DbModel with NamedModel with HasShortText] {
-    		override val list = (instructionListData.list, parentObjectChains).zipped map((instruction, objectChain) =>
-    			 new DbModel with NamedModel with HasShortText {
+    	val newInstructionListData = new utils.ModelListData[DbModel with HasName with HasShortText] {
+    		override val list = (instructionListData.list, parentAmlObjectDataList).zipped map((instruction, parentAmlObjectData) =>
+    			 new DbModel with HasName with HasShortText {
     			override val uuid = instruction.uuid
     			override val name = instruction.name
-    			override val shortText = objectChain.domain.name + " / " + objectChain.hierarchy.name + " / " +
-            	objectChain.amlObjectChain.map(eoi => eoi.fold(_.name, _.name)).mkString(" / ")
+    			override val shortText = parentAmlObjectData.domain.name + " / " + parentAmlObjectData.hierarchy.name + " / " +
+            	parentAmlObjectData.amlObjectChain.map(_.name).mkString(" / ")
     			})
     			
     		override val paginateData = instructionListData.paginateData

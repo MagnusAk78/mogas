@@ -97,8 +97,8 @@ class DomainController @Inject() (
         val responses = for {
           elementListData <- amlObjectService.getElementList(elementPage, elementRequest.elementChain.last)
           interfaceListData <- amlObjectService.getInterfaceList(interfacePage, elementRequest.elementChain.last)
-        } yield Ok(views.html.browse.element(elementRequest.myDomain, elementRequest.hierarchy,
-          elementRequest.elementChain, elementListData, interfaceListData, UserStatus(Some(elementRequest.identity),
+        } yield Ok(views.html.browse.element(ElementData(elementRequest.myDomain, elementRequest.hierarchy,
+          elementRequest.elementChain), elementListData, interfaceListData, UserStatus(Some(elementRequest.identity),
           elementRequest.activeDomain)))
 
         responses recover {
@@ -109,8 +109,8 @@ class DomainController @Inject() (
   def interface(uuid: String) =
     (generalActions.MySecuredAction andThen generalActions.RequireActiveDomain andThen
       generalActions.InterfaceAction(uuid)) { implicit interfaceRequest =>
-        Ok(views.html.browse.interface(interfaceRequest.myDomain, interfaceRequest.hierarchy,
-          interfaceRequest.elementChain, interfaceRequest.interface, UserStatus(Some(interfaceRequest.identity),
+        Ok(views.html.browse.interface(interfaceRequest.interface, ElementData(interfaceRequest.myDomain, 
+          interfaceRequest.hierarchy, interfaceRequest.elementChain), UserStatus(Some(interfaceRequest.identity),
           interfaceRequest.activeDomain)))
       }
 

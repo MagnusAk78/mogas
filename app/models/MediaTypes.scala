@@ -1,6 +1,6 @@
 package models
 
-import utils.NavTypes._
+import viewdata.NavTypes._
 import utils._
 
 object MediaTypes {

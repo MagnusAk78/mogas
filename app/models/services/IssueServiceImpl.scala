@@ -10,8 +10,7 @@ import scala.concurrent.Future
 import play.api.libs.json.Json
 import models.Domain
 import models.IssueUpdate
-import models.AmlObject
-import utils.AmlObjectChain
+import models.HasAmlId
 import play.api.libs.json.JsObject
 import utils.RemoveResult
 import utils.ModelListData
@@ -23,7 +22,7 @@ class IssueServiceImpl @Inject() (val issueDao: IssueDAO,
     extends IssueService {
 
   override def getIssueList(page: Int, domain: Option[Domain] = None): Future[ModelListData[Issue]] = {
-    val selector = domain.map(f => Issue.queryByConnectionTo(f)).getOrElse(Issue.queryAll)
+    val selector = domain.map(f => Issue.queryByHasConnectionTo(f)).getOrElse(Issue.queryAll)
     findManyIssues(selector, page, utils.DefaultValues.DefaultPageLength)
   }
 
@@ -57,7 +56,8 @@ class IssueServiceImpl @Inject() (val issueDao: IssueDAO,
     issueUpdateDao.count(IssueUpdate.queryByParent(issue)).map { count => count + 1 }
   }
 
-  override def insertIssueUpdate(model: IssueUpdate): Future[Option[IssueUpdate]] = issueUpdateDao.insert(model).map(wr => if (wr.ok) Some(model) else None)
+  override def insertIssueUpdate(model: IssueUpdate): Future[Option[IssueUpdate]] = 
+    issueUpdateDao.insert(model).map(wr => if (wr.ok) Some(model) else None)
 
   override def updateIssueUpdate(model: IssueUpdate): Future[Boolean] = issueUpdateDao.update(model).map(wr => wr.ok)
 

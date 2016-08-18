@@ -42,7 +42,7 @@
 			<ul class="nav nav-pills nav-stacked nav-left m-a">
 				@if(mainViewData.userStatus.loggedInUser.isDefined) {
 				<li class="nav-item">
-					<a class="nav-link @if(mainViewData.navType == utils.NavTypes.Domains){active}" 
+					<a class="nav-link @if(mainViewData.navType == viewdata.NavTypes.Domains){active}" 
 					href="@routes.DomainController.list(1)">
             			@Messages("domains")
             		</a>
@@ -53,28 +53,28 @@
 
 				@if(mainViewData.userStatus.loggedInUser.isDefined && mainViewData.userStatus.activeDomain.isDefined) {
 				<li class="nav-item">
-					<a class="nav-link @if(mainViewData.navType == utils.NavTypes.Users){active}" 
+					<a class="nav-link @if(mainViewData.navType == viewdata.NavTypes.Users){active}" 
 					href="@routes.UserController.list(1)">
             			@Messages("users")
             		</a>
         		</li>
         		
         		<li class="nav-item">
-					<a class="nav-link @if(mainViewData.navType == utils.NavTypes.Browse){active}" 
+					<a class="nav-link @if(mainViewData.navType == viewdata.NavTypes.Browse){active}" 
 					href="@routes.DomainController.domain(mainViewData.userStatus.activeDomain.get.uuid, 1)">
             			@Messages("browse")
             		</a>
         		</li>
         		
         		<li class="nav-item">
-					<a class="nav-link @if(mainViewData.navType == utils.NavTypes.Instructions){active}" 
+					<a class="nav-link @if(mainViewData.navType == viewdata.NavTypes.Instructions){active}" 
 					href="@routes.InstructionController.list("", 1)">
             			@Messages("instructions")
             		</a>
         		</li>
         		
         		<li class="nav-item">
-					<a class="nav-link @if(mainViewData.navType == utils.NavTypes.Issues){active}" 
+					<a class="nav-link @if(mainViewData.navType == viewdata.NavTypes.Issues){active}" 
 					href="@routes.IssueController.list("", 1)">
             			@Messages("issues")
             		</a>

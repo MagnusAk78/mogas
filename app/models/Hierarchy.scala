@@ -10,18 +10,18 @@ case class Hierarchy(
   override val name: String,
   override val orderNumber: Int,
   override val elements: Set[String]) extends DbModel with JsonImpl with HasModelType with 
-    ChildOf[Domain] with ElementParent with NamedModel with OrderedModel {
+    HasParent with HasElements with HasName with OrderedModel {
 
   override def asJsObject: JsObject = {
     Hierarchy.hasModelTypeJsObject(this) ++
     Hierarchy.childOfJsObject(this) ++
-      Hierarchy.elementParentJsObject(this) ++
+      Hierarchy.hasElementsJsObject(this) ++
       Hierarchy.namedModelJsObject(this) ++ Hierarchy.orderedModelJsObject(this)
   }
 }
 
-object Hierarchy extends DbModelComp[Hierarchy] with HasModelTypeComp with ChildOfComp[Domain] with ElementParentComp
-    with NamedModelComp with OrderedModelComp {
+object Hierarchy extends DbModelComp[Hierarchy] with HasModelTypeComp with HasParentComp[Domain] with HasElementsComp
+    with HasNameComp with OrderedModelComp {
   implicit val hierarchyFormat = Json.format[Hierarchy]
 
   def create(name: String, parentDomain: String, orderNumber: Int, elements: Set[String] = Set.empty) =

@@ -2,21 +2,17 @@ package models.services
 
 import play.api.libs.json.JsObject
 import scala.concurrent.Future
-import models.AmlObject
-import utils.ElementOrInterface
+import models.HasAmlId
 import models.Instruction
-import utils.AmlObjectChain
 import models.Interface
 import models.Element
-import models.ElementParent
+import models.HasElements
 import utils.ModelListData
-import models.ChildOf
+import models.DbModel
 
 trait AmlObjectService {
 
-  def findOneElementOrInterface(query: JsObject): Future[Option[ElementOrInterface]]
-
-  def getElementList(page: Int, parent: ElementParent): Future[ModelListData[Element]]
+  def getElementList(page: Int, parent: DbModel with HasElements): Future[ModelListData[Element]]
 
   def insertElement(model: Element): Future[Option[Element]]
 
