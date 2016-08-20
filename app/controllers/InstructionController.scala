@@ -86,8 +86,8 @@ class InstructionController @Inject() (
   def create(amlObjectUuid: String) = (generalActions.MySecuredAction andThen
     generalActions.AmlObjectAction(amlObjectUuid)) {
       implicit amlObjectRequest =>
-        Ok(views.html.browse.createInstruction(InstructionForm.form, amlObjectRequest.myDomain,
-          amlObjectRequest.hierarchy, amlObjectRequest.elementChain, amlObjectRequest.interface,
+        Ok(views.html.browse.createInstruction(InstructionForm.form, AmlObjectData(amlObjectRequest.myDomain,
+          amlObjectRequest.hierarchy, amlObjectRequest.elementChain ::: amlObjectRequest.interface.toList), 
           UserStatus(Some(amlObjectRequest.identity), amlObjectRequest.activeDomain)))
     }
 
@@ -96,9 +96,9 @@ class InstructionController @Inject() (
       implicit amlObjectRequest =>
         InstructionForm.form.bindFromRequest().fold(
           formWithErrors => {
-            Future.successful(BadRequest(views.html.browse.createInstruction(formWithErrors, amlObjectRequest.myDomain,
-              amlObjectRequest.hierarchy, amlObjectRequest.elementChain, amlObjectRequest.interface,
-              UserStatus(Some(amlObjectRequest.identity), amlObjectRequest.activeDomain))))
+            Future.successful(BadRequest(views.html.browse.createInstruction(formWithErrors, AmlObjectData(amlObjectRequest.myDomain, 
+                amlObjectRequest.hierarchy, amlObjectRequest.elementChain ::: amlObjectRequest.interface.toList), 
+                UserStatus(Some(amlObjectRequest.identity), amlObjectRequest.activeDomain))))
           },
           formData => {
             val responses = for {
@@ -183,8 +183,8 @@ class InstructionController @Inject() (
 
         val responses = for {
           instructionPartsListData <- instructionService.getInstructionPartList(instructionRequest.instruction, page)
-        } yield Ok(views.html.instructions.instruction(instructionRequest.instruction, instructionRequest.myDomain,
-          instructionRequest.hierarchy, instructionRequest.elementChain, instructionRequest.interface,
+        } yield Ok(views.html.instructions.instruction(instructionRequest.instruction, AmlObjectData(instructionRequest.myDomain,
+          instructionRequest.hierarchy, instructionRequest.elementChain ::: instructionRequest.interface.toList),
           instructionPartsListData, UserStatus(Some(instructionRequest.identity), instructionRequest.activeDomain)))
 
         responses recover {
@@ -205,8 +205,11 @@ class InstructionController @Inject() (
             case MediaTypes.MediaVideo => fileService.videoExists(uuid)
           }
         } yield instructionOpt.map(instruction => Ok(views.html.instructions.showPart(
-          instructionPartRequest.instructionPart, instruction, page, MediaData(MediaTypes.fromString(mediaType), mediaExists),
-          UserStatus(Some(instructionPartRequest.identity), instructionPartRequest.activeDomain)))).getOrElse(NotFound)
+          instructionPartRequest.instructionPart, instruction, 
+            AmlObjectData(instructionPartRequest.myDomain, instructionPartRequest.hierarchy, 
+                instructionPartRequest.elementChain ::: instructionPartRequest.interface.toList), page, 
+            MediaData(MediaTypes.fromString(mediaType), mediaExists), 
+            UserStatus(Some(instructionPartRequest.identity), instructionPartRequest.activeDomain)))).getOrElse(NotFound)
 
         responses recover {
           case e => InternalServerError(e.getMessage())

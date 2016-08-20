@@ -1,7 +1,6 @@
 @import viewdata._
 
-@(instruction: Instruction, domain: Domain, hierarchy: Hierarchy, elementChain: List[Element], 
-	interface: Option[Interface], instructionPartListData: utils.ModelListData[InstructionPart], 
+@(instruction: Instruction, parentObjectData: AmlObjectData, instructionPartListData: utils.ModelListData[InstructionPart], 
 	userStatus: UserStatus)(implicit flash: Flash, request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets)
 
 @import templates._
@@ -47,23 +46,19 @@
     }	
     
 	@{	 
-            var linkList = List(controllers.routes.DomainController.domain(domain.uuid, 1),
-                controllers.routes.DomainController.hierarchy(hierarchy.uuid, 1))
+            var linkList = List(controllers.routes.DomainController.domain(parentObjectData.domain.uuid, 1),
+                controllers.routes.DomainController.hierarchy(parentObjectData.hierarchy.uuid, 1))
                 
-            var textList = List(domain.name, hierarchy.name)
+            var textList = List(parentObjectData.domain.name, parentObjectData.hierarchy.name)
 
-            for(element <- elementChain) {
-                linkList = linkList ::: List(controllers.routes.DomainController.element(element.uuid, 1, 1))
+            for(amlObject <- parentObjectData.amlObjectChain) {
+            	if(amlObject.modelType == Types.ElementType.stringValue) {
+                	linkList = linkList ::: List(controllers.routes.DomainController.element(amlObject.uuid, 1, 1))
+                } else {
+                	linkList = linkList ::: List(controllers.routes.DomainController.interface(amlObject.uuid))
+                }
 
-                textList = textList ::: List(element.name)
-            }
-            
-            interface match {
-            	case Some(i) => {
-            		linkList = linkList ::: List(controllers.routes.DomainController.interface(i.uuid))
-            		textList = textList ::: List(i.name)
-            	}
-            	case None =>
+                textList = textList ::: List(amlObject.name)
             }
             
             linkList = linkList ::: List(controllers.routes.InstructionController.instruction(instruction.uuid, 1))

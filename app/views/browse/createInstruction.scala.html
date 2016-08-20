@@ -1,9 +1,10 @@
 @import viewdata._
 
-@(instructionForm: Form[models.formdata.InstructionForm.Data], domain: Domain, hierarchy: Hierarchy, 
-	elementChain: List[Element], interface: Option[Interface], userStatus: UserStatus)(implicit flash: Flash, request: RequestHeader, 
+@(instructionForm: Form[models.formdata.InstructionForm.Data], parentObjectData: AmlObjectData, 
+	userStatus: UserStatus)(implicit flash: Flash, request: RequestHeader, 
 	messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
 
+@import models._
 @import components.utils._
 @import templates._
 @import components.buttons._
@@ -16,23 +17,23 @@
 	
 	@rowLargeSmall() {
         @{
-            var linkList = List(controllers.routes.DomainController.domain(domain.uuid, 1),
-                controllers.routes.DomainController.hierarchy(hierarchy.uuid, 1))
+            var linkList = List(controllers.routes.DomainController.domain(parentObjectData.domain.uuid, 1),
+                controllers.routes.DomainController.hierarchy(parentObjectData.hierarchy.uuid, 1))
                 
-            var textList = List(domain.name, hierarchy.name)
+            var textList = List(parentObjectData.domain.name, parentObjectData.hierarchy.name)
 
-            for(element <- elementChain) {
-                linkList = (controllers.routes.DomainController.element(element.uuid, 1, 1)
-                                :: linkList.reverse).reverse
+            for(amlObject: DbModel with HasName with HasModelType <- parentObjectData.amlObjectChain) {
+            
+            	val link = if(amlObject.modelType == models.Types.ElementType.stringValue) {
+            		controllers.routes.DomainController.element(amlObject.uuid, 1, 1)
+            	} else {
+            		controllers.routes.DomainController.interface(amlObject.uuid)
+            	}
+            
+                linkList = linkList ::: List(link)
 
-                textList = (element.name :: textList.reverse).reverse
+                textList = textList ::: List(amlObject.name)
 
-            }
-			if(interface.isDefined) {
-            	linkList = (controllers.routes.DomainController.interface(interface.get.uuid) ::
-                	linkList.reverse).reverse
-                	
-                textList = (interface.get.name :: textList.reverse).reverse
             }
 
             breadcrumb(linkList, textList)
@@ -41,17 +42,17 @@
         	@Messages("createInstruction")
         </h1>
         <div class="m-t-1">
-    	@helper.form(action = routes.InstructionController.submitCreate(interface.map(_.uuid).getOrElse(elementChain.last.uuid))) {
+    	@helper.form(action = routes.InstructionController.submitCreate(parentObjectData.amlObjectChain.last.uuid)) {
     		@helper.CSRF.formField
     		@helper.inputText(instructionForm("name"), 'class-> "form-control", 'placeholder -> Messages("name"))
     		@submitButton(Messages("create"))	
 		}        	
     	</div>        
     }{		
-    	@if(interface.isDefined) {
-			@backButton(routes.DomainController.interface(interface.get.uuid))    		
+    	@if(parentObjectData.amlObjectChain.last.modelType == models.Types.ElementType.stringValue) {
+    		@backButton(routes.DomainController.element(parentObjectData.amlObjectChain.last.uuid, 1, 1))
     	} else {
-			@backButton(routes.DomainController.element(elementChain.last.uuid, 1, 1))
+			@backButton(routes.DomainController.interface(parentObjectData.amlObjectChain.last.uuid))
 		}
     }	
 }

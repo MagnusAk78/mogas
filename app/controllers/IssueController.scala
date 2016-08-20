@@ -80,12 +80,9 @@ class IssueController @Inject() (
     generalActions.AmlObjectAction(amlObjectUuid)) {
       implicit amlObjectRequest =>
         
-        val amlObjectChain = List[DbModel with HasName with HasModelType]() ::: 
-          amlObjectRequest.elementChain ::: amlObjectRequest.interface.map(List(_)).getOrElse(List())
-         
         Ok(views.html.browse.createIssue(IssueForm.form, AmlObjectData(amlObjectRequest.myDomain,
-          amlObjectRequest.hierarchy, amlObjectChain), UserStatus(Some(amlObjectRequest.identity), 
-              amlObjectRequest.activeDomain)))
+          amlObjectRequest.hierarchy, amlObjectRequest.elementChain ::: amlObjectRequest.interface.toList), 
+          UserStatus(Some(amlObjectRequest.identity), amlObjectRequest.activeDomain)))
     }
 
   def submitCreate(amlObjectUuid: String) = (generalActions.MySecuredAction andThen

@@ -190,11 +190,24 @@ class GeneralActionsImpl @Inject() (
   override def InstructionPartAction(uuid: String) = new ActionRefiner[MySecuredRequest, InstructionPartRequest] {
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
-        optionInstructionPart <- instructionService.findOneInstructionPart(InstructionPart.queryByUuid(uuid))
-        optionInstruction <- instructionService.findOneInstruction(Instruction.queryByUuid(optionInstructionPart.get.parent))
-      } yield (optionInstructionPart, optionInstruction) match {
-        case (Some(instructionPart), Some(instruction)) => Right(InstructionPartRequest(instructionPart, instruction, mySecuredRequest))
-        case _ => Left(NotFound)
+        optInstructionPart <- instructionService.findOneInstructionPart(InstructionPart.queryByUuid(uuid))
+        optInstruction <- instructionService.findOneInstruction(Instruction.queryByUuid(optInstructionPart.get.parent))
+        optInterface <- amlObjectService.findOneInterface(Interface.queryByUuid(optInstruction.get.parent))
+        optElement <- optInterface match {
+          case Some(i) => Future.successful(None)
+          case None => amlObjectService.findOneElement(Element.queryByUuid(optInstruction.get.parent))
+        }
+        elements <- optInterface match {
+          case Some(interface) => amlObjectService.getElementChain(interface.parent)
+          case None => amlObjectService.getElementChain(optElement.get.uuid)
+        }
+        optHierarchy <- domainService.findOneHierarchy(Hierarchy.queryByUuid(elements.head.parent))
+        optDomain <- domainService.findOneDomain(Domain.queryByUuid(optHierarchy.get.parent))
+      } yield if (optInstructionPart.isDefined && optInstruction.isDefined && optHierarchy.isDefined && optDomain.isDefined) {
+        Right(InstructionPartRequest(optInstructionPart.get, optInstruction.get, optDomain.get, optHierarchy.get, elements, 
+            optInterface, mySecuredRequest))
+      } else {
+        Left(NotFound)
       }
     }
   }

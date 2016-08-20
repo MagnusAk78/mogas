@@ -79,6 +79,7 @@ package object actions {
   }
 
   case class InstructionPartRequest[A](instructionPart: InstructionPart, instruction: Instruction,
+      myDomain: Domain, hierarchy: Hierarchy, elementChain: List[Element], interface: Option[Interface], 
       request: MySecuredRequest[A]) extends WrappedRequest[A](request) {
     lazy val identity: User = request.identity
     lazy val activeDomain = request.activeDomain
