@@ -1,7 +1,8 @@
 @import viewdata._
 @import models.formdata._
 
-@(user: User, signUpForm: Form[SignUpForm.Data], userStatus: UserStatus)(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, 
+@(user: User, imageExists: Boolean, signUpForm: Form[SignUpForm.Data], 
+	userStatus: UserStatus)(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, 
 	flash: Flash)
 
 @import templates._
@@ -35,15 +36,16 @@
 		</div>
 		
 		<div class="m-t-2">
-			@smallImage(user.uuid, models.Types.UserType.stringValue)
-		</div>		
+		@if(imageExists) {
+    		<img class="img-fluid" src="@routes.FileController.getStandardImage(user.uuid, 
+				models.Types.UserType.stringValue)" alt="@user.name">
+		} else {
+			<i class="fa fa-camera-retro fa-5x"></i>
+		}			
+		</div>
     } {
 		@backButton(controllers.routes.UserController.show(user.uuid, 1))
 				
-		@button(
-			routes.FileController.uploadImage(user.uuid, models.Types.UserType.stringValue),
-			Messages("changeImage"),
-			"btn-secondary",
-			Some("fa fa-photo fa-fw"))
+		@changeImageButton(user.uuid, models.Types.UserType)
     }    
 }

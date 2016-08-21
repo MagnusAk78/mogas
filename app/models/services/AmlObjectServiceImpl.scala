@@ -19,8 +19,8 @@ import play.api.Logger
 import play.api.libs.json.JsObject
 import views.html.instructions.instruction
 import models.daos.ElementDAO
-import utils.PaginateData
-import utils.ModelListData
+import viewdata.PaginateData
+import viewdata.ModelListData
 import models.HasElements
 import models.HasAmlId
 import models.DbModel

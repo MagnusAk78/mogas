@@ -6,7 +6,7 @@ import scala.concurrent.Future
 
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.impl.providers.CommonSocialProfile
-import utils.ModelListData
+import viewdata.ModelListData
 import javax.inject.Inject
 import models.User
 import models.daos.UserDAO
@@ -14,7 +14,7 @@ import play.api.Logger
 import play.api.libs.json.JsObject
 import play.api.libs.json.OWrites
 import play.api.libs.json.Reads
-import utils.PaginateData
+import viewdata.PaginateData
 
 /**
  * Handles actions to users.

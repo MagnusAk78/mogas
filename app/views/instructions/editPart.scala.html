@@ -1,36 +1,119 @@
 @import viewdata._
 @import models.formdata._
 
-@(instruction: Instruction, instructionPart: InstructionPart, instructionPartForm: Form[InstructionPartForm.Data], 
-	userStatus: UserStatus)(implicit flash: Flash,
-    request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
+@(instructionPart: InstructionPart, instruction: Instruction, paginateData: PaginateData, 
+	parentAmlObjectData: AmlObjectData, mediaData: MediaData, instructionPartForm: Form[InstructionPartForm.Data], 
+	userStatus: UserStatus)(implicit flash: Flash, request: RequestHeader, messages: Messages, lang: Lang, 
+	webJarAssets: WebJarAssets)
 
 @implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f("col-sm-4 col-md-3", "col-sm-8 col-md-9")) }
 @import templates._
 @import components.buttons._
+@import components.utils._
 @import components.media._
 @import forms._
 @import helper._
 
 @main(MainViewData(Messages("edit", instruction.name), viewdata.NavTypes.Instructions, userStatus)) {
-	@title(Messages("instructionPart", instructionPart.orderNumber, instruction.name))
+	@{
+		val linkList = List(
+			controllers.routes.InstructionController.list("", paginateData.page)
+		)                
+        val captionList = List(
+        	Messages("listAll"))
+        	
+        val activeList = List(false)
+
+        topNavigation(linkList, captionList, activeList)
+    }
+    
+	@{	 
+		var linkList = List(controllers.routes.DomainController.domain(parentAmlObjectData.domain.uuid, 1),
+        	controllers.routes.DomainController.hierarchy(parentAmlObjectData.hierarchy.uuid, 1))
+                
+        var textList = List(parentAmlObjectData.domain.name, parentAmlObjectData.hierarchy.name)
+
+        for(amlObject <- parentAmlObjectData.amlObjectChain) {
+        	if(amlObject.modelType == Types.ElementType.stringValue) {
+            	linkList = linkList ::: List(controllers.routes.DomainController.element(amlObject.uuid, 1, 1))
+            } else {
+            	linkList = linkList ::: List(controllers.routes.DomainController.interface(amlObject.uuid))
+            }
+
+            textList = textList ::: List(amlObject.name)
+        }
+            
+        linkList = linkList ::: List(controllers.routes.InstructionController.instruction(instruction.uuid, 1))
+        textList = textList ::: List(instruction.name)
+
+        breadcrumb(linkList, textList)
+	}
+	
+	@{
+		val linkList = List(
+			controllers.routes.InstructionController.editPart(instructionPart.uuid, paginateData.page, 
+				models.MediaTypes.MediaImage.stringValue),
+			controllers.routes.InstructionController.editPart(instructionPart.uuid, paginateData.page, 
+				models.MediaTypes.MediaVideo.stringValue)
+		)                
+        val captionList = List(
+        	Messages("image"),
+        	Messages("video")
+        	)
+        	
+        val activeList = List(
+        	mediaData.mediaType == models.MediaTypes.MediaImage,
+        	mediaData.mediaType == models.MediaTypes.MediaVideo
+        	)
+
+        topNavigation(linkList, captionList, activeList)
+    }	
 			
 	@rowLargeSmall() {	
-		@rowLargeSmall() {
-			@helper.form(action = routes.InstructionController.submitEditPart(instruction.uuid)) {
-    			@helper.CSRF.formField
-    			@helper.inputText(instructionPartForm("shortText"), 'class-> "form-control", '_label -> Messages("shortText"))
-    			@helper.textarea(instructionPartForm("text"), 'class-> "form-control", '_label -> Messages("text"), 'rows -> 6)
-    			@submitButton(Messages("update"))	
-			}			
-        }{	
-			<img class="img-responsive m-x-auto" src="@routes.FileController.getStandardImage(instructionPart.uuid, 
-				models.Types.InstructionPartType.stringValue)" alt="instruction part image">    			
-    	}		
+		@helper.form(action = routes.InstructionController.submitEditPart(instruction.uuid, paginateData.page, mediaData.mediaType.stringValue)) {
+    		@helper.CSRF.formField
+    		@helper.inputText(instructionPartForm("shortText"), 'class-> "form-control", '_label -> Messages("shortText"))
+    		@helper.textarea(instructionPartForm("text"), 'class-> "form-control", '_label -> Messages("text"), 'rows -> 6)
+    		@submitButton(Messages("update"))	
+		}
+			
+    	@if(mediaData.mediaType == models.MediaTypes.MediaImage) {
+    		@if(mediaData.hasMedia) {
+    		<img class="img-fluid" src="@routes.FileController.getStandardImage(instructionPart.uuid, 
+				models.Types.InstructionPartType.stringValue)" alt="@instructionPart.shortText">
+			} else {
+				<i class="fa fa-camera-retro fa-5x"></i>
+			}
+    	}
+    	@if(mediaData.mediaType == models.MediaTypes.MediaVideo) {
+    		@if(mediaData.hasMedia) {
+    		<div class="embed-responsive embed-responsive-16by9">
+			<video controls>
+  				<source src="@routes.FileController.getVideo(instructionPart.uuid, models.Types.InstructionPartType.stringValue)">
+  					Your browser does not support the video tag.
+			</video>    		
+    		</div>
+    		} else {
+				<i class="fa fa-video-camera fa-5x"></i>
+			}
+    	}
 	}{
-		@backButton(controllers.routes.InstructionController.instruction(instruction.uuid, 1))
-		@changeImageButton(instructionPart.uuid, models.Types.InstructionPartType)
-		@changeVideoButton(instructionPart.uuid, models.Types.InstructionPartType)
+		@backButton(controllers.routes.InstructionController.showPart(instructionPart.uuid, paginateData.page, 
+			mediaData.mediaType.stringValue))
+		@if(mediaData.mediaType == models.MediaTypes.MediaImage) {			
+			@changeImageButton(instructionPart.uuid, models.Types.InstructionPartType)
+		}
+		@if(mediaData.mediaType == models.MediaTypes.MediaVideo) {
+			@changeVideoButton(instructionPart.uuid, models.Types.InstructionPartType)
+		}
+		@if(instructionPart.orderNumber > 1) {
+			@button(routes.InstructionController.movePartUp(instructionPart.uuid, paginateData.page, mediaData.mediaType.stringValue), 
+				Messages("moveUp"), extraClasses = "btn-block")
+		}
+		@if(instructionPart.orderNumber < paginateData.count) {
+    		@button(routes.InstructionController.movePartDown(instructionPart.uuid, paginateData.page, mediaData.mediaType.stringValue), 
+    			Messages("moveDown"), extraClasses = "btn-block")
+    	}		
 		@deleteButton(controllers.routes.InstructionController.deletePart(instructionPart.uuid))	
 	}     
 }

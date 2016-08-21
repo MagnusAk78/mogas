@@ -7,7 +7,7 @@ import play.api.libs.json._
 
 case class User(
     override val uuid: String,
-    override val modelType: String,
+    override val modelType: String = Types.UserType.stringValue,
     override val name: String,
     val loginInfo: LoginInfo,
     val firstName: String,

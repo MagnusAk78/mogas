@@ -10,7 +10,7 @@
 
 @main(MainViewData(interface.name, viewdata.NavTypes.Browse, userStatus)) {
 	
-	@rowLargeSmall() {
+	@rowFullWidth() {
         @{
             var linkList = List(controllers.routes.DomainController.domain(elementData.domain.uuid, 1),
                 controllers.routes.DomainController.hierarchy(elementData.hierarchy.uuid, 1))
@@ -30,26 +30,26 @@
 
             breadcrumb(linkList, (interface.name :: textList.reverse).reverse)
         }
-        <div class="m-t-1">
-        	@largeImage(interface.uuid, models.Types.ElementType.stringValue)
-    	</div>        
-    }{
-    	@button(
-			routes.FileController.uploadImage(interface.uuid, models.Types.InterfaceType.stringValue),
-			Messages("changeImage"),
-			"btn-secondary",
-			Some("fa fa-photo fa-fw"))
+    }
+    
+    @rowLargeSmall() {
+    	<div class="m-t-1">
+    		@smallImage(interface.uuid, models.Types.InterfaceType.stringValue)
+    	</div>
+    }{    
+    	@changeImageButton(interface.uuid, models.Types.ElementType)
 			
 		@button(
 			routes.InstructionController.create(interface.uuid),
 			Messages("createInstruction"),
-			"btn-info",
-			Some("fa fa-pencil fa-fw"))
+			"btn-outline-primary",
+			Some("fa fa-pencil fa-fw"), "btn-block")
+			
 			
 		@button(
 			routes.IssueController.create(interface.uuid),
 			Messages("createIssue"),
-			"btn-warning",
-			Some("fa fa-pencil fa-fw"))
+			"btn-outline-primary",
+			Some("fa fa-pencil fa-fw"), "btn-block")
     }
 }

@@ -22,7 +22,7 @@ import play.api.libs.json.Json
 import play.api.mvc.BodyParser
 import play.api.mvc.Controller
 import play.api.mvc.MultipartFormData
-import utils.PaginateData
+import viewdata.PaginateData
 import utils.auth.DefaultEnv
 import models.Images
 import play.api.mvc.WrappedRequest
@@ -40,6 +40,7 @@ import models.services.AmlObjectService
 import play.api.Logger
 import viewdata.HierarchyData
 import viewdata._
+import models.services.FileService
 
 @Singleton
 class DomainController @Inject() (
@@ -47,6 +48,7 @@ class DomainController @Inject() (
   val generalActions: GeneralActions,
   val userService: UserService,
   val domainService: DomainService,
+  val fileService: FileService,
   val amlObjectService: AmlObjectService,
   implicit val webJarAssets: WebJarAssets)(implicit exec: ExecutionContext, materialize: Materializer)
     extends Controller with I18nSupport {
@@ -156,24 +158,32 @@ class DomainController @Inject() (
   }
 
   def edit(uuid: String) =
-    (generalActions.MySecuredAction andThen generalActions.DomainAction(uuid)) { implicit domainRequest =>
-
-      Ok(views.html.domains.edit(domainRequest.myDomain, DomainForm.form.fill(domainRequest.myDomain),
-        UserStatus(Some(domainRequest.identity), domainRequest.activeDomain)))
+    (generalActions.MySecuredAction andThen generalActions.DomainAction(uuid)).async { implicit domainRequest =>
+      
+      for {
+        imageExists <- fileService.imageExists(uuid)
+      } yield Ok(views.html.domains.edit(domainRequest.myDomain, imageExists, 
+          DomainForm.form.fill(domainRequest.myDomain), 
+          UserStatus(Some(domainRequest.identity), domainRequest.activeDomain)))
     }
 
   def show(uuid: String) =
-    (generalActions.MySecuredAction andThen generalActions.DomainAction(uuid)) { implicit domainRequest =>
-
-      Ok(views.html.domains.show(domainRequest.myDomain, UserStatus(Some(domainRequest.identity), domainRequest.activeDomain)))
+    (generalActions.MySecuredAction andThen generalActions.DomainAction(uuid)).async { implicit domainRequest =>
+      
+      for {
+        imageExists <- fileService.imageExists(uuid)
+      } yield Ok(views.html.domains.show(domainRequest.myDomain, imageExists, 
+          UserStatus(Some(domainRequest.identity), domainRequest.activeDomain)))
     }
 
   def submitEdit(uuid: String) = (generalActions.MySecuredAction andThen generalActions.DomainAction(uuid)).
     async { implicit domainRequest =>
       DomainForm.form.bindFromRequest().fold(
         formWithErrors => {
-          Future.successful(BadRequest(views.html.domains.edit(domainRequest.myDomain, formWithErrors,
-            UserStatus(Some(domainRequest.identity), domainRequest.activeDomain))))
+          for {
+            imageExists <- fileService.imageExists(uuid)
+          } yield BadRequest(views.html.domains.edit(domainRequest.myDomain, imageExists, formWithErrors,
+            UserStatus(Some(domainRequest.identity), domainRequest.activeDomain)))
         },
         formData => {
           val responses = for {

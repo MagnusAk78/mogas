@@ -1,6 +1,6 @@
 package models.services
 
-import utils.PaginateData
+import viewdata.PaginateData
 import models.Issue
 import models.daos.IssueDAO
 import models.daos.IssueUpdateDAO
@@ -13,7 +13,7 @@ import models.IssueUpdate
 import models.HasAmlId
 import play.api.libs.json.JsObject
 import utils.RemoveResult
-import utils.ModelListData
+import viewdata.ModelListData
 
 class IssueServiceImpl @Inject() (val issueDao: IssueDAO,
   val issueUpdateDao: IssueUpdateDAO,

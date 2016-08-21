@@ -3,10 +3,10 @@ package models.services
 import scala.concurrent.Future
 import models.Domain
 import models.Hierarchy
-import utils.PaginateData
+import viewdata.PaginateData
 import play.api.libs.json.JsObject
 import utils.RemoveResult
-import utils.ModelListData
+import viewdata.ModelListData
 import viewdata.AmlObjectData
 import models.HasParent
 import models.DbModel

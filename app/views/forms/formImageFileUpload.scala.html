@@ -7,5 +7,5 @@
 @helper.form(action = submitTo, 'enctype -> "multipart/form-data") {
 	@helper.CSRF.formField
 	@helper.inputFile(models.formdata.FileUploadForm.form(models.formdata.ImageFileKeyString), 'class-> "form-control", '_label -> Messages("chooseImageFile"))
-	@submitButton(Messages("uploadImage"), "btn-primary", Some("fa fa-upload fa-fw"))	
+	@submitButton(text = Messages("uploadImage"), icon = Some("fa fa-upload fa-fw"))	
 }

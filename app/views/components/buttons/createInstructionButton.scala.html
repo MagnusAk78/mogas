@@ -1,5 +1,5 @@
 @(amlObjectUuid: String)(implicit flash: Flash,
     request: RequestHeader, messages: Messages)
 
-@button(routes.InstructionController.create(amlObjectUuid), Messages("createInstruction"), "btn-primary", 
-	Some("fa fa-plus fa-fw"))
+@button(routes.InstructionController.create(amlObjectUuid), Messages("createInstruction"), "btn-outline-primary", 
+	Some("fa fa-plus fa-fw"), "btn-block")

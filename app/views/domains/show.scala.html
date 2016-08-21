@@ -1,6 +1,6 @@
 @import viewdata._
 
-@(domain: Domain, userStatus: UserStatus)(implicit flash: Flash, 
+@(domain: Domain, imageExists: Boolean, userStatus: UserStatus)(implicit flash: Flash, 
 	request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
 
 @import templates._
@@ -28,15 +28,14 @@
 
 	@rowLargeSmall() {
 		<h1>@domain.name</h1>
-		<div class="m-t-1">
-			@largeImage(domain.uuid, models.Types.DomainType.stringValue)
-		</div>
+		@if(imageExists) {
+    		<img class="img-fluid" src="@routes.FileController.getStandardImage(domain.uuid, 
+				models.Types.DomainType.stringValue)" alt="@domain.name">
+		} else {
+			<i class="fa fa-camera-retro fa-5x"></i>
+		}
     } {
-		@button(
-			controllers.routes.DomainController.edit(domain.uuid),
-			Messages("edit"),
-			"btn-primary",
-			Some("fa fa-pencil fa-fw"))
+		@editButton(controllers.routes.DomainController.edit(domain.uuid))
     	
     }
 }

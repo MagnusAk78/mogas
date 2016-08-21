@@ -1,6 +1,6 @@
 package models.services
 
-import utils.PaginateData
+import viewdata.PaginateData
 import models.Instruction
 import models.daos.InstructionDAO
 import models.daos.InstructionPartDAO
@@ -13,7 +13,7 @@ import models.InstructionPart
 import models.HasAmlId
 import play.api.libs.json.JsObject
 import utils.RemoveResult
-import utils.ModelListData
+import viewdata.ModelListData
 
 class InstructionServiceImpl @Inject() (val instructionDao: InstructionDAO,
   val instructionPartDao: InstructionPartDAO,

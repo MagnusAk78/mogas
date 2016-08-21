@@ -35,7 +35,7 @@ import play.modules.reactivemongo.MongoController
 import play.modules.reactivemongo.ReactiveMongoApi
 import play.modules.reactivemongo.ReactiveMongoComponents
 import reactivemongo.play.json.JsFieldBSONElementProducer
-import utils.PaginateData
+import viewdata.PaginateData
 import utils.auth.DefaultEnv
 import play.api.libs.json.JsValue
 import models.Images
@@ -110,12 +110,13 @@ class FileController @Inject() (
       response
   }
 
-  def uploadImage(uuid: String, modelTypeString: String) = generalActions.MySecuredAction { implicit request =>
-    val modelType = models.Types.fromString(modelTypeString)
-    Ok(views.html.imageUpload(GenericModelData(new DbModel with HasModelType {
-      override val uuid: String = uuid
-      override val modelType: String = modelTypeString
-    }), UserStatus(Some(request.identity), request.activeDomain)))
+  def uploadImage(modelUuid: String, modelTypeString: String) = generalActions.MySecuredAction { implicit request =>
+    Ok(views.html.imageUpload(
+        GenericModelData(new DbModel with HasModelType {
+          override val uuid: String = modelUuid
+          override val modelType: String = Types.fromString(modelTypeString).stringValue
+        }), 
+        UserStatus(Some(request.identity), request.activeDomain)))
   }
 
   def getThumbnailImage(uuid: String, modelTypeString: String) = generalActions.MySecuredAction async { implicit request =>
@@ -151,11 +152,10 @@ class FileController @Inject() (
     response
   }
 
-  def uploadVideo(uuid: String, modelTypeString: String) = generalActions.MySecuredAction { implicit request =>
-    val modelType = models.Types.fromString(modelTypeString)
+  def uploadVideo(modelUuid: String, modelTypeString: String) = generalActions.MySecuredAction { implicit request =>
     Ok(views.html.videoUpload(GenericModelData(new DbModel with HasModelType {
-      override val uuid: String = uuid
-      override val modelType: String = modelTypeString
+      override val uuid: String = modelUuid
+      override val modelType: String = Types.fromString(modelTypeString).stringValue
     }), UserStatus(Some(request.identity), request.activeDomain)))
   }
 
@@ -408,13 +408,15 @@ class FileController @Inject() (
   def submitAmlFile(domainUuid: String) = {
 
     //Create the parser using the GridFS collection from FileService
-    val gdfsParser = fileService.withSyncGfs[BodyParser[MultipartFormData[Future[FileDAO.JSONReadFile]]]] { gfs => gridFSBodyParser(gfs) }
+    val gdfsParser = fileService.withSyncGfs[BodyParser[MultipartFormData[Future[FileDAO.JSONReadFile]]]] { 
+      gfs => gridFSBodyParser(gfs) }
 
-    (generalActions.MySecuredAction andThen generalActions.RequireActiveDomain andThen
-      generalActions.DomainAction(domainUuid)).async(gdfsParser) { implicit domainRequest =>
+    (generalActions.MySecuredAction andThen generalActions.DomainAction(domainUuid)).async(gdfsParser) { 
+      implicit domainRequest =>
 
         //A list of the existing aml files
-        val futureExistingAmlFileList = fileService.findByQuery(AmlFiles.getQueryAllAmlFiles(domainUuid)).flatMap(cursor => cursor.collect[List](0, true))
+        val futureExistingAmlFileList = fileService.findByQuery(AmlFiles.getQueryAllAmlFiles(domainUuid)).
+          flatMap(cursor => cursor.collect[List](0, true))
 
         val futureOptFileRef = domainRequest.body.file(models.formdata.AmlFileKeyString) match {
           case Some(file) => file.ref.map(Some(_))
@@ -434,7 +436,8 @@ class FileController @Inject() (
               val result = fileService.remove(file.id.as[String])
 
               //And return with error
-              Future.successful(Redirect(routes.DomainController.edit(domainUuid)).flashing("error" -> Messages("amlFile.not.ok")))
+              Future.successful(Redirect(routes.DomainController.edit(domainUuid)).
+                  flashing("error" -> Messages("amlFile.not.ok")))
             } else {
               Logger.info("Aml file uploaded correctly")
 
@@ -444,7 +447,8 @@ class FileController @Inject() (
             }
           }
           case None => {
-            Future.successful(Redirect(routes.DomainController.edit(domainUuid)).flashing("error" -> Messages("amlFile.upload.failed")))
+            Future.successful(Redirect(routes.DomainController.edit(domainUuid)).
+                flashing("error" -> Messages("amlFile.upload.failed")))
           }
         }
 

@@ -1,4 +1,4 @@
-package utils
+package viewdata
 
 import models.MediaTypes.MediaType
 

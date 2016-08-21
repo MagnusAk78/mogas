@@ -67,6 +67,7 @@ class SignUpController @Inject() (
   val avatarService: AvatarService,
   val passwordHasher: PasswordHasher,
   val reactiveMongoApi: ReactiveMongoApi,
+  val fileService: FileService,
   implicit val webJarAssets: WebJarAssets)(implicit materialize: Materializer)
     extends Controller with MongoController with ReactiveMongoComponents with I18nSupport {
 
@@ -85,11 +86,13 @@ class SignUpController @Inject() (
     val responses = for {
       userOpt <- userService.findOne(User.queryByUuid(uuid))
       activeDomainOpt <- domainService.findOneDomain(Domain.queryByUuid(request.identity.activeDomain))
+      imageExists <- fileService.imageExists(uuid)
     } yield userOpt match {
       case Some(user) => {
         if (user.uuid == request.identity.uuid) {
           //TODO: Use sign up form and edit
-          Ok(views.html.users.edit(user, SignUpForm.form.fill(user), UserStatus(Some(request.identity), activeDomainOpt)))
+          Ok(views.html.users.edit(user, imageExists, SignUpForm.form.fill(user), UserStatus(Some(request.identity), 
+              activeDomainOpt)))
         } else {
           Redirect(routes.UserController.list(1))
         }
@@ -144,8 +147,10 @@ class SignUpController @Inject() (
   def submitEdit(uuid: String) = (generalActions.MySecuredAction andThen
     generalActions.UserAction(uuid)).async { implicit userRequest =>
       SignUpForm.form.bindFromRequest.fold(
-        errorForm => Future.successful(BadRequest(views.html.users.edit(userRequest.user, errorForm,
-          UserStatus(Some(userRequest.identity), None)))),
+        errorForm => for {
+            imageExists <- fileService.imageExists(uuid)
+          } yield BadRequest(views.html.users.edit(userRequest.user, imageExists, errorForm,
+          UserStatus(Some(userRequest.identity), None))),
         data => {
 
           val newLoginInfo = LoginInfo(CredentialsProvider.ID, data.email)

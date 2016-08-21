@@ -1,7 +1,7 @@
 @import viewdata._
 
-@(instructionPart: InstructionPart, instruction: Instruction, parentObjectData: AmlObjectData, 
-	page: Int, mediaData: utils.MediaData, userStatus: UserStatus)(implicit flash: Flash, request: RequestHeader, 
+@(instructionPart: InstructionPart, instruction: Instruction, parentAmlObjectData: AmlObjectData, 
+	page: Int, mediaData: MediaData, userStatus: UserStatus)(implicit flash: Flash, request: RequestHeader, 
 	messages: Messages, webJarAssets: WebJarAssets)
 
 @import templates._
@@ -25,26 +25,26 @@
     }
     
 	@{	 
-            var linkList = List(controllers.routes.DomainController.domain(parentObjectData.domain.uuid, 1),
-                controllers.routes.DomainController.hierarchy(parentObjectData.hierarchy.uuid, 1))
+		var linkList = List(controllers.routes.DomainController.domain(parentAmlObjectData.domain.uuid, 1),
+        	controllers.routes.DomainController.hierarchy(parentAmlObjectData.hierarchy.uuid, 1))
                 
-            var textList = List(parentObjectData.domain.name, parentObjectData.hierarchy.name)
+        var textList = List(parentAmlObjectData.domain.name, parentAmlObjectData.hierarchy.name)
 
-            for(amlObject <- parentObjectData.amlObjectChain) {
-            	if(amlObject.modelType == Types.ElementType.stringValue) {
-                	linkList = linkList ::: List(controllers.routes.DomainController.element(amlObject.uuid, 1, 1))
-                } else {
-                	linkList = linkList ::: List(controllers.routes.DomainController.interface(amlObject.uuid))
-                }
-
-                textList = textList ::: List(amlObject.name)
+        for(amlObject <- parentAmlObjectData.amlObjectChain) {
+        	if(amlObject.modelType == Types.ElementType.stringValue) {
+            	linkList = linkList ::: List(controllers.routes.DomainController.element(amlObject.uuid, 1, 1))
+            } else {
+            	linkList = linkList ::: List(controllers.routes.DomainController.interface(amlObject.uuid))
             }
-            
-            linkList = linkList ::: List(controllers.routes.InstructionController.instruction(instruction.uuid, 1))
-            textList = textList ::: List(instruction.name)
 
-            breadcrumb(linkList, textList)
+            textList = textList ::: List(amlObject.name)
         }
+            
+        linkList = linkList ::: List(controllers.routes.InstructionController.instruction(instruction.uuid, 1))
+        textList = textList ::: List(instruction.name)
+
+        breadcrumb(linkList, textList)
+	}
     
 	@{
 		val linkList = List(
@@ -92,8 +92,6 @@
     	<p>@instructionPart.text</p>
     	
 		@backButton(controllers.routes.InstructionController.instruction(instruction.uuid, page))
-        @editButton(controllers.routes.InstructionController.editPart(instructionPart.uuid))
-    	@button(routes.InstructionController.movePartUp(instructionPart.uuid, page), Messages("moveUp"))
-    	@button(routes.InstructionController.movePartDown(instructionPart.uuid, page), Messages("moveDown"))    	
+        @editButton(controllers.routes.InstructionController.editPart(instructionPart.uuid, page, mediaData.mediaType.stringValue))
     }
 }

@@ -1,7 +1,8 @@
 @import viewdata._
 
-@(user: User, domainListData: utils.ModelListData[Domain], userStatus: UserStatus)(implicit flash: Flash, 
-	request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets)
+@(user: User, imageExists: Boolean, domainListData: viewdata.ModelListData[Domain], 
+	userStatus: UserStatus)(implicit flash: Flash, request: RequestHeader, messages: Messages, 
+	webJarAssets: WebJarAssets)
 
 @import templates._
 @import components.utils._
@@ -39,16 +40,15 @@
 		    </div>		
 		    </div>
 		
-		<div class="m-t-1">
-			@largeImage(user.uuid, models.Types.UserType.stringValue)
-		</div>
+		@if(imageExists) {
+    		<img class="img-fluid m-t-1" src="@routes.FileController.getStandardImage(user.uuid, 
+				models.Types.UserType.stringValue)" alt="@user.name">
+		} else {
+			<i class="fa fa-camera-retro fa-5x"></i>
+		}	
     } {
     	@if(userStatus.loggedInUser.isDefined && userStatus.loggedInUser.get.uuid == user.uuid) {
-			@button(
-				routes.SignUpController.edit(user.uuid),
-				Messages("edit"),
-				"btn-primary",
-				Some("fa fa-pencil fa-fw"))			
+			@editButton(routes.SignUpController.edit(user.uuid))			
 		}
     }
 }

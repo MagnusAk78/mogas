@@ -1,6 +1,6 @@
 @import viewdata._
 
-@(domainOpt: Option[Domain], instructionListData: utils.ModelListData[Instruction], 
+@(domainOpt: Option[Domain], instructionListData: viewdata.ModelListData[Instruction], 
 	parentAmlObjectDataList: List[AmlObjectData],  userStatus: UserStatus)(implicit flash: Flash, 
 	request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)    
 
@@ -26,7 +26,7 @@
 
     @rowFullWidth() {
     	@{
-    	val newInstructionListData = new utils.ModelListData[DbModel with HasName with HasShortText] {
+    	val newInstructionListData = new viewdata.ModelListData[DbModel with HasName with HasShortText] {
     		override val list = (instructionListData.list, parentAmlObjectDataList).zipped map((instruction, parentAmlObjectData) =>
     			 new DbModel with HasName with HasShortText {
     			override val uuid = instruction.uuid

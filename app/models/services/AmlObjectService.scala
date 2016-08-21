@@ -7,7 +7,7 @@ import models.Instruction
 import models.Interface
 import models.Element
 import models.HasElements
-import utils.ModelListData
+import viewdata.ModelListData
 import models.DbModel
 
 trait AmlObjectService {

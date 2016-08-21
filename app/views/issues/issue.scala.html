@@ -1,6 +1,6 @@
 @import viewdata._
 
-@(issue: Issue, domain: Domain, issueUpdateListData: utils.ModelListData[IssueUpdate], 
+@(issue: Issue, domain: Domain, issueUpdateListData: viewdata.ModelListData[IssueUpdate], 
 	userStatus: UserStatus)(implicit flash: Flash, request: RequestHeader, messages: Messages, 
 	webJarAssets: WebJarAssets)
 
@@ -47,7 +47,8 @@
   		</div>  		
     }{
         @backButton(controllers.routes.IssueController.list(domain.uuid, issueUpdateListData.paginateData.page))
-        @createButton(controllers.routes.IssueController.createIssueUpdate(issue.uuid), Some(Messages("addMore")))
+        @button(link = controllers.routes.IssueController.createIssueUpdate(issue.uuid), text = Messages("addMore"),
+        	icon = Some("fa fa-plus fa-fw"))
     }
     
 	@for(issueUpdate <- issueUpdateListData.list) {		

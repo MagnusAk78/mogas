@@ -1,4 +1,4 @@
-package utils
+package viewdata
 
 case class PaginateData(
   val page: Int,

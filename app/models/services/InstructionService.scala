@@ -2,12 +2,12 @@ package models.services
 
 import scala.concurrent.Future
 import models.Instruction
-import utils.PaginateData
+import viewdata.PaginateData
 import models.Domain
 import models.InstructionPart
 import play.api.libs.json.JsObject
 import utils.RemoveResult
-import utils.ModelListData
+import viewdata.ModelListData
 
 trait InstructionService {
 

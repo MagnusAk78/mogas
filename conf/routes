@@ -74,12 +74,12 @@ GET     /instructions/list/:page/:domainUuid/								controllers.InstructionCont
 
 POST    /instructionpart/submit/:instructionUuid                     		controllers.InstructionController.submitCreatePart(instructionUuid: String)
 GET     /instructionpart/create/:instructionUuid							controllers.InstructionController.createPart(instructionUuid: String)
-POST    /instructionpart/:uuid/submit                                       controllers.InstructionController.submitEditPart(uuid: String)
-GET     /instructionpart/:uuid/edit                                         controllers.InstructionController.editPart(uuid: String)
+POST    /instructionpart/:uuid/submit/:page/:mediaType                      controllers.InstructionController.submitEditPart(uuid: String, page: Int, mediaType: String)
+GET     /instructionpart/:uuid/edit/:page/:mediaType                        controllers.InstructionController.editPart(uuid: String, page: Int, mediaType: String)
 GET     /instructionpart/:uuid/show/:page/:mediaType                        controllers.InstructionController.showPart(uuid: String, page: Int, mediaType: String)
 GET     /instructionpart/:uuid/delete                                       controllers.InstructionController.deletePart(uuid: String)
-GET    	/instructionpart/:uuid/moveup/:page                                 controllers.InstructionController.movePartUp(uuid: String, page: Int)
-GET    	/instructionpart/:uuid/movedown/:page                               controllers.InstructionController.movePartDown(uuid: String, page: Int)
+GET    	/instructionpart/:uuid/moveup/:page/:mediaType                      controllers.InstructionController.movePartUp(uuid: String, page: Int, mediaType: String)
+GET    	/instructionpart/:uuid/movedown/:page/:mediaType                    controllers.InstructionController.movePartDown(uuid: String, page: Int, mediaType: String)
 
 #Issues
 POST    /issue/submit/:amlObjectUuid                     					controllers.IssueController.submitCreate(amlObjectUuid: String)

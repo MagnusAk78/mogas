@@ -1,4 +1,4 @@
-@(modelListData: utils.ModelListData[DbModel with HasName], paginateRoute: Int => Call, 
+@(modelListData: viewdata.ModelListData[DbModel with HasName], paginateRoute: Int => Call, 
 	linkRoute: String => Call, modelType: models.Types.ModelType, 
 	isHighlighted: (String => Boolean) = (uuid => false))(implicit flash: Flash, messages: Messages)
 	
@@ -30,7 +30,7 @@
 </div>
 }
 
-@cardDeck(iMLD: utils.ModelListData[DbModel with models.HasName], columns: Int, iLinkRoute: String => Call, 
+@cardDeck(iMLD: viewdata.ModelListData[DbModel with models.HasName], columns: Int, iLinkRoute: String => Call, 
 	hiddenClasses: String) = {
 	<div class="@hiddenClasses">
 		@for((modelList, hasImageList) <- (iMLD.list.grouped(columns) zip iMLD.imageList.grouped(columns))) {		
@@ -45,7 +45,7 @@
   					}
   				}
   				@for(i <- 1 to (columns - modelList.length)) {
-  					<div class="card">
+  					<div class="card no-border">
 
   					</div>
   				}  				

@@ -16,11 +16,12 @@ import play.Logger
 import play.api.i18n.I18nSupport
 import play.api.i18n.MessagesApi
 import play.api.mvc.Controller
-import utils.PaginateData
+import viewdata.PaginateData
 import utils.auth.DefaultEnv
 import controllers.actions.GeneralActions
 import controllers.actions.MySecuredRequest
 import viewdata._
+import models.services.FileService
 
 @Singleton
 class UserController @Inject() (
@@ -28,6 +29,7 @@ class UserController @Inject() (
   val domainService: DomainService,
   val userService: UserService,
   val generalActions: GeneralActions,
+  val fileService: FileService,
   implicit val webJarAssets: WebJarAssets)(implicit exec: ExecutionContext)
     extends Controller with I18nSupport {
 
@@ -47,8 +49,9 @@ class UserController @Inject() (
     (generalActions.MySecuredAction andThen generalActions.UserAction(uuid)).async { implicit userRequest =>
       val responses = for {
         domainListData <- domainService.getDomainList(page, userRequest.user)
-      } yield Ok(views.html.users.show(userRequest.user, domainListData, UserStatus(Some(userRequest.identity),
-        userRequest.activeDomain)))
+        imageExists <- fileService.imageExists(uuid)
+      } yield Ok(views.html.users.show(userRequest.user, imageExists, domainListData, 
+          UserStatus(Some(userRequest.identity), userRequest.activeDomain)))
 
       responses recover {
         case e => InternalServerError(e.getMessage())

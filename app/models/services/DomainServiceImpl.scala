@@ -1,7 +1,7 @@
 package models.services
 
 import java.io.PipedInputStream
-import utils.ModelListData
+import viewdata.ModelListData
 import java.io.PipedOutputStream
 
 import scala.concurrent.Await
@@ -18,7 +18,7 @@ import models.Element
 import models.daos.DomainDAO
 import models.daos.HierarchyDAO
 import reactivemongo.play.json.JsFieldBSONElementProducer
-import utils.PaginateData
+import viewdata.PaginateData
 import play.api.Logger
 import java.io.ByteArrayOutputStream
 import java.io.BufferedOutputStream

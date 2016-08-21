@@ -1,6 +1,6 @@
 @import viewdata._
 
-@(elementData: ElementData, elementListData: utils.ModelListData[Element], interfaceListData: utils.ModelListData[Interface], 
+@(elementData: ElementData, elementListData: viewdata.ModelListData[Element], interfaceListData: viewdata.ModelListData[Interface], 
 	userStatus: UserStatus)(implicit flash: Flash, request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
 
 @import templates._
@@ -39,23 +39,19 @@
     		@smallImage(elementData.elementChain.last.uuid, models.Types.ElementType.stringValue)
     	</div>
     }{
-    	@button(
-			routes.FileController.uploadImage(elementData.elementChain.last.uuid, models.Types.ElementType.stringValue),
-			Messages("changeImage"),
-			"btn-secondary",
-			Some("fa fa-photo fa-fw"))
+    	@changeImageButton(elementData.elementChain.last.uuid, models.Types.ElementType)
 			
 		@button(
 			routes.InstructionController.create(elementData.elementChain.last.uuid),
 			Messages("createInstruction"),
-			"btn-info",
-			Some("fa fa-pencil fa-fw"))
+			"btn-outline-primary",
+			Some("fa fa-pencil fa-fw"), "btn-block")
 			
 			
 		@button(
 			routes.IssueController.create(elementData.elementChain.last.uuid),
 			Messages("createIssue"),
-			"btn-warning",
-			Some("fa fa-pencil fa-fw"))
+			"btn-outline-primary",
+			Some("fa fa-pencil fa-fw"), "btn-block")
     }
 }

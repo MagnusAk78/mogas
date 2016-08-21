@@ -4,7 +4,7 @@ import scala.concurrent.Future
 
 import com.mohiva.play.silhouette.api.services.IdentityService
 import com.mohiva.play.silhouette.impl.providers.CommonSocialProfile
-import utils.ModelListData
+import viewdata.ModelListData
 
 import models.User
 import play.api.libs.json.JsObject

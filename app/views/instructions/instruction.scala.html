@@ -1,6 +1,6 @@
 @import viewdata._
 
-@(instruction: Instruction, parentObjectData: AmlObjectData, instructionPartListData: utils.ModelListData[InstructionPart], 
+@(instruction: Instruction, parentObjectData: AmlObjectData, instructionPartListData: viewdata.ModelListData[InstructionPart], 
 	userStatus: UserStatus)(implicit flash: Flash, request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets)
 
 @import templates._
@@ -33,19 +33,19 @@
 
 @main(MainViewData(instruction.name, viewdata.NavTypes.Instructions, userStatus)) {
 	
-	@{
-		val linkList = List(
-			controllers.routes.InstructionController.list("", instructionPartListData.paginateData.page)
-		)                
-        val captionList = List(
-        	Messages("listAll"))
+		@{
+			val linkList = List(controllers.routes.InstructionController.list("", 
+				instructionPartListData.paginateData.page))                
+	        val captionList = List(Messages("listAll"))
         	
-        val activeList = List(false)
+        	val activeList = List(false)
 
-        topNavigation(linkList, captionList, activeList)
-    }	
+        	topNavigation(linkList, captionList, activeList)
+		}	
+		
+		@rowFullWidth() {
     
-	@{	 
+		@{	 
             var linkList = List(controllers.routes.DomainController.domain(parentObjectData.domain.uuid, 1),
                 controllers.routes.DomainController.hierarchy(parentObjectData.hierarchy.uuid, 1))
                 
@@ -67,9 +67,8 @@
             breadcrumb(linkList, textList)
         }
 
-    @rowFullWidth() {
     	@{
-    		val newInstructionPartListData = new utils.ModelListData[DbModel with HasName with HasShortText] {
+    		val newInstructionPartListData = new viewdata.ModelListData[DbModel with HasName with HasShortText] {
     		override val list = instructionPartListData.list map( instructionPart =>
     			 new DbModel with HasName with HasShortText {
     			override val uuid = instructionPart.uuid
@@ -90,9 +89,12 @@
 	}
 	
 	@rowLargeSmall() {
-    	@editButton(controllers.routes.InstructionController.edit(instruction.uuid), Some(Messages("edit")))
+    	
     }{
-        @createButton(controllers.routes.InstructionController.createPart(instruction.uuid), Some(Messages("addMore")))
+    	@editButton(controllers.routes.InstructionController.edit(instruction.uuid), Some(Messages("edit")))
+    	
+        @button(link = controllers.routes.InstructionController.createPart(instruction.uuid), 
+        	text = Messages("addMore"), icon = Some("fa fa-plus fa-fw"), extraClasses = "btn-block")
     }
     
 	@for(instructionPart <- instructionPartListData.list) {		
