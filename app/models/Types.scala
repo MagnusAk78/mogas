@@ -36,22 +36,22 @@ object Types {
 
   final case object InstructionType extends ModelType {
     override val stringValue = "Instruction"
-    override val navType = NavTypes.Instructions
+    override val navType = NavTypes.Browse
   }
 
   final case object InstructionPartType extends ModelType {
     override val stringValue = "InstructionPart"
-    override val navType = NavTypes.Instructions
+    override val navType = NavTypes.Browse
   }
 
   final case object IssueType extends ModelType {
     override val stringValue = "Issue"
-    override val navType = NavTypes.Issues
+    override val navType = NavTypes.Browse
   }
 
   final case object IssueUpdateType extends ModelType {
     override val stringValue = "IssueUpdate"
-    override val navType = NavTypes.Issues
+    override val navType = NavTypes.Browse
   }
 
   final case object UnknownType extends ModelType {

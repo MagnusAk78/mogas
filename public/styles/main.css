@@ -3,37 +3,20 @@ body {
 	font-size: 13px;
 }
 
-.black-link-icon {
-	color: black !important;
-}
-
-.max-width-menu {
-	max-width: 160px !important;
-}
-
 .max-width-main {
 	max-width: 1300px !important;
 }
 
-.brand-text {
-	font-family: 'Source Sans Pro', sans-serif;
-	font-size: 16px;
-}
-
-.nav-left {	
-	font-family: 'Source Sans Pro', sans-serif;
-	font-size: 14px;
-}
-
-.nav-left a:focus
-.nav-left a:hover { 
-	background-color: #eceeef !important;
-}
-
-.nav-left a.active { 
+.black-link-icon {
 	color: black !important;
-	background-color: white !important; 
-	font-weight: bold !important; 
+}
+
+.active-domain-text {
+  color:rgb(200,200,240) !important;
+}
+
+.no-active-domain-text {
+  color:rgb(240,200,200) !important;
 }
 
 .nav-top {

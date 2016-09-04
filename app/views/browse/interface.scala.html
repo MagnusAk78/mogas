@@ -9,6 +9,8 @@
 @import components.utils._
 
 @main(MainViewData(interface.name, viewdata.NavTypes.Browse, userStatus)) {
+
+	@browseTabs(userStatus)
 	
 	@rowFullWidth() {
         @{

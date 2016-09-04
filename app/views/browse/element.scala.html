@@ -10,6 +10,8 @@
 
 @main(MainViewData(elementData.elementChain.last.name, viewdata.NavTypes.Browse, userStatus)) {
 	
+	@browseTabs(userStatus)
+	
     @rowFullWidth() {
         @{
         	var linkList = List(controllers.routes.DomainController.domain(elementData.domain.uuid, 1),

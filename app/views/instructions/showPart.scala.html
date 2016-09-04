@@ -11,7 +11,7 @@
 @import forms._
 
 @main(MainViewData(Messages("edit", instruction.name + ": " + instructionPart.orderNumber), 
-	viewdata.NavTypes.Instructions, userStatus)) {
+	viewdata.NavTypes.Browse, userStatus)) {
 	@{
 		val linkList = List(
 			controllers.routes.InstructionController.list("", page)

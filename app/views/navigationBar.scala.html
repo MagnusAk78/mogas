@@ -1,44 +1,65 @@
-@(brandText: String, loggedInUser: Option[User])(implicit flash: Flash, messages: Messages)
+@import viewdata._
+
+@(mainViewData: MainViewData)(implicit flash: Flash, messages: Messages)
 
 <nav class="navbar navbar-fixed-top navbar-dark bg-inverse">
 	<button class="navbar-toggler hidden-sm-up pull-right" type="button" data-toggle="collapse" data-target="#collapsingNavbar">
 		&#9776;
     </button>
-	<a class="navbar-brand" href="@routes.SignInController.view">
-		@brandText
-	</a>
-    
+        
     <div class="collapse navbar-toggleable-xs" id="collapsingNavbar">
-        <ul class="nav navbar-nav pull-right nav-top">
-
-			<li class="nav-item dropdown">
-            	<a class="nav-link" href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" 
-            		aria-haspopup="true" aria-expanded="false">
-                	@Messages("language")
-                	<span class="caret"/>
-                </a>
-                <ul class="dropdown-menu">
-                	<li><a href="@routes.ApplicationController.changeLanguage("en")">en</a></li>
-                	<li><a href="@routes.ApplicationController.changeLanguage("sv")">sv</a></li>
+		<a class="navbar-brand" href="@routes.SignInController.view">
+			@Messages("brandName")
+		</a>
+    	<div class="nav navbar-nav pull-sm-left">
+			@if(mainViewData.userStatus.loggedInUser.isDefined && mainViewData.userStatus.activeDomain.isDefined) {
+				<p class="nav-item nav-link text-primary">@mainViewData.userStatus.activeDomain.get.name</p>
+			}
+    		@if(mainViewData.userStatus.loggedInUser.isDefined && mainViewData.userStatus.activeDomain.isEmpty) {
+  				<p class="nav-item nav-link text-warning">@Messages("noActiveDomain")</p>
+			}
+    	
+    		@if(mainViewData.userStatus.loggedInUser.isDefined) {
+    		<div class="nav-item dropdown">
+    			<a class="nav-link" href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+            		<i class="fa fa-caret-down fa-fw" aria-hidden="true"></i>&nbsp; @Messages("menu")
+            	</a>
+            	<ul class="dropdown-menu navbar-dark bg-inverse">
+					@if(mainViewData.userStatus.loggedInUser.isDefined) {
+						<li class="dropdown-item"><a class="nav-link" href="@routes.DomainController.list(1)">@Messages("domains")</a></li>
+        			}
+        
+					@if(mainViewData.userStatus.loggedInUser.isDefined && mainViewData.userStatus.activeDomain.isDefined) {
+						<li class="dropdown-item"><a class="nav-link" href="@routes.UserController.list(1)">@Messages("users")</a></li>
+						<li class="dropdown-item"><a class="nav-link" href="@routes.DomainController.domain(mainViewData.userStatus.activeDomain.get.uuid, 1)">@Messages("browse")</a></li>
+        			}	
+        		</ul>
+        	</div>
+        	}
+        </div>
+           	
+        <div class="nav navbar-nav pull-sm-right">
+        	<div class="nav-item dropdown">
+            	<a class="nav-link" href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                	<i class="fa fa-caret-down fa-fw" aria-hidden="true"></i>&nbsp; @Messages("language")
+            	</a>
+            	<ul class="dropdown-menu navbar-dark bg-inverse">
+                	<li class="dropdown-item"><a class="nav-link" href="@routes.ApplicationController.changeLanguage("en")">en</a></li>
+                	<li class="dropdown-item"><a class="nav-link" href="@routes.ApplicationController.changeLanguage("sv")">sv</a></li>
             	</ul>
-            </li>
+            </div>
             
-            @loggedInUser.map { u =>
-				<li class="nav-item dropdown">
-                	<a class="nav-link" href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" 
-                		aria-expanded="false">
-                    	<span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
-                    </a>
-					<ul class="dropdown-menu">
-                    	<li><a href="@routes.SignUpController.edit(u.uuid)">@Messages("editAccount")</a></li>
-                	</ul>
-                </li>
-
-				<li class="nav-item"><a class="nav-link" href="@routes.ApplicationController.signOut">@Messages("signOut")</a></li>
-			}.getOrElse {
-            	<li class="nav-item"><a class="nav-link" href="@routes.SignInController.view">@Messages("signIn")</a></li>
-                <li class="nav-item"><a class="nav-link" href="@routes.SignUpController.view">@Messages("signUp")</a></li>
+            @if(mainViewData.userStatus.loggedInUser.isDefined) {
+            	<a class="nav-item nav-link" href="@routes.SignUpController.edit(mainViewData.userStatus.loggedInUser.get.uuid)">
+            		<i class="fa fa-user fa-fw" aria-hidden="true"></i>&nbsp;
+            	</a>
+				<a class="nav-item nav-link" href="@routes.ApplicationController.signOut">
+					<i class="fa fa-sign-out fa-fw" aria-hidden="true"></i>&nbsp;@Messages("signOut")
+				</a>
+			} else {
+            	<a class="nav-item nav-link" href="@routes.SignInController.view">@Messages("signIn")</a>
+                <a class="nav-item nav-link" href="@routes.SignUpController.view">@Messages("signUp")</a>
             }            
-        </ul>
+        </div>
     </div>
 </nav>

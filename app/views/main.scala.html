@@ -31,81 +31,13 @@
         
     </head>
     <body>
-		@navigationBar(Messages("brandName"), mainViewData.userStatus.loggedInUser)
+		@navigationBar(mainViewData)
     	
 
 
 <div class="container-fluid" id="main">
-	<div class="row row-offcanvas row-offcanvas-left">
-		<div class="col-md-3 col-lg-2 sidebar-offcanvas max-width-menu" id="sidebar" role="navigation">
-		        		
-			<ul class="nav nav-pills nav-stacked nav-left m-a">
-				@if(mainViewData.userStatus.loggedInUser.isDefined) {
-				<li class="nav-item">
-					<a class="nav-link @if(mainViewData.navType == viewdata.NavTypes.Domains){active}" 
-					href="@routes.DomainController.list(1)">
-            			@Messages("domains")
-            		</a>
-        		</li>
-        		}
-        
-
-
-				@if(mainViewData.userStatus.loggedInUser.isDefined && mainViewData.userStatus.activeDomain.isDefined) {
-				<li class="nav-item">
-					<a class="nav-link @if(mainViewData.navType == viewdata.NavTypes.Users){active}" 
-					href="@routes.UserController.list(1)">
-            			@Messages("users")
-            		</a>
-        		</li>
-        		
-        		<li class="nav-item">
-					<a class="nav-link @if(mainViewData.navType == viewdata.NavTypes.Browse){active}" 
-					href="@routes.DomainController.domain(mainViewData.userStatus.activeDomain.get.uuid, 1)">
-            			@Messages("browse")
-            		</a>
-        		</li>
-        		
-        		<li class="nav-item">
-					<a class="nav-link @if(mainViewData.navType == viewdata.NavTypes.Instructions){active}" 
-					href="@routes.InstructionController.list("", 1)">
-            			@Messages("instructions")
-            		</a>
-        		</li>
-        		
-        		<li class="nav-item">
-					<a class="nav-link @if(mainViewData.navType == viewdata.NavTypes.Issues){active}" 
-					href="@routes.IssueController.list("", 1)">
-            			@Messages("issues")
-            		</a>
-        		</li>
-        		}
-			</ul>		
-			
-		    @if(mainViewData.userStatus.loggedInUser.isDefined && mainViewData.userStatus.activeDomain.isDefined) {
-		        <div class="card card-inverse card-success text-xs-center m-y-1">
-  					<div class="card-block">
-      					<p class="card-text">@mainViewData.userStatus.activeDomain.get.name</p>
-  					</div>
-				</div>
-			}
-        	@if(mainViewData.userStatus.loggedInUser.isDefined && mainViewData.userStatus.activeDomain.isEmpty) {
-        		<div class="card card-inverse card-warning text-xs-center m-y-1">
-  					<div class="card-block">
-  						<p class="card-text">@Messages("noActiveDomain")</p>
-  					</div>
-				</div>        			
-			}			
-            	
-        </div>
-        <div class="col-md-9 col-lg-10 main">
-
-        	<!--toggle sidebar button-->
-            <p class="hidden-md-up">
-            	<button type="button" class="btn btn-primary-outline btn-sm" data-toggle="offcanvas">
-                	<i class="fa fa-chevron-left"></i> @Messages("menu")
-               	</button>
-            </p>            	
+	<div class="row m-t-1">
+		<div class="col-xs-12">
 
             @if(flash.get("success").isDefined){
             	<div class="alert alert-success" role="alert">

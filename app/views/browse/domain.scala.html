@@ -10,6 +10,8 @@
 
 @main(MainViewData(domain.name, viewdata.NavTypes.Browse, userStatus)) {
 
+	@browseTabs(userStatus)
+
     @rowFullWidth() {
     	@breadcrumb(List(controllers.routes.DomainController.domain(domain.uuid, 1)), List(domain.name))
     	

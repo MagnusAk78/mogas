@@ -14,7 +14,7 @@
 @import forms._
 @import helper._
 
-@main(MainViewData(Messages("edit", instruction.name), viewdata.NavTypes.Instructions, userStatus)) {
+@main(MainViewData(Messages("edit", instruction.name), viewdata.NavTypes.Browse, userStatus)) {
 	@{
 		val linkList = List(
 			controllers.routes.InstructionController.list("", paginateData.page)

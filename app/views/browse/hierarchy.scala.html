@@ -10,6 +10,9 @@
 @import components.utils._
 
 @main(MainViewData(hierarchyData.hierarchy.name, viewdata.NavTypes.Browse, userStatus)) {
+
+	@browseTabs(userStatus)
+
     @rowFullWidth() {
         @{
             val linkList = List(controllers.routes.DomainController.domain(hierarchyData.domain.uuid, 1),

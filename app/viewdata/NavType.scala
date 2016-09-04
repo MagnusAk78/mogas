@@ -18,14 +18,6 @@ object NavTypes extends Enumeration {
     override val stringValue = "Browse"
   }
 
-  final case object Instructions extends NavType {
-    override val stringValue = "Instructions"
-  }
-
-  final case object Issues extends NavType {
-    override val stringValue = "Issues"
-  }
-
   final case object None extends NavType {
     override val stringValue = "None"
   }
@@ -33,8 +25,6 @@ object NavTypes extends Enumeration {
   def fromString(navType: String): NavType = navType match {
     case Domains.stringValue => Domains
     case Users.stringValue => Users
-    case Instructions.stringValue => Instructions
-    case Issues.stringValue => Issues
     case None.stringValue => None
   }
 }

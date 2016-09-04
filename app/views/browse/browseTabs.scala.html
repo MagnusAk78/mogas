@@ -1,0 +1,19 @@
+@import viewdata._
+
+@(userStatus: UserStatus)(implicit flash: Flash, messages: Messages)
+
+@import templates._
+
+@{
+	val linkList = List(
+		controllers.routes.DomainController.domain(userStatus.activeDomain.get.uuid, 1)
+	)                
+   
+    val captionList = List(
+        userStatus.activeDomain.get.name
+    )
+        	
+    val activeList = List(true, false, false)
+
+    topNavigation(linkList, captionList, activeList)
+}
