@@ -463,4 +463,20 @@ class FileController @Inject() (
         }
       }
   }
+  
+  def removeAmlFile(domainUuid: String, fileUuid: String) = 
+    (generalActions.MySecuredAction).async { implicit mySecuredRequest =>
+      
+    val result = for {
+      removeResult <- fileService.remove(fileUuid)
+    } yield removeResult.success match {
+      case true => Redirect(routes.DomainController.edit(domainUuid)).flashing("success" -> Messages("fileRemoved"))
+      case false => Redirect(routes.DomainController.edit(domainUuid)).flashing("error" -> removeResult.reason.getOrElse(""))
+    }
+    
+    result recover {
+      case e => InternalServerError(e.getMessage())
+    }    
+        
+  }
 }

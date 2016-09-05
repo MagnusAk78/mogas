@@ -1,0 +1,12 @@
+@()(label: Html = new Html(""))(input: Html = new Html(""))(implicit flash: Flash, messages: Messages)
+
+@import viewdata._
+
+<div class="row">
+	<div class="@ViewConstants.formLabelColumns">
+		@label
+	</div>
+	<div class="@ViewConstants.formInputColumns">
+		@input
+	</div>
+</div>

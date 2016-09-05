@@ -9,8 +9,5 @@
 @main(MainViewData(Messages("imageUpload"), genericModelData.navType, userStatus)) {
 	@title(Messages("imageUpload"))
 	
-	@rowLargeSmall() {	
-		@formImageFileUpload(routes.FileController.submitImage(genericModelData.dbModel.uuid, genericModelData.dbModel.modelType))
-	}{	
-	}
-}
+	@formImageFileUpload(routes.FileController.submitImage(genericModelData.dbModel.uuid, genericModelData.dbModel.modelType))
+}(NavigationData(List()))

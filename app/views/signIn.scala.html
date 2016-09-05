@@ -5,42 +5,22 @@
 	messages: Messages, webJarAssets: WebJarAssets, lang: Lang, flash: Flash)
 
 @import viewdata._
-@import com.mohiva.play.silhouette.impl.providers.oauth2.ClefProvider
-@implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f("col-sm-4 col-md-3", "col-sm-8 col-md-9")) }
+@implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f(ViewConstants.formLabelColumns, ViewConstants.formInputColumns)) }
 @import helper._
 @import templates._
 @import forms._
 @import components.buttons._
 
-
 @main(MainViewData(Messages("signIn"), viewdata.NavTypes.None, UserStatus(None, None))) {
-	@title(Messages("signIn"))
 	
-	@rowLargeSmall() {
-		@helper.form(action = routes.SignInController.submit()) {
-    		@helper.CSRF.formField
-    		@myHelper.inputEmail(signInForm("email"), 'class-> "form-control", 'placeholder -> Messages("email"))
-    		@helper.inputPassword(signInForm("password"), 'class-> "form-control", 'placeholder -> Messages("password"))
-    		@helper.checkbox(signInForm("rememberMe"), 'class-> "form-control", 'placeholder -> Messages("rememberMe"), 'checked -> true)
-    		@submitButton(Messages("signIn"))	
-		}		
+	@title(Messages("signIn"))
 		
-        @if(socialProviders.providers.nonEmpty) {
-            <div class="social-providers">
-                <p>@Messages("or.use.social")</p>
-                <div>
-                @for(p <- socialProviders.providers if p.id != "clef") {
-                    <a href="@routes.SocialAuthController.authenticate(p.id)" class="provider @p.id" title="@Messages(p.id)"><img src="@routes.Assets.at(s"images/providers/${p.id}.png")" width="64px" height="64px" alt="@Messages(p.id)"></a>
-                }
-                </div>
-                @defining(socialProviders.get[ClefProvider]) { clef =>
-                    @if(clef.isDefined) {
-                        <script type="text/javascript" src="https://clef.io/v3/clef.js" class="clef-button" data-app-id="@clef.get.settings.clientID" data-color="blue" data-style="flat" data-redirect-url="@clef.get.settings.redirectURL" data-type="login"></script>
-                    }
-                }
-            </div>
-        }
-    } {
-    	@button(routes.SignUpController.view, Messages("signUp"))
+	@helper.form(action = routes.SignInController.submit()) {
+    	@helper.CSRF.formField
+    	@myHelper.inputEmail(signInForm("email"), 'class-> "form-control", 'placeholder -> Messages("email"))
+    	@helper.inputPassword(signInForm("password"), 'class-> "form-control", 'placeholder -> Messages("password"))
+    	@helper.checkbox(signInForm("rememberMe"), 'class-> "checkbox-inline", 'placeholder -> Messages("rememberMe"), 'checked -> true)
+    		
+    	@submitButton(Messages("signIn"))
     }
-}
+}(NavigationData(List(NavLinkData(routes.SignUpController.view, Messages("signUp"), false))))

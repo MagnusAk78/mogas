@@ -9,33 +9,15 @@
 @import components.utils._
 
 @main(MainViewData(Messages("editAllowedUsers", domain.name), viewdata.NavTypes.Domains, userStatus)) {
-
-	@{
-		val linkList = List(
-			controllers.routes.DomainController.list(1),
-			controllers.routes.DomainController.editActiveDomain(1),
-			controllers.routes.DomainController.create
-		)                
-        val captionList = List(
-        	Messages("list"), 
-        	Messages("chooseActiveDomain"), 
-        	Messages("create"))
-        	
-        val activeList = List(false, false, false)
-
-        topNavigation(linkList, captionList, activeList)
-    }
+	@title(Messages("editAllowedUsers", domain.name))
 	
-	@rowLargeSmall() {
-    } {
-    	@backButton(controllers.routes.DomainController.edit(domain.uuid))
-    }
-    
-    @rowFullWidth() {
-   		@linkGridWithImageAndName(userListData, 
-   			controllers.routes.DomainController.editAllowedUsers(domain.uuid, _),
-			controllers.routes.DomainController.
-            changeAllowedUser(domain.uuid, _, userListData.paginateData.page), models.Types.UserType,
-            domain.allowedUsers.contains(_))
-	}    
-}
+  	@linkGridWithImageAndName(userListData, 
+   		controllers.routes.DomainController.editAllowedUsers(domain.uuid, _),
+		controllers.routes.DomainController.
+        changeAllowedUser(domain.uuid, _, userListData.paginateData.page), models.Types.UserType,
+        domain.allowedUsers.contains(_)) 
+}(NavigationData(List(
+	NavLinkData(controllers.routes.DomainController.list(1), Messages("list"), false),
+	NavLinkData(controllers.routes.DomainController.editActiveDomain(1), Messages("chooseActiveDomain"), false),
+	NavLinkData(controllers.routes.DomainController.create, Messages("create"), false)
+	)))

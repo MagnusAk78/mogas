@@ -8,27 +8,13 @@
 @import components.buttons._
 @import components.utils._
 
-@main(MainViewData(Messages("chooseActive", Messages("domain")), viewdata.NavTypes.Domains, userStatus)) {
-	
-	@{
-		val linkList = List(
-			controllers.routes.DomainController.list(domainListData.paginateData.page),
-			controllers.routes.DomainController.editActiveDomain(domainListData.paginateData.page),
-			controllers.routes.DomainController.create
-		)                
-        val captionList = List(
-        	Messages("list"), 
-        	Messages("chooseActiveDomain"), 
-        	Messages("create"))
-        	
-        val activeList = List(false, true, false)
-
-        topNavigation(linkList, captionList, activeList)
-    }
-    	
-    @rowFullWidth() {
-   		@linkGridWithImageAndName(domainListData, controllers.routes.DomainController.list(_),
-			controllers.routes.DomainController.setActiveDomain(_, domainListData.paginateData.page), 
-			models.Types.DomainType, (uuid: String) => userStatus.activeDomain.map(_.uuid == uuid).getOrElse(false))
-	}
-}
+@main(MainViewData(Messages("chooseActiveDomain"), viewdata.NavTypes.Domains, userStatus)) {
+	@title(Messages("chooseActiveDomain"))
+	@linkGridWithImageAndName(domainListData, controllers.routes.DomainController.list(_),
+		controllers.routes.DomainController.setActiveDomain(_, domainListData.paginateData.page), 
+		models.Types.DomainType, (uuid: String) => userStatus.activeDomain.map(_.uuid == uuid).getOrElse(false))
+}(NavigationData(List(
+	NavLinkData(controllers.routes.DomainController.list(domainListData.paginateData.page), Messages("list"), false),
+	NavLinkData(controllers.routes.DomainController.editActiveDomain(domainListData.paginateData.page), Messages("chooseActiveDomain"), true),
+	NavLinkData(controllers.routes.DomainController.create, Messages("create"), false)
+	)))

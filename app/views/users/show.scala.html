@@ -10,45 +10,53 @@
 @import components.media._
 
 @main(MainViewData(user.name, viewdata.NavTypes.Users, userStatus)) {
+	@title(user.name)
 	
-	@{
-		val linkList = List(controllers.routes.UserController.list(1))                
-        val captionList = List(Messages("list"))
-        val activeList = List(false)
-
-        topNavigation(linkList, captionList, activeList)
-    }
-    
-	@rowLargeSmall() {
-		<h1>@user.name</h1>
-		
-		<div class="m-t-1">
-			<div class="card card-block text-xs-center">
-				<h6 class="card-subtitle text-muted">@Messages("details")</h6>
-				<p class="card-text">@user.email</p>
-			</div>
-			<div class="card card-block text-xs-center">
-				<h6 class="card-subtitle text-muted">@Messages("domains")</h6>
-        		@paginate(domainListData.paginateData, controllers.routes.UserController.show(user.uuid, _))
-		    	<ul class="list-unstyled">
-    				@for(name <- domainListData.list.map(_.name)) {
+	<div class="m-t-1">
+		@labelInput() {
+			<label>@Messages("image")</label>
+		}{
+			@if(imageExists) {
+    			<img class="img-fluid m-t-1" src="@routes.FileController.getStandardImage(user.uuid, 
+					models.Types.UserType.stringValue)" alt="@user.name">
+			} else {
+				<i class="fa fa-camera-retro fa-5x"></i>
+			}
+		}
+	</div>		
+	
+	<div class="m-t-1">
+		@labelInput() {
+			<label>@Messages("details")</label>
+		}{
+			@user.email
+		}
+	</div>
+	
+	<div class="m-t-1">
+		@labelInput() {
+			<label>@Messages("domains")</label>
+		}{
+			@paginate(domainListData.paginateData, controllers.routes.UserController.show(user.uuid, _))
+		    <ul class="list-unstyled">
+    			@for(name <- domainListData.list.map(_.name)) {
     				<li>
         				@name
     				</li>
-    				}
-				</ul>
-		    </div>		
-		    </div>
-		
-		@if(imageExists) {
-    		<img class="img-fluid m-t-1" src="@routes.FileController.getStandardImage(user.uuid, 
-				models.Types.UserType.stringValue)" alt="@user.name">
-		} else {
-			<i class="fa fa-camera-retro fa-5x"></i>
-		}	
-    } {
-    	@if(userStatus.loggedInUser.isDefined && userStatus.loggedInUser.get.uuid == user.uuid) {
-			@editButton(routes.SignUpController.edit(user.uuid))			
+    			}
+			</ul>
 		}
-    }
-}
+	</div>
+    
+    @if(userStatus.loggedInUser.isDefined && userStatus.loggedInUser.get.uuid == user.uuid) {
+	<div class="m-t-1">
+		@onlyInput() {
+			@button(routes.SignUpController.edit(user.uuid), Messages("edit", user.name), "btn-primary", 
+				Some("fa fa-pencil fa-fw"))
+		}
+	</div>
+	}	    
+	
+}(NavigationData(List(
+	NavLinkData(controllers.routes.UserController.list(1), Messages("list"), false)
+	)))

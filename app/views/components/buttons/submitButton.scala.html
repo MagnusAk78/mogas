@@ -1,10 +1,14 @@
-@(text: String, btnType: String = "btn-outline-primary", 
+@(text: String, btnType: String = "btn-primary", 
 	icon: Option[String] = Some("fa fa-check-circle fa-fw"))(implicit flash: Flash, messages: Messages)
 
-<button id="submit" type="submit" value="submit" class="btn @btnType text-xs-left" role="button">
+@import templates._
+
+@onlyInput() {
+	<button class="btn @btnType text-xs-left" id="submit" type="submit" value="submit"  role="button">
     @if(icon.isDefined) {
     	<i class="@icon.get"></i> @text
     } else {
     	@text
     }    
-</button>
+	</button>
+}

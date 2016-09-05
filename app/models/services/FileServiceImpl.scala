@@ -10,9 +10,9 @@ import reactivemongo.api.gridfs.GridFS
 import play.api.mvc.Result
 import reactivemongo.play.json.JSONSerializationPack
 import play.modules.reactivemongo.JSONFileToSave
-import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.JsObject
 import utils.RemoveResult
+import play.api.libs.iteratee._
 
 class FileServiceImpl @Inject() (override val dao: FileDAO)(implicit val ec: ExecutionContext) extends FileService {
 
@@ -46,4 +46,8 @@ class FileServiceImpl @Inject() (override val dao: FileDAO)(implicit val ec: Exe
       opt.map(file => Future.successful(true)).
         getOrElse(Future.successful(false))
     }
+    
+  def amlFiles(uuid: String): Future[List[JSONReadFile]] = {
+    dao.findByQuery(models.AmlFiles.getQueryAllAmlFiles(uuid)).flatMap { c => c.toList(100, true) }
+  }
 }

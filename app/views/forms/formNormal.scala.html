@@ -1,7 +1,8 @@
 @(submitTo: play.api.mvc.Call, btnText: String, btnType: String = "btn-primary",
     icon: Option[String] = Some("fa fa-check-circle fa-fw"))(content: Html = new Html(""))(implicit flash: Flash, request: RequestHeader, messages: Messages)
 
-@implicitField = @{ FieldConstructor(horizontalFieldConstructor.f("col-sm-4 col-md-3", "col-sm-8 col-md-9")) }
+@import viewdata._
+@implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f(ViewConstants.formLabelColumns, ViewConstants.formInputColumns)) }
 @import components.buttons._
 @import helper._
 

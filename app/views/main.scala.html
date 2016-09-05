@@ -1,6 +1,6 @@
 @import viewdata._
 
-@(mainViewData: MainViewData)(content: Html)(implicit flash: Flash, messages: Messages, webJarAssets: WebJarAssets, lang: Lang)
+@(mainViewData: MainViewData)(content: Html)(navigationData: NavigationData)(implicit flash: Flash, messages: Messages, webJarAssets: WebJarAssets, lang: Lang)
 
 @import templates._
 
@@ -31,14 +31,15 @@
         
     </head>
     <body>
-		@navigationBar(mainViewData)
+		
+@navigationBar(mainViewData)
     	
-
-
 <div class="container-fluid" id="main">
-	<div class="row m-t-1">
-		<div class="col-xs-12">
-
+	<div class="row max-width-total">
+		<div class="col-xs-12 col-sm-12 col-md-3 pull-md-right m-t-1 p-a-1 bg-subtle-grey">
+        	@navigation(navigationData, mainViewData)
+        </div>	
+		<div class="col-xs-12 col-sm-12 col-md-9 pull-md-left m-t-1 p-a-1 bg-subtle-grey">
             @if(flash.get("success").isDefined){
             	<div class="alert alert-success" role="alert">
                 	@flash.get("success")
@@ -50,10 +51,10 @@
                 	@flash.get("error")
 	            </div>
     	    }
-
-           	@content
+    		@content
         </div>
     </div>
+
 </div><!-- container -->
 <script type="text/javascript" src="@routes.WebJarAssets.at(webJarAssets.locate("jquery.min.js"))"></script>
 <script type="text/javascript" src="@routes.WebJarAssets.at(webJarAssets.locate("bootstrap.min.js"))"></script>

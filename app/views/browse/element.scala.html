@@ -1,7 +1,8 @@
 @import viewdata._
 
-@(elementData: ElementData, elementListData: viewdata.ModelListData[Element], interfaceListData: viewdata.ModelListData[Interface], 
-	userStatus: UserStatus)(implicit flash: Flash, request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
+@(elementData: ElementData, imageExists: Boolean, elementListData: viewdata.ModelListData[Element], 
+	interfaceListData: viewdata.ModelListData[Interface], userStatus: UserStatus)(implicit flash: Flash, 
+	request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
 
 @import templates._
 @import components.media._
@@ -9,51 +10,71 @@
 @import components.utils._
 
 @main(MainViewData(elementData.elementChain.last.name, viewdata.NavTypes.Browse, userStatus)) {
-	
-	@browseTabs(userStatus)
-	
-    @rowFullWidth() {
-        @{
-        	var linkList = List(controllers.routes.DomainController.domain(elementData.domain.uuid, 1),
-                	controllers.routes.DomainController.hierarchy(elementData.hierarchy.uuid, 1))
-            var textList = List(elementData.domain.name, elementData.hierarchy.name)
+	@{
+    	var linkList = List(controllers.routes.DomainController.domain(elementData.domain.uuid, 1),
+        	controllers.routes.DomainController.hierarchy(elementData.hierarchy.uuid, 1))
+        var textList = List(elementData.domain.name, elementData.hierarchy.name)
             
-            for(element <- elementData.elementChain) {
-				linkList = (controllers.routes.DomainController.element(element.uuid, 1, 1)
-                	:: linkList.reverse).reverse
+        for(element <- elementData.elementChain) {
+			linkList = (controllers.routes.DomainController.element(element.uuid, 1, 1)
+            	:: linkList.reverse).reverse
 
-                textList = (element.name :: textList.reverse).reverse
-            }
+            textList = (element.name :: textList.reverse).reverse
+        }
 
-            breadcrumb(linkList, textList)
-        }    	
-   		@linkGridWithImageAndName(elementListData, controllers.routes.DomainController.element(elementData.elementChain.last.uuid, 
-				_, interfaceListData.paginateData.page),
-				controllers.routes.DomainController.element(_, 1, 1), models.Types.ElementType)
-				
-		@linkGridWithImageAndName(interfaceListData, controllers.routes.DomainController.element(elementData.elementChain.last.uuid,
-				elementListData.paginateData.page, _),
-				controllers.routes.DomainController.interface(_), models.Types.InterfaceType)				
-	} 	
-
-	@rowLargeSmall() {
-    	<div class="m-t-1">
-    		@smallImage(elementData.elementChain.last.uuid, models.Types.ElementType.stringValue)
-    	</div>
-    }{
-    	@changeImageButton(elementData.elementChain.last.uuid, models.Types.ElementType)
-			
-		@button(
-			routes.InstructionController.create(elementData.elementChain.last.uuid),
-			Messages("createInstruction"),
-			"btn-outline-primary",
-			Some("fa fa-pencil fa-fw"), "btn-block")
-			
-			
-		@button(
-			routes.IssueController.create(elementData.elementChain.last.uuid),
-			Messages("createIssue"),
-			"btn-outline-primary",
-			Some("fa fa-pencil fa-fw"), "btn-block")
+        breadcrumb(linkList, textList)
     }
-}
+        	
+   	@linkGridWithImageAndName(elementListData, controllers.routes.DomainController.element(elementData.elementChain.last.uuid, 
+		_, interfaceListData.paginateData.page),
+		controllers.routes.DomainController.element(_, 1, 1), models.Types.ElementType)
+				
+	@linkGridWithImageAndName(interfaceListData, controllers.routes.DomainController.element(elementData.elementChain.last.uuid,
+		elementListData.paginateData.page, _),
+		controllers.routes.DomainController.interface(_), models.Types.InterfaceType)
+	
+	<div class="m-t-2">	
+		@title(elementData.elementChain.last.name)
+	</div>
+	
+	<div class="m-t-1">
+		@labelInput() {
+			<label>@Messages("image")</label>
+		}{
+			@if(imageExists) {
+    			<img class="img-fluid" src="@routes.FileController.getStandardImage(elementData.elementChain.last.uuid, 
+					models.Types.ElementType.stringValue)" alt="@elementData.elementChain.last.name">
+			} else {
+				<i class="fa fa-camera-retro fa-5x"></i>
+			}
+		}
+		<div class="m-t-1">
+		@onlyInput() {
+			@changeImageButton(elementData.elementChain.last.uuid, models.Types.ElementType)
+		}
+		</div>
+	</div>
+	
+	<div class="m-t-1">
+		@labelInput() {
+			<label>@Messages("instructions")</label>
+		}{
+			@button(routes.InstructionController.create(elementData.elementChain.last.uuid),
+				Messages("newInstruction"), "btn-primary", Some("fa fa-paperclip fa-fw"))
+		}
+	</div>	
+	
+	<div class="m-t-1">
+		@labelInput() {
+			<label>@Messages("issues")</label>
+		}{
+			@button(
+				routes.IssueController.create(elementData.elementChain.last.uuid),
+				Messages("newIssue"), "btn-primary", Some("fa fa-ticket fa-fw"))
+		}
+	</div>	
+
+}(NavigationData(List(
+	NavLinkData(controllers.routes.DomainController.domain(userStatus.activeDomain.get.uuid, 1), 
+		userStatus.activeDomain.get.name, false)
+	)))

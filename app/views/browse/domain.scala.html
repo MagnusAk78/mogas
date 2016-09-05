@@ -10,12 +10,11 @@
 
 @main(MainViewData(domain.name, viewdata.NavTypes.Browse, userStatus)) {
 
-	@browseTabs(userStatus)
-
-    @rowFullWidth() {
-    	@breadcrumb(List(controllers.routes.DomainController.domain(domain.uuid, 1)), List(domain.name))
+    @breadcrumb(List(controllers.routes.DomainController.domain(domain.uuid, 1)), List(domain.name))
     	
-   		@linkGridWithImageAndName(hierarchiesListData, controllers.routes.DomainController.domain(domain.uuid, _),
-				controllers.routes.DomainController.hierarchy(_, 1), models.Types.HierarchyType)
-	}    
-}
+   	@linkGridWithImageAndName(hierarchiesListData, controllers.routes.DomainController.domain(domain.uuid, _),
+				controllers.routes.DomainController.hierarchy(_, 1), models.Types.HierarchyType)    
+}(NavigationData(List(
+	NavLinkData(controllers.routes.DomainController.domain(userStatus.activeDomain.get.uuid, 1), 
+		userStatus.activeDomain.get.name, true)
+	)))

@@ -1,16 +1,30 @@
 @(labelColClasses: String, inputColClasses: String)(elements: helper.FieldElements)
 
 <div class="form-group row @if(elements.hasErrors) {error}">
-	<label class="@labelColClasses col-form-label" for="@elements.id">@elements.label</label>
+	<div class="@labelColClasses">
+		@if(!elements.input.toString.contains("""type="checkbox"""") &&
+			!elements.input.toString.contains("""type="submit"""")
+		) {
+			<label for="@elements.id">@elements.label</label>
+		}
+	</div>
 	<div class="@inputColClasses">
-    	@elements.input
+		@if(elements.input.toString.contains("""type="checkbox"""")) {
+			<div class="checkbox">
+				<label for="@elements.id">
+      				@elements.input @elements.label
+    			</label>
+			</div>
+		} else {
+			@elements.input
+		}
 	</div>
 </div>	
 @if(elements.errors.length > 0) {
-<div class="row">	
-	<div class="@labelColClasses"></div>
-	<div class="@inputColClasses alert alert-danger" role="alert">
-  		@elements.errors.mkString(", ")
-	</div>	
-</div>
-	}
+	<div class="row">	
+		<div class="@labelColClasses"></div>
+		<div class="@inputColClasses alert alert-danger" role="alert">
+  			@elements.errors.mkString(", ")
+		</div>	
+	</div>
+}

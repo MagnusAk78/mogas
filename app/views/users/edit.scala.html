@@ -10,42 +10,39 @@
 @import components.buttons._
 @import components.media._
 @import helper._
-@implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f("col-sm-4 col-md-3", "col-sm-8 col-md-9")) }
+@implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f(ViewConstants.formLabelColumns, ViewConstants.formInputColumns)) }
 
 @main(MainViewData(Messages("edit", user.name), viewdata.NavTypes.Users, userStatus)) {
-	@{
-		val linkList = List(controllers.routes.UserController.list(1))                
-        val captionList = List(Messages("list"))
-        val activeList = List(false)
 
-        topNavigation(linkList, captionList, activeList)
-    }
+	@title(Messages("edit", user.name))
     
-    
-	@rowLargeSmall() {
-		<h1>@user.name</h1>
+	@helper.form(action = routes.SignUpController.submitEdit(user.uuid)) {
+    	@helper.CSRF.formField
+    	@helper.inputText(signUpForm("firstName"), 'class-> "form-control", 'placeholder -> Messages("firstName"))
+    	@helper.inputText(signUpForm("lastName"), 'class-> "form-control", 'placeholder -> Messages("lastName"))
+    	@helper.inputText(signUpForm("email"), 'class-> "form-control", 'placeholder -> Messages("email"))
+    	@helper.inputPassword(signUpForm("password"), 'class-> "form-control", 'placeholder -> Messages("password"))
+    	@submitButton(Messages("update"))    		
+	}
+	
+	<div class="m-t-1">
+		@labelInput() {
+			<label>@Messages("image")</label>
+		}{
+			@if(imageExists) {
+    			<img class="img-fluid" src="@routes.FileController.getStandardImage(user.uuid, 
+					models.Types.UserType.stringValue)" alt="@user.name">
+			} else {
+				<i class="fa fa-camera-retro fa-5x"></i>
+			}
+		}
 		<div class="m-t-1">
-		@helper.form(action = routes.SignUpController.submitEdit(user.uuid)) {
-    		@helper.CSRF.formField
-    		@helper.inputText(signUpForm("firstName"), 'class-> "form-control", 'placeholder -> Messages("firstName"))
-    		@helper.inputText(signUpForm("lastName"), 'class-> "form-control", 'placeholder -> Messages("lastName"))
-    		@helper.inputText(signUpForm("email"), 'class-> "form-control", 'placeholder -> Messages("email"))
-    		@helper.inputPassword(signUpForm("password"), 'class-> "form-control", 'placeholder -> Messages("password"))
-    		@submitButton(Messages("update"))    		
+		@onlyInput() {
+			@changeImageButton(user.uuid, models.Types.UserType)
 		}
 		</div>
-		
-		<div class="m-t-2">
-		@if(imageExists) {
-    		<img class="img-fluid" src="@routes.FileController.getStandardImage(user.uuid, 
-				models.Types.UserType.stringValue)" alt="@user.name">
-		} else {
-			<i class="fa fa-camera-retro fa-5x"></i>
-		}			
-		</div>
-    } {
-		@backButton(controllers.routes.UserController.show(user.uuid, 1))
-				
-		@changeImageButton(user.uuid, models.Types.UserType)
-    }    
-}
+	</div>
+
+}(NavigationData(List(
+	NavLinkData(controllers.routes.UserController.list(1), Messages("list"), false)
+	)))

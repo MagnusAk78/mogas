@@ -11,50 +11,42 @@
 @import components.media._
 @import forms._
 @import helper._
-@implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f("col-sm-4 col-md-3", "col-sm-8 col-md-9")) }
+@implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f(ViewConstants.formLabelColumns, ViewConstants.formInputColumns)) }
 
 @main(MainViewData(Messages("createInstruction"), viewdata.NavTypes.Browse, userStatus)) {
-
-	@browseTabs(userStatus)
-	
-	@rowLargeSmall() {
-        @{
-            var linkList = List(controllers.routes.DomainController.domain(parentObjectData.domain.uuid, 1),
-                controllers.routes.DomainController.hierarchy(parentObjectData.hierarchy.uuid, 1))
+	@{
+    	var linkList = List(controllers.routes.DomainController.domain(parentObjectData.domain.uuid, 1),
+			controllers.routes.DomainController.hierarchy(parentObjectData.hierarchy.uuid, 1))
                 
-            var textList = List(parentObjectData.domain.name, parentObjectData.hierarchy.name)
+        var textList = List(parentObjectData.domain.name, parentObjectData.hierarchy.name)
 
-            for(amlObject: DbModel with HasName with HasModelType <- parentObjectData.amlObjectChain) {
+        for(amlObject: DbModel with HasName with HasModelType <- parentObjectData.amlObjectChain) {
+			val link = if(amlObject.modelType == models.Types.ElementType.stringValue) {
+            	controllers.routes.DomainController.element(amlObject.uuid, 1, 1)
+            } else {
+            	controllers.routes.DomainController.interface(amlObject.uuid)
+			}
             
-            	val link = if(amlObject.modelType == models.Types.ElementType.stringValue) {
-            		controllers.routes.DomainController.element(amlObject.uuid, 1, 1)
-            	} else {
-            		controllers.routes.DomainController.interface(amlObject.uuid)
-            	}
-            
-                linkList = linkList ::: List(link)
+            linkList = linkList ::: List(link)
 
-                textList = textList ::: List(amlObject.name)
-
-            }
-
-            breadcrumb(linkList, textList)
+            textList = textList ::: List(amlObject.name)
         }
-        <h1>
-        	@Messages("createInstruction")
-        </h1>
-        <div class="m-t-1">
+
+        breadcrumb(linkList, textList)
+    }
+    
+	<div class="m-t-2">	
+		@title(Messages("newInstruction"))
+	</div>    
+
+    <div class="m-t-1">
     	@helper.form(action = routes.InstructionController.submitCreate(parentObjectData.amlObjectChain.last.uuid)) {
     		@helper.CSRF.formField
     		@helper.inputText(instructionForm("name"), 'class-> "form-control", 'placeholder -> Messages("name"))
     		@submitButton(Messages("create"))	
 		}        	
-    	</div>        
-    }{		
-    	@if(parentObjectData.amlObjectChain.last.modelType == models.Types.ElementType.stringValue) {
-    		@backButton(routes.DomainController.element(parentObjectData.amlObjectChain.last.uuid, 1, 1))
-    	} else {
-			@backButton(routes.DomainController.interface(parentObjectData.amlObjectChain.last.uuid))
-		}
-    }	
-}
+    </div>	
+}(NavigationData(List(
+	NavLinkData(controllers.routes.DomainController.domain(userStatus.activeDomain.get.uuid, 1), 
+		userStatus.activeDomain.get.name, false)
+	)))

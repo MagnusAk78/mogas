@@ -2,29 +2,25 @@
 
 @(signUpForm: Form[SignUpForm.Data])(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, flash: Flash)
 
-@implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f("col-sm-4 col-md-3", "col-sm-8 col-md-9")) }
+@import viewdata._
+@implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f(ViewConstants.formLabelColumns, ViewConstants.formInputColumns)) }
 @import templates._
 @import forms._
 @import components.buttons._
 @import components.media._
 @import helper._
-@import viewdata._
 
-@main(MainViewData(Messages("signUp"), viewdata.NavTypes.None, UserStatus(None, None))) {
+@main(MainViewData(Messages("signUp"), viewdata.NavTypes.None, UserStatus(None, None))) {	
 	@title(Messages("signUp"))
-	@rowLargeSmall() {
-		
-		@helper.form(action = routes.SignUpController.submitSignUp()) {
-    		@helper.CSRF.formField
+	
+	@helper.form(action = routes.SignUpController.submitSignUp()) {
+    	@helper.CSRF.formField
     		
-            @helper.inputText(signUpForm("firstName"), 'class-> "form-control", '_hiddenLabel -> Messages("first.name"), 'placeholder -> Messages("first.name"))
-            @helper.inputText(signUpForm("lastName"), 'class-> "form-control", '_hiddenLabel -> Messages("last.name"), 'placeholder -> Messages("last.name"))    		
-    		@myHelper.inputEmail(signUpForm("email"), 'class-> "form-control", 'placeholder -> Messages("email"))
-    		@helper.inputPassword(signUpForm("password"), 'class-> "form-control", 'placeholder -> Messages("password"))
-    		@helper.checkbox(signUpForm("rememberMe"), 'class-> "form-control", 'placeholder -> Messages("rememberMe"), 'checked -> true)
-    		@submitButton(Messages("signUp"))	
-		}
-    } {
-    	@button(routes.SignInController.view, Messages("signIn"))
-    }
-}
+    	@helper.inputText(signUpForm("firstName"), 'class-> "form-control", '_hiddenLabel -> Messages("firstName"), 'placeholder -> Messages("firstName"))
+        @helper.inputText(signUpForm("lastName"), 'class-> "form-control", '_hiddenLabel -> Messages("lastName"), 'placeholder -> Messages("lastName"))    		
+    	@myHelper.inputEmail(signUpForm("email"), 'class-> "form-control", 'placeholder -> Messages("email"))
+    	@helper.inputPassword(signUpForm("password"), 'class-> "form-control", 'placeholder -> Messages("password"))
+    	@helper.checkbox(signUpForm("rememberMe"), 'class-> "form-control", 'placeholder -> Messages("rememberMe"), 'checked -> true)
+    	@submitButton(Messages("signUp"))
+	}
+}(NavigationData(List(NavLinkData(routes.SignInController.view, Messages("signIn"), false))))

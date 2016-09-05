@@ -4,7 +4,7 @@
 @(instruction: Instruction, instructionForm: Form[InstructionForm.Data], userStatus: UserStatus)(implicit flash: Flash, 
 	request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
 
-@implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f("col-sm-4 col-md-3", "col-sm-8 col-md-9")) }
+@implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f(ViewConstants.formLabelColumns, ViewConstants.formInputColumns)) }
 @import helper._
 @import templates._
 @import components.buttons._
@@ -28,4 +28,4 @@
 		@changeImageButton(instruction.uuid, models.Types.InstructionType)
 		@deleteButton(controllers.routes.InstructionController.delete(instruction.uuid))		
 	}
-}
+}(NavigationData(List()))

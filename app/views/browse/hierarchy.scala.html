@@ -10,17 +10,16 @@
 @import components.utils._
 
 @main(MainViewData(hierarchyData.hierarchy.name, viewdata.NavTypes.Browse, userStatus)) {
-
-	@browseTabs(userStatus)
-
-    @rowFullWidth() {
-        @{
-            val linkList = List(controllers.routes.DomainController.domain(hierarchyData.domain.uuid, 1),
-                controllers.routes.DomainController.hierarchy(hierarchyData.hierarchy.uuid, 1))
-            val textList = List(hierarchyData.domain.name, hierarchyData.hierarchy.name)
-            breadcrumb(linkList, textList)
-        }    	
-   		@linkGridWithImageAndName(elementListData, controllers.routes.DomainController.hierarchy(hierarchyData.hierarchy.uuid, _),
-				controllers.routes.DomainController.element(_, 1, 1), models.Types.HierarchyType)
-	}      
-}
+	@{
+    	val linkList = List(controllers.routes.DomainController.domain(hierarchyData.domain.uuid, 1),
+        	controllers.routes.DomainController.hierarchy(hierarchyData.hierarchy.uuid, 1))
+        val textList = List(hierarchyData.domain.name, hierarchyData.hierarchy.name)
+        
+        breadcrumb(linkList, textList)
+	}    	
+   	@linkGridWithImageAndName(elementListData, controllers.routes.DomainController.hierarchy(hierarchyData.hierarchy.uuid, _),
+				controllers.routes.DomainController.element(_, 1, 1), models.Types.HierarchyType)      
+}(NavigationData(List(
+	NavLinkData(controllers.routes.DomainController.domain(userStatus.activeDomain.get.uuid, 1), 
+		userStatus.activeDomain.get.name, false)
+	)))

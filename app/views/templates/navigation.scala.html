@@ -1,0 +1,39 @@
+@import viewdata._
+
+@(navigationData: NavigationData, mainViewData: MainViewData)(implicit flash: Flash, messages: Messages)
+
+@listNavigationLinks(navigationData: NavigationData) = {
+	@for(navLink <- navigationData.navLinks) {
+    	<a class="p-l-1 nav-item nav-link @if(navLink.active){active} nav-item-small" href="@navLink.link">@navLink.label</a>
+    }
+}
+
+@if(mainViewData.userStatus.activeDomain.isDefined) {
+	<p class="text-info">@Messages("activeDomain", mainViewData.userStatus.activeDomain.get.name)</p>
+} else {
+	<p class="text-danger">@Messages("noActiveDomain")</p>
+}
+
+<p class="lead">@Messages("navigation")</p>
+<nav class="nav nav-stacked">
+	@if(mainViewData.userStatus.loggedInUser.isDefined) {
+		<a class="nav-item nav-link @if(mainViewData.navType==NavTypes.Domains){active} nav-item-large" href="@routes.DomainController.list(1)">@Messages("domains")</a>
+		@if(mainViewData.navType == NavTypes.Domains) {
+			@listNavigationLinks(navigationData)
+		}
+		@if(mainViewData.userStatus.activeDomain.isDefined) {
+			<a class="nav-item nav-link @if(mainViewData.navType==NavTypes.Users){active} nav-item-large" href="@routes.UserController.list(1)">@Messages("users")</a>
+			@if(mainViewData.navType == NavTypes.Users) {
+				@listNavigationLinks(navigationData)
+			}
+			<a class="nav-item nav-link @if(mainViewData.navType==NavTypes.Browse){active} nav-item-large" href="@routes.DomainController.domain(mainViewData.userStatus.activeDomain.get.uuid, 1)">
+				@Messages("browse")
+			</a>
+			@if(mainViewData.navType == NavTypes.Browse) {
+				@listNavigationLinks(navigationData)
+			}
+		}
+    } else {
+    	@listNavigationLinks(navigationData)
+    }
+</nav>

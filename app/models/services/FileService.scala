@@ -35,4 +35,6 @@ trait FileService {
   def imageExists(uuid: String): Future[Boolean]
 
   def videoExists(uuid: String): Future[Boolean]
+  
+  def amlFiles(uuid: String): Future[List[JSONReadFile]]
 }

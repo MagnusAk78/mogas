@@ -8,17 +8,9 @@
 @import components.media._
 
 @main(MainViewData(Messages("users"), viewdata.NavTypes.Users, userStatus)) {
-	
-	@{
-		val linkList = List(controllers.routes.UserController.list(userListData.paginateData.page))                
-        val captionList = List(Messages("list"))
-        val activeList = List(true)
-
-        topNavigation(linkList, captionList, activeList)
-    }
-
-    @rowFullWidth() {
-   		@linkGridWithImageAndName(userListData, controllers.routes.UserController.list(_),
-				controllers.routes.UserController.show(_, 1), models.Types.UserType)
-	}
-}
+	@title(Messages("users"))
+   	@linkGridWithImageAndName(userListData, controllers.routes.UserController.list(_),
+		controllers.routes.UserController.show(_, 1), models.Types.UserType)
+}(NavigationData(List(
+	NavLinkData(controllers.routes.UserController.list(userListData.paginateData.page), Messages("list"), true)
+	)))

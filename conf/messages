@@ -1,34 +1,48 @@
-changeImage = Change image
-create = Create
-delete = Delete
-edit = Edit
-back = Back
+signIn = Sign In
+signUp = Sign Up
 
-list = List
-listAll = List all
+welcome = Welcome {0}
+welcomeLeadMessage = This is a web service/app that will help you manage your automation system.
+welcomeInfoMessage = If this is your first time here, start by creating a new domain. You can also navigate using the navigation area.
+diveIn = Dive In
 
-user = user
-users = Users
+firstName = First name
+lastName = Last name
+name = Name
+email = Email
+password = Password
+rememberMe = Remember me
 
-domain = domain
+activeDomain = Active domain: {0}
+noActiveDomain = No active domain
+
+navigation = Navigation
 domains = Domains
-
-instruction = instruction
+users = Users
+browse = Browse
 instructions = Instructions
-
-issue = issue
 issues = Issues
 
-noActiveDomain = No active Domain
-chooseActiveDomain = Choose active Domain
+createDomain = Create new domain
+amlFiles = AML Files
+parseAmlFiles = Generate database
+uploadAmlFile = Upload AML File
+image = Image
+changeImage = Change Image
+manageUsers = Manage users
+chooseActiveDomain = Choose active domain
 
-createInstruction = Create new instruction
-createIssue = Create new issue
+details = Details
+newInstruction = New instruction
+newIssue = New issue
 
-accessDenied = Access Denied
+editAllowedUsers = Allowed users for {0}
+thereMustBeAtLeastOneAllowedUser = There must be at least one user
 
-allowedUsers = Allowed users
+edit = Edit: {0}
+delete = Delete
 
-thereMustBeAtLeastOneAllowedUser = there must be at least one allowed user
+fileRemoved = File removed
 
-instructionPart = Part {0} of {1}
+chooseImageFile = Choose image file
+imageUpload = Upload image

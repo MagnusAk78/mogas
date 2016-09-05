@@ -1,4 +1,4 @@
-@(link: play.api.mvc.Call, text: String, btnType: String = "btn-outline-primary", 
+@(link: play.api.mvc.Call, text: String, btnType: String = "btn-primary", 
 	icon: Option[String] = Option.empty[String], extraClasses: String = "")(implicit flash: Flash, messages: Messages)
 
 <a href="@link" class="btn @btnType @extraClasses text-xs-left" role="button">

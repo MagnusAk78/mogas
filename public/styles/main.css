@@ -3,7 +3,27 @@ body {
 	font-size: 13px;
 }
 
-.max-width-main {
+.bg-subtle-green {
+	background-color: #74AFAD;
+}
+
+.bg-subtle-grey {
+	background-color: #ECECEA;
+}
+
+.nav .active {
+	font-weight: bold;
+}
+
+.nav .nav-item-small {
+	font-size: 13px;
+}
+
+.nav .nav-item-large {
+	font-size: 15px;
+}
+
+.max-width-total {
 	max-width: 1300px !important;
 }
 

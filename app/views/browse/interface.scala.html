@@ -1,7 +1,8 @@
 @import viewdata._
 
-@(interface: Interface, elementData: ElementData, userStatus: UserStatus)(implicit flash: Flash, 
-	request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
+@(interface: Interface, imageExists: Boolean, elementData: ElementData, 
+	userStatus: UserStatus)(implicit flash: Flash, request: RequestHeader, messages: Messages, 
+	lang: Lang, webJarAssets: WebJarAssets)
 
 @import templates._
 @import components.buttons._
@@ -10,48 +11,66 @@
 
 @main(MainViewData(interface.name, viewdata.NavTypes.Browse, userStatus)) {
 
-	@browseTabs(userStatus)
-	
-	@rowFullWidth() {
-        @{
-            var linkList = List(controllers.routes.DomainController.domain(elementData.domain.uuid, 1),
-                controllers.routes.DomainController.hierarchy(elementData.hierarchy.uuid, 1))
+	@{
+    	var linkList = List(controllers.routes.DomainController.domain(elementData.domain.uuid, 1),
+        	controllers.routes.DomainController.hierarchy(elementData.hierarchy.uuid, 1))
                 
-            var textList = List(elementData.domain.name, elementData.hierarchy.name)
+        var textList = List(elementData.domain.name, elementData.hierarchy.name)
 
-            for(element <- elementData.elementChain) {
-                linkList = (controllers.routes.DomainController.element(element.uuid, 1, 1)
-                                :: linkList.reverse).reverse
+        for(element <- elementData.elementChain) {
+        	linkList = (controllers.routes.DomainController.element(element.uuid, 1, 1)
+            	:: linkList.reverse).reverse
 
-                textList = (element.name :: textList.reverse).reverse
-
-            }
-
-            linkList = (controllers.routes.DomainController.interface(interface.uuid) ::
-                linkList.reverse).reverse
-
-            breadcrumb(linkList, (interface.name :: textList.reverse).reverse)
+            textList = (element.name :: textList.reverse).reverse
         }
+
+        linkList = (controllers.routes.DomainController.interface(interface.uuid) ::
+			linkList.reverse).reverse
+
+        breadcrumb(linkList, (interface.name :: textList.reverse).reverse)
     }
     
-    @rowLargeSmall() {
-    	<div class="m-t-1">
-    		@smallImage(interface.uuid, models.Types.InterfaceType.stringValue)
-    	</div>
-    }{    
-    	@changeImageButton(interface.uuid, models.Types.ElementType)
-			
-		@button(
-			routes.InstructionController.create(interface.uuid),
-			Messages("createInstruction"),
-			"btn-outline-primary",
-			Some("fa fa-pencil fa-fw"), "btn-block")
-			
-			
-		@button(
-			routes.IssueController.create(interface.uuid),
-			Messages("createIssue"),
-			"btn-outline-primary",
-			Some("fa fa-pencil fa-fw"), "btn-block")
-    }
-}
+	<div class="m-t-2">	
+		@title(interface.name)
+	</div>    
+	
+	<div class="m-t-1">
+		@labelInput() {
+			<label>@Messages("image")</label>
+		}{
+			@if(imageExists) {
+    			<img class="img-fluid" src="@routes.FileController.getStandardImage(interface.uuid, 
+					models.Types.InterfaceType.stringValue)" alt="@interface.name">
+			} else {
+				<i class="fa fa-camera-retro fa-5x"></i>
+			}
+		}
+		<div class="m-t-1">
+		@onlyInput() {
+			@changeImageButton(interface.uuid, models.Types.InterfaceType)
+		}
+		</div>
+	</div>	
+    
+	<div class="m-t-1">
+		@labelInput() {
+			<label>@Messages("instructions")</label>
+		}{
+			@button(routes.InstructionController.create(interface.uuid),
+				Messages("newInstruction"), "btn-primary", Some("fa fa-paperclip fa-fw"))
+		}
+	</div>	
+	
+	<div class="m-t-1">
+		@labelInput() {
+			<label>@Messages("issues")</label>
+		}{
+			@button(
+				routes.IssueController.create(interface.uuid),
+				Messages("newIssue"), "btn-primary", Some("fa fa-ticket fa-fw"))
+		}
+	</div>
+}(NavigationData(List(
+	NavLinkData(controllers.routes.DomainController.domain(userStatus.activeDomain.get.uuid, 1), 
+		userStatus.activeDomain.get.name, false)
+	)))

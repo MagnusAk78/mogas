@@ -9,25 +9,11 @@
 @import components.utils._
 
 @main(MainViewData(Messages("domains"), viewdata.NavTypes.Domains, userStatus)) {
-	
-	@{
-		val linkList = List(
-			controllers.routes.DomainController.list(domainListData.paginateData.page),
-			controllers.routes.DomainController.editActiveDomain(domainListData.paginateData.page),
-			controllers.routes.DomainController.create
-		)                
-        val captionList = List(
-        	Messages("list"), 
-        	Messages("chooseActiveDomain"), 
-        	Messages("create"))
-        	
-        val activeList = List(true, false, false)
-
-        topNavigation(linkList, captionList, activeList)
-    }
-    	
-    @rowFullWidth() {
-   		@linkGridWithImageAndName(domainListData, controllers.routes.DomainController.list(_),
-				controllers.routes.DomainController.show(_), models.Types.DomainType)
-	}
-}
+	@title(Messages("domains"))
+   	@linkGridWithImageAndName(domainListData, controllers.routes.DomainController.list(_),
+		controllers.routes.DomainController.show(_), models.Types.DomainType)
+}(NavigationData(List(
+	NavLinkData(controllers.routes.DomainController.list(domainListData.paginateData.page), Messages("list"), true),
+	NavLinkData(controllers.routes.DomainController.editActiveDomain(domainListData.paginateData.page), Messages("chooseActiveDomain"), false),
+	NavLinkData(controllers.routes.DomainController.create, Messages("create"), false)
+	)))

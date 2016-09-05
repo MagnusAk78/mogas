@@ -46,4 +46,8 @@ libraryDependencies += filters
 
 EclipseKeys.preTasks := Seq(compile in Compile)
 
+EclipseKeys.withSource := true
+
+EclipseKeys.withJavadoc := true
+
 fork in run := true

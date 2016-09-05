@@ -1,11 +1,12 @@
 @(submitTo: play.api.mvc.Call)(implicit flash: Flash, request: RequestHeader, messages: Messages)
 
-@implicitField = @{ FieldConstructor(horizontalFieldConstructor.f("col-sm-4 col-md-3", "col-sm-8 col-md-9")) }
+@import viewdata._
+@implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f(ViewConstants.formLabelColumns, ViewConstants.formInputColumns)) }
 @import components.buttons._
 @import helper._
 
 @helper.form(action = submitTo, 'enctype -> "multipart/form-data") {
 	@helper.CSRF.formField
 	@helper.inputFile(models.formdata.FileUploadForm.form(models.formdata.ImageFileKeyString), 'class-> "form-control", '_label -> Messages("chooseImageFile"))
-	@submitButton(text = Messages("uploadImage"), icon = Some("fa fa-upload fa-fw"))	
+	@submitButton(text = Messages("imageUpload"), icon = Some("fa fa-upload fa-fw"))	
 }

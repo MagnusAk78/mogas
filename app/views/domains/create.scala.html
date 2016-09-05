@@ -7,31 +7,19 @@
 @import components.buttons._
 @import components.media._
 @import helper._
-@implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f("col-sm-4 col-md-3", "col-sm-8 col-md-9")) }
+@implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f(ViewConstants.formLabelColumns, ViewConstants.formInputColumns)) }
 
 @main(MainViewData(Messages("createNew", Messages("domain")), viewdata.NavTypes.Domains, userStatus)) {
 
-	@{
-		val linkList = List(
-			controllers.routes.DomainController.list(1),
-			controllers.routes.DomainController.editActiveDomain(1),
-			controllers.routes.DomainController.create
-		)                
-        val captionList = List(
-        	Messages("list"), 
-        	Messages("chooseActiveDomain"), 
-        	Messages("create"))
-        	
-        val activeList = List(false, false, true)
-
-        topNavigation(linkList, captionList, activeList)
-    }	
-			
-	@rowLarge() {
-    	@helper.form(action = routes.DomainController.submitCreate) {
-    		@helper.CSRF.formField
-    		@helper.inputText(domainForm("name"), 'class-> "form-control", 'placeholder -> Messages("name"))
-    		@submitButton(Messages("create"))	
-		}	
+	@title(Messages("createDomain"))
+		
+    @helper.form(action = routes.DomainController.submitCreate) {
+    	@helper.CSRF.formField
+    	@helper.inputText(domainForm("name"), 'class-> "form-control", 'placeholder -> Messages("name"))
+    	@submitButton(Messages("create"))	
 	}
-}
+}(NavigationData(List(
+	NavLinkData(controllers.routes.DomainController.list(1), Messages("list"), false),
+	NavLinkData(controllers.routes.DomainController.editActiveDomain(1), Messages("chooseActiveDomain"), false),
+	NavLinkData(controllers.routes.DomainController.create, Messages("create"), true)
+	)))

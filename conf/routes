@@ -106,6 +106,7 @@ GET     /video/:uuid/:modelType 								controllers.FileController.getVideo(uuid
 GET     /video/upload/:uuid/:modelType							controllers.FileController.uploadVideo(uuid: String, modelType: String)
 POST    /video/:uuid/submitVideo/:modelType   					controllers.FileController.submitVideo(uuid: String, modelType: String)
 POST	/domain/:uuid/submitAmlFile								controllers.FileController.submitAmlFile(uuid: String)
+GET	    /domain/:domainUuid/amlfile/:fileUuid/remove			controllers.FileController.removeAmlFile(domainUuid: String, fileUuid: String)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                   	controllers.Assets.at(path="/public/", file)

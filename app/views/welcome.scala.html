@@ -9,9 +9,13 @@
 @import components.buttons._
 
 @main(MainViewData(Messages("welcome"), viewdata.NavTypes.None, userStatus)) {
-	<h3 class="display-1 hidden-xs-down">
-    	@Messages("welcome") 
-    </h3>
-	<p class="lead">@userStatus.loggedInUser.map(_.name).getOrElse("")</p>	
-	
-}
+	<div class="jumbotron">
+  		<h1 class="display-4">@Messages("welcome", userStatus.loggedInUser.map(_.name).getOrElse(""))</h1>
+  <p class="lead">@Messages("welcomeLeadMessage")</p>
+  <hr class="m-y-2">
+  <p>@Messages("welcomeInfoMessage")</p>
+  <p class="lead">
+    <a class="btn btn-primary btn-lg" href="@controllers.routes.DomainController.list(1)" role="button">@Messages("diveIn")</a>
+  </p>
+</div>
+}(NavigationData(List()))

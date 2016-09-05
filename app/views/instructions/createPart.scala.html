@@ -4,7 +4,7 @@
 @(instruction: Instruction, instructionPartForm: Form[InstructionPartForm.Data], userStatus: UserStatus)(implicit flash: Flash, 
 	request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
 
-@implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f("col-sm-4 col-md-3", "col-sm-8 col-md-9")) }
+@implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f(ViewConstants.formLabelColumns, ViewConstants.formInputColumns)) }
 @import templates._
 @import components.buttons._
 @import components.media._
@@ -26,4 +26,4 @@
 	}{
 		
 	}
-}
+}(NavigationData(List()))

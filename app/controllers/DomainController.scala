@@ -99,8 +99,9 @@ class DomainController @Inject() (
         val responses = for {
           elementListData <- amlObjectService.getElementList(elementPage, elementRequest.elementChain.last)
           interfaceListData <- amlObjectService.getInterfaceList(interfacePage, elementRequest.elementChain.last)
+          imageExists <- fileService.imageExists(uuid)
         } yield Ok(views.html.browse.element(ElementData(elementRequest.myDomain, elementRequest.hierarchy,
-          elementRequest.elementChain), elementListData, interfaceListData, UserStatus(Some(elementRequest.identity),
+          elementRequest.elementChain), imageExists, elementListData, interfaceListData, UserStatus(Some(elementRequest.identity),
           elementRequest.activeDomain)))
 
         responses recover {
@@ -110,11 +111,18 @@ class DomainController @Inject() (
 
   def interface(uuid: String) =
     (generalActions.MySecuredAction andThen generalActions.RequireActiveDomain andThen
-      generalActions.InterfaceAction(uuid)) { implicit interfaceRequest =>
-        Ok(views.html.browse.interface(interfaceRequest.interface, ElementData(interfaceRequest.myDomain, 
-          interfaceRequest.hierarchy, interfaceRequest.elementChain), UserStatus(Some(interfaceRequest.identity),
-          interfaceRequest.activeDomain)))
-      }
+      generalActions.InterfaceAction(uuid)).async { implicit interfaceRequest =>
+        
+        val responses = for {
+          imageExists <- fileService.imageExists(uuid)
+        } yield Ok(views.html.browse.interface(interfaceRequest.interface, imageExists, 
+            ElementData(interfaceRequest.myDomain, interfaceRequest.hierarchy, interfaceRequest.elementChain), 
+            UserStatus(Some(interfaceRequest.identity), interfaceRequest.activeDomain)))
+        
+        responses recover {
+          case e => InternalServerError(e.getMessage())
+        }        
+  }
 
   def parseAmlFiles(uuid: String) = (generalActions.MySecuredAction andThen
     generalActions.DomainAction(uuid)).async { implicit domainRequest =>
@@ -162,7 +170,8 @@ class DomainController @Inject() (
       
       for {
         imageExists <- fileService.imageExists(uuid)
-      } yield Ok(views.html.domains.edit(domainRequest.myDomain, imageExists, 
+        amlFiles <- fileService.amlFiles(uuid)
+      } yield Ok(views.html.domains.edit(DomainData(domainRequest.myDomain, imageExists, amlFiles), 
           DomainForm.form.fill(domainRequest.myDomain), 
           UserStatus(Some(domainRequest.identity), domainRequest.activeDomain)))
     }
@@ -182,7 +191,8 @@ class DomainController @Inject() (
         formWithErrors => {
           for {
             imageExists <- fileService.imageExists(uuid)
-          } yield BadRequest(views.html.domains.edit(domainRequest.myDomain, imageExists, formWithErrors,
+            amlFiles <- fileService.amlFiles(uuid)
+          } yield BadRequest(views.html.domains.edit(DomainData(domainRequest.myDomain, imageExists, amlFiles), formWithErrors,
             UserStatus(Some(domainRequest.identity), domainRequest.activeDomain)))
         },
         formData => {
