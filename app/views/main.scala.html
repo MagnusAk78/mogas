@@ -36,10 +36,10 @@
     	
 <div class="container-fluid" id="main">
 	<div class="row max-width-total">
-		<div class="col-xs-12 col-sm-12 col-md-3 pull-md-right m-t-1 p-a-1 bg-subtle-grey">
+		<div class="col-xs-12 col-sm-12 col-md-3 pull-md-right m-t-1 p-a-1 @*bg-subtle-grey*@"> 
         	@navigation(navigationData, mainViewData)
         </div>	
-		<div class="col-xs-12 col-sm-12 col-md-9 pull-md-left m-t-1 p-a-1 bg-subtle-grey">
+		<div class="col-xs-12 col-sm-12 col-md-9 pull-md-left m-t-1 p-a-1 @*bg-subtle-grey*@">
             @if(flash.get("success").isDefined){
             	<div class="alert alert-success" role="alert">
                 	@flash.get("success")

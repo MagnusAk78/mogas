@@ -1,29 +1,50 @@
 @import viewdata._
 @import models.formdata._
 
-@(instruction: Instruction, instructionPartForm: Form[InstructionPartForm.Data], userStatus: UserStatus)(implicit flash: Flash, 
-	request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
+@(instruction: Instruction, parentObjectData: AmlObjectData, instructionPartForm: Form[InstructionPartForm.Data], 
+	userStatus: UserStatus)(implicit flash: Flash, request: RequestHeader, messages: Messages, lang: Lang, 
+	webJarAssets: WebJarAssets)
 
 @implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f(ViewConstants.formLabelColumns, ViewConstants.formInputColumns)) }
 @import templates._
 @import components.buttons._
 @import components.media._
+@import components.utils._
 @import helper._
 
 @main(MainViewData(Messages("edit", instruction.name), viewdata.NavTypes.Browse, userStatus)) {
-	@title(Messages("edit", instruction.name))
+
+	@{	 
+    	var linkList = List(controllers.routes.DomainController.domain(parentObjectData.domain.uuid, 1),
+        	controllers.routes.DomainController.hierarchy(parentObjectData.hierarchy.uuid, 1))
+                
+        var textList = List(parentObjectData.domain.name, parentObjectData.hierarchy.name)
+
+        for(amlObject <- parentObjectData.amlObjectChain) {
+        	if(amlObject.modelType == Types.ElementType.stringValue) {
+            	linkList = linkList ::: List(controllers.routes.DomainController.element(amlObject.uuid, 1, 1))
+            } else {
+            	linkList = linkList ::: List(controllers.routes.DomainController.interface(amlObject.uuid))
+            }
+
+            textList = textList ::: List(amlObject.name)
+        }
+            
+        linkList = linkList ::: List(controllers.routes.InstructionController.instruction(instruction.uuid, 1))
+        textList = textList ::: List(instruction.name)
+
+        breadcrumb(linkList, textList)
+    }
+	
+	@title(Messages("addTo", instruction.name))
 			
-	@rowLargeSmall() {	
-		@rowLargeSmall() {
-			@helper.form(action = routes.InstructionController.submitCreatePart(instruction.uuid)) {
-    			@helper.CSRF.formField
-    			@helper.inputText(instructionPartForm("shortText"), 'class-> "form-control", '_label -> Messages("shortText"))
-    			@helper.textarea(instructionPartForm("text"), 'class-> "form-control", '_label -> Messages("text"), 'rows -> 6)
-    			@submitButton(Messages("create"))	
-			}
-        }{
-    	}		
-	}{
-		
+	@helper.form(action = routes.InstructionController.submitCreatePart(instruction.uuid)) {
+    	@helper.CSRF.formField
+    	@helper.inputText(instructionPartForm("shortText"), 'class-> "form-control", '_label -> Messages("shortText"))
+    	@helper.textarea(instructionPartForm("text"), 'class-> "form-control", '_label -> Messages("text"), 'rows -> 6)
+    	@submitButton(Messages("create"))	
 	}
-}(NavigationData(List()))
+}(NavigationData(List(
+	NavLinkData(controllers.routes.DomainController.domain(userStatus.activeDomain.get.uuid, 1), 
+		userStatus.activeDomain.get.name, false)
+	)))

@@ -12,18 +12,7 @@
 
 @main(MainViewData(Messages("edit", instruction.name + ": " + instructionPart.orderNumber), 
 	viewdata.NavTypes.Browse, userStatus)) {
-	@{
-		val linkList = List(
-			controllers.routes.InstructionController.list("", page)
-		)                
-        val captionList = List(
-        	Messages("listAll"))
-        	
-        val activeList = List(false)
 
-        topNavigation(linkList, captionList, activeList)
-    }
-    
 	@{	 
 		var linkList = List(controllers.routes.DomainController.domain(parentAmlObjectData.domain.uuid, 1),
         	controllers.routes.DomainController.hierarchy(parentAmlObjectData.hierarchy.uuid, 1))
@@ -42,6 +31,10 @@
             
         linkList = linkList ::: List(controllers.routes.InstructionController.instruction(instruction.uuid, 1))
         textList = textList ::: List(instruction.name)
+        
+        linkList = linkList ::: List(controllers.routes.InstructionController.showPart(instructionPart.uuid, page, 
+        	mediaData.mediaType.stringValue))
+        textList = textList ::: List(instructionPart.orderNumber.toString)
 
         breadcrumb(linkList, textList)
 	}
@@ -66,32 +59,65 @@
         topNavigation(linkList, captionList, activeList)
     }
     
-    @rowLargeSmall() {
-    	@if(mediaData.mediaType == models.MediaTypes.MediaImage) {
-    		@if(mediaData.hasMedia) {
-    		<img class="img-fluid" src="@routes.FileController.getStandardImage(instructionPart.uuid, 
-				models.Types.InstructionPartType.stringValue)" alt="@instructionPart.shortText">
+    @if(mediaData.mediaType == models.MediaTypes.MediaImage) {
+	<div class="m-t-1">
+		@labelInput() {
+			<label>@Messages("image")</label>
+		}{
+			@if(mediaData.hasMedia) {
+    			<img class="img-fluid" src="@routes.FileController.getStandardImage(instructionPart.uuid, 
+					models.Types.InstructionPartType.stringValue)" alt="@instructionPart.shortText">
 			} else {
 				<i class="fa fa-camera-retro fa-5x"></i>
 			}
-    	}
-    	@if(mediaData.mediaType == models.MediaTypes.MediaVideo) {
-    		@if(mediaData.hasMedia) {
+		}
+		<div class="m-t-1">
+		@onlyInput() {
+			@changeImageButton(instructionPart.uuid, models.Types.InstructionPartType)
+		}
+		</div>
+	</div>
+	}
+    
+    @if(mediaData.mediaType == models.MediaTypes.MediaVideo) {
+	<div class="m-t-1">
+		@labelInput() {
+			<label>@Messages("video")</label>
+		}{
+			@if(mediaData.hasMedia) {
     		<div class="embed-responsive embed-responsive-16by9">
-			<video controls>
-  				<source src="@routes.FileController.getVideo(instructionPart.uuid, models.Types.InstructionPartType.stringValue)">
-  					Your browser does not support the video tag.
-			</video>    		
+				<video controls>
+  					<source src="@routes.FileController.getVideo(instructionPart.uuid, models.Types.InstructionPartType.stringValue)">
+  						Your browser does not support the video tag.
+				</video>    		
     		</div>
-    		} else {
+			} else {
 				<i class="fa fa-video-camera fa-5x"></i>
 			}
-    	}
-    } {
-    	<h4>@{ instruction.name + ": " + instructionPart.orderNumber }</h4>
-    	<p>@instructionPart.text</p>
-    	
-		@backButton(controllers.routes.InstructionController.instruction(instruction.uuid, page))
-        @editButton(controllers.routes.InstructionController.editPart(instructionPart.uuid, page, mediaData.mediaType.stringValue))
+		}
+		<div class="m-t-1">
+		@onlyInput() {
+			@changeVideoButton(instructionPart.uuid, models.Types.InstructionPartType)
+		}
+		</div>
+	</div>    
     }
-}(NavigationData(List()))
+
+	<div class="m-t-1">
+		@labelInput() {
+			<label>@Messages("text")</label>
+		}{
+			<p>@instructionPart.text</p>
+		}
+	</div>
+	
+	<div class="m-t-1">
+		@onlyInput() {
+			@button(controllers.routes.InstructionController.editPart(instructionPart.uuid, page, mediaData.mediaType.stringValue), 
+				Messages("edit", instruction.name + ": " + instructionPart.orderNumber), "btn-primary", Some("fa fa-pencil fa-fw"))
+		}
+	</div>        
+}(NavigationData(List(
+	NavLinkData(controllers.routes.DomainController.domain(userStatus.activeDomain.get.uuid, 1), 
+		userStatus.activeDomain.get.name, false)
+	)))

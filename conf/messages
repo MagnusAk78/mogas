@@ -12,6 +12,8 @@ name = Name
 email = Email
 password = Password
 rememberMe = Remember me
+shortText = Short text
+text = Text
 
 activeDomain = Active domain: {0}
 noActiveDomain = No active domain
@@ -28,13 +30,17 @@ amlFiles = AML Files
 parseAmlFiles = Generate database
 uploadAmlFile = Upload AML File
 image = Image
+video = Video
 changeImage = Change Image
 manageUsers = Manage users
 chooseActiveDomain = Choose active domain
+rearrange = Rearrange
 
 details = Details
 newInstruction = New instruction
 newIssue = New issue
+addMore = Add more
+addTo = Add to {0}
 
 editAllowedUsers = Allowed users for {0}
 thereMustBeAtLeastOneAllowedUser = There must be at least one user

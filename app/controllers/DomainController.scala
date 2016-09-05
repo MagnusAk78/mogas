@@ -41,6 +41,9 @@ import play.api.Logger
 import viewdata.HierarchyData
 import viewdata._
 import models.services.FileService
+import models.services.IssueService
+import models.services.InstructionService
+import models.Instruction
 
 @Singleton
 class DomainController @Inject() (
@@ -50,6 +53,8 @@ class DomainController @Inject() (
   val domainService: DomainService,
   val fileService: FileService,
   val amlObjectService: AmlObjectService,
+  val instructionService: InstructionService,
+  val issueService: IssueService,
   implicit val webJarAssets: WebJarAssets)(implicit exec: ExecutionContext, materialize: Materializer)
     extends Controller with I18nSupport {
 
@@ -100,9 +105,10 @@ class DomainController @Inject() (
           elementListData <- amlObjectService.getElementList(elementPage, elementRequest.elementChain.last)
           interfaceListData <- amlObjectService.getInterfaceList(interfacePage, elementRequest.elementChain.last)
           imageExists <- fileService.imageExists(uuid)
+          instructionListData <- instructionService.findManyInstructions(Instruction.queryByParent(elementRequest.elementChain.last))
         } yield Ok(views.html.browse.element(ElementData(elementRequest.myDomain, elementRequest.hierarchy,
-          elementRequest.elementChain), imageExists, elementListData, interfaceListData, UserStatus(Some(elementRequest.identity),
-          elementRequest.activeDomain)))
+          elementRequest.elementChain), imageExists, elementListData, interfaceListData, instructionListData, 
+          UserStatus(Some(elementRequest.identity), elementRequest.activeDomain)))
 
         responses recover {
           case e => InternalServerError(e.getMessage())
@@ -115,9 +121,10 @@ class DomainController @Inject() (
         
         val responses = for {
           imageExists <- fileService.imageExists(uuid)
+          instructionListData <- instructionService.findManyInstructions(Instruction.queryByParent(interfaceRequest.interface))
         } yield Ok(views.html.browse.interface(interfaceRequest.interface, imageExists, 
             ElementData(interfaceRequest.myDomain, interfaceRequest.hierarchy, interfaceRequest.elementChain), 
-            UserStatus(Some(interfaceRequest.identity), interfaceRequest.activeDomain)))
+            instructionListData, UserStatus(Some(interfaceRequest.identity), interfaceRequest.activeDomain)))
         
         responses recover {
           case e => InternalServerError(e.getMessage())

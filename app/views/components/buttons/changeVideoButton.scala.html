@@ -1,4 +1,4 @@
 @(uuid: String, modelType: models.Types.ModelType)(implicit flash: Flash, messages: Messages)
 
 @button(routes.FileController.uploadVideo(uuid, modelType.stringValue), 
-	Messages("changeVideo") ,"btn-outline-primary", Some("fa fa-photo fa-fw"), "btn-block")
+	Messages("changeVideo") ,"btn-primary", Some("fa fa-video-camera fa-fw"))

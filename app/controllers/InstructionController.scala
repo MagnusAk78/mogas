@@ -220,11 +220,14 @@ class InstructionController @Inject() (
 	def submitCreatePart(instructionUuid: String) = (generalActions.MySecuredAction andThen
 			generalActions.RequireActiveDomain andThen generalActions.InstructionAction(instructionUuid)).async {
 		implicit instructionRequest =>
+		  
+		
 
 		InstructionPartForm.form.bindFromRequest().fold(
 				formWithErrors => {
 					Future.successful(BadRequest(views.html.instructions.createPart(instructionRequest.instruction,
-							formWithErrors, UserStatus(Some(instructionRequest.identity), instructionRequest.activeDomain))))
+							AmlObjectData(instructionRequest.myDomain, instructionRequest.hierarchy,
+						instructionRequest.elementChain ::: instructionRequest.interface.toList), formWithErrors, UserStatus(Some(instructionRequest.identity), instructionRequest.activeDomain))))
 				},
 				formData => {
 					val responses = for {
@@ -255,8 +258,9 @@ class InstructionController @Inject() (
 			generalActions.RequireActiveDomain andThen generalActions.InstructionAction(instructionUuid)) {
 		implicit instructionRequest =>
 
-		Ok(views.html.instructions.createPart(instructionRequest.instruction, InstructionPartForm.form,
-				UserStatus(Some(instructionRequest.identity), instructionRequest.activeDomain)))
+		Ok(views.html.instructions.createPart(instructionRequest.instruction, AmlObjectData(instructionRequest.myDomain, 
+		    instructionRequest.hierarchy, instructionRequest.elementChain ::: instructionRequest.interface.toList),
+		    InstructionPartForm.form, UserStatus(Some(instructionRequest.identity), instructionRequest.activeDomain)))
 	}
 
 	def submitEditPart(uuid: String, page: Int, mediaType: String) = (generalActions.MySecuredAction andThen

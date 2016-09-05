@@ -1,6 +1,6 @@
 @import viewdata._
 
-@(interface: Interface, imageExists: Boolean, elementData: ElementData, 
+@(interface: Interface, imageExists: Boolean, elementData: ElementData, instructionListData: viewdata.ModelListData[Instruction], 
 	userStatus: UserStatus)(implicit flash: Flash, request: RequestHeader, messages: Messages, 
 	lang: Lang, webJarAssets: WebJarAssets)
 
@@ -56,11 +56,21 @@
 		@labelInput() {
 			<label>@Messages("instructions")</label>
 		}{
+			<ul class="list-group m-b-1">
+				@for(instruction <- instructionListData.list) {
+				<li class="list-group-item">
+					<a href="@controllers.routes.InstructionController.instruction(instruction.uuid, 1)">
+						@instruction.name
+					</a>
+				</li>
+				}
+			</ul>		
 			@button(routes.InstructionController.create(interface.uuid),
 				Messages("newInstruction"), "btn-primary", Some("fa fa-paperclip fa-fw"))
 		}
-	</div>	
+	</div>		
 	
+	@*
 	<div class="m-t-1">
 		@labelInput() {
 			<label>@Messages("issues")</label>
@@ -70,6 +80,7 @@
 				Messages("newIssue"), "btn-primary", Some("fa fa-ticket fa-fw"))
 		}
 	</div>
+	*@
 }(NavigationData(List(
 	NavLinkData(controllers.routes.DomainController.domain(userStatus.activeDomain.get.uuid, 1), 
 		userStatus.activeDomain.get.name, false)
