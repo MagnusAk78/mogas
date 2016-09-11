@@ -25,23 +25,24 @@
     	@submitButton(Messages("update"))    		
 	}
 	
-	<div class="m-t-1">
-		@labelInput() {
-			<label>@Messages("image")</label>
-		}{
-			@if(imageExists) {
-    			<img class="img-fluid" src="@routes.FileController.getStandardImage(user.uuid, 
-					models.Types.UserType.stringValue)" alt="@user.name">
-			} else {
-				<i class="fa fa-camera-retro fa-5x"></i>
-			}
+	@inputDivider()
+	
+	@labelInput() {
+		<label>@Messages("image")</label>
+	}{
+		@if(imageExists) {
+    		<img class="img-fluid" src="@routes.FileController.getStandardImage(user.uuid, 
+				models.Types.UserType.stringValue)" alt="@user.name">
+		} else {
+			<i class="fa fa-camera-retro fa-5x"></i>
 		}
-		<div class="m-t-1">
-		@onlyInput() {
-			@changeImageButton(user.uuid, models.Types.UserType)
-		}
-		</div>
-	</div>
+	}
+	
+	@verticalSpace()
+	
+	@onlyInput() {
+		@changeImageButton(user.uuid, models.Types.UserType)
+	}
 
 }(NavigationData(List(
 	NavLinkData(controllers.routes.UserController.list(1), Messages("list"), false)

@@ -32,12 +32,11 @@
 	@linkGridWithImageAndName(interfaceListData, controllers.routes.DomainController.element(elementData.elementChain.last.uuid,
 		elementListData.paginateData.page, _),
 		controllers.routes.DomainController.interface(_), models.Types.InterfaceType)
+		
+	@verticalSpace()
 	
-	<div class="m-t-2">	
-		@title(elementData.elementChain.last.name)
-	</div>
+	@title(elementData.elementChain.last.name)
 	
-	<div class="m-t-1">
 		@labelInput() {
 			<label>@Messages("image")</label>
 		}{
@@ -48,18 +47,19 @@
 				<i class="fa fa-camera-retro fa-5x"></i>
 			}
 		}
-		<div class="m-t-1">
+		
+		@verticalSpace()
+		
 		@onlyInput() {
 			@changeImageButton(elementData.elementChain.last.uuid, models.Types.ElementType)
 		}
-		</div>
-	</div>
+		
+		@inputDivider()
 	
-	<div class="m-t-1">
 		@labelInput() {
 			<label>@Messages("instructions")</label>
 		}{
-			<ul class="list-group m-b-1">
+			<ul class="list-group">
 				@for(instruction <- instructionListData.list) {
 				<li class="list-group-item">
 					<a href="@controllers.routes.InstructionController.instruction(instruction.uuid, 1)">
@@ -67,22 +67,22 @@
 					</a>
 				</li>
 				}
-			</ul>		
+			</ul>
+			@if(instructionListData.list.length > 0) {
+				@verticalSpace()
+			}		
 			@button(routes.InstructionController.create(elementData.elementChain.last.uuid),
 				Messages("newInstruction"), "btn-primary", Some("fa fa-paperclip fa-fw"))
-		}
-	</div>	
+		}	
 
 	@*	
-	<div class="m-t-1">
-		@labelInput() {
-			<label>@Messages("issues")</label>
-		}{
-			@button(
-				routes.IssueController.create(elementData.elementChain.last.uuid),
-				Messages("newIssue"), "btn-primary", Some("fa fa-ticket fa-fw"))
-		}
-	</div>
+	@inputDivider()
+	@labelInput() {
+		<label>@Messages("issues")</label>
+	}{
+		@button(routes.IssueController.create(elementData.elementChain.last.uuid),
+			Messages("newIssue"), "btn-primary", Some("fa fa-ticket fa-fw"))
+	}
 	*@	
 
 }(NavigationData(List(

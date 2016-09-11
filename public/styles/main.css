@@ -3,6 +3,16 @@ body {
 	font-size: 13px;
 }
 
+.large-divider {
+  height: 2px;
+  width: 100%;
+  display:block; /* for use on default inline elements like span */
+  overflow: hidden;
+  margin-top: 8px;
+  margin-bottom: 4px;
+  background-color: #555555;
+}
+
 .bg-subtle-green {
 	background-color: #74AFAD;
 }
@@ -32,11 +42,11 @@ body {
 }
 
 .active-domain-text {
-  color:rgb(200,200,240) !important;
+  color:rgb(45,45,165) !important;
 }
 
 .no-active-domain-text {
-  color:rgb(240,200,200) !important;
+  color:rgb(185,185,45) !important;
 }
 
 .nav-top {
@@ -46,19 +56,19 @@ body {
 
 label {
 	font-family: 'Source Sans Pro', sans-serif;
-	font-size: 16px;
+	font-size: 15px;
 }
 
 h1, h2, h3, h4, h5, h6 {
 	font-family: 'Montserrat', sans-serif;
 }
 
-h1 { font-size: 16px; font-weight: bold; }
-h2 { font-size: 16px;}
-h3 { font-size: 15px; font-weight: bold;}
+h1 { font-size: 20px;}
+h2 { font-size: 18px;}
+h3 { font-size: 16px;}
 h4 { font-size: 15px;}
-h5 { font-size: 14px; font-weight: bold;}
-h6 { font-size: 14px;}
+h5 { font-size: 14px;}
+h6 { font-size: 13px;}
 
 .no-border {
 	border: none !important;

@@ -11,32 +11,6 @@
 		<a class="navbar-brand" href="@routes.SignInController.view">
 			@Messages("brandName")
 		</a>
-    	<div class="nav navbar-nav pull-sm-left">
-			@if(mainViewData.userStatus.loggedInUser.isDefined && mainViewData.userStatus.activeDomain.isDefined) {
-				<p class="nav-item nav-link text-primary">@mainViewData.userStatus.activeDomain.get.name</p>
-			}
-    		@if(mainViewData.userStatus.loggedInUser.isDefined && mainViewData.userStatus.activeDomain.isEmpty) {
-  				<p class="nav-item nav-link text-warning">@Messages("noActiveDomain")</p>
-			}
-    	
-    		@if(mainViewData.userStatus.loggedInUser.isDefined) {
-    		<div class="nav-item dropdown">
-    			<a class="nav-link" href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-            		<i class="fa fa-caret-down fa-fw" aria-hidden="true"></i>&nbsp; @Messages("menu")
-            	</a>
-            	<ul class="dropdown-menu navbar-dark bg-inverse">
-					@if(mainViewData.userStatus.loggedInUser.isDefined) {
-						<li class="dropdown-item"><a class="nav-link" href="@routes.DomainController.list(1)">@Messages("domains")</a></li>
-        			}
-        
-					@if(mainViewData.userStatus.loggedInUser.isDefined && mainViewData.userStatus.activeDomain.isDefined) {
-						<li class="dropdown-item"><a class="nav-link" href="@routes.UserController.list(1)">@Messages("users")</a></li>
-						<li class="dropdown-item"><a class="nav-link" href="@routes.DomainController.domain(mainViewData.userStatus.activeDomain.get.uuid, 1)">@Messages("browse")</a></li>
-        			}	
-        		</ul>
-        	</div>
-        	}
-        </div>
            	
         <div class="nav navbar-nav pull-sm-right">
         	<div class="nav-item dropdown">

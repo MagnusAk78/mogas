@@ -1,10 +1,14 @@
 @(title: String)(implicit flash: Flash, messages: Messages)
 
-@onlyInput() {
+@row() {
 	<h1 class="hidden-md-down text-xs-left">
 		@title
 	</h1>
-	<h3 class="hidden-lg-up text-xs-left">
+	<h2 class="hidden-xs-down hidden-lg-up text-xs-left">
 		@title
-	</h3>		
+	</h2>
+	<h3 class="hidden-sm-up text-xs-left">
+		@title
+	</h3>	
+	@largeDivider()
 }

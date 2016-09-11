@@ -9,9 +9,9 @@
 }
 
 @if(mainViewData.userStatus.activeDomain.isDefined) {
-	<p class="text-info">@Messages("activeDomain", mainViewData.userStatus.activeDomain.get.name)</p>
+	<p class="active-domain-text">@Messages("activeDomain", mainViewData.userStatus.activeDomain.get.name)</p>
 } else {
-	<p class="text-danger">@Messages("noActiveDomain")</p>
+	<p class="no-active-domain-text">@Messages("noActiveDomain")</p>
 }
 
 <p class="lead">@Messages("navigation")</p>

@@ -19,6 +19,8 @@ activeDomain = Active domain: {0}
 noActiveDomain = No active domain
 
 navigation = Navigation
+list = List
+create = Create new
 domains = Domains
 users = Users
 browse = Browse

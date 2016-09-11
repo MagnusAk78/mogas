@@ -29,57 +29,52 @@
 
         breadcrumb(linkList, (interface.name :: textList.reverse).reverse)
     }
-    
-	<div class="m-t-2">	
-		@title(interface.name)
-	</div>    
 	
-	<div class="m-t-1">
-		@labelInput() {
-			<label>@Messages("image")</label>
-		}{
-			@if(imageExists) {
-    			<img class="img-fluid" src="@routes.FileController.getStandardImage(interface.uuid, 
-					models.Types.InterfaceType.stringValue)" alt="@interface.name">
-			} else {
-				<i class="fa fa-camera-retro fa-5x"></i>
-			}
+	@title(interface.name)    
+	
+	@labelInput() {
+		<label>@Messages("image")</label>
+	}{
+		@if(imageExists) {
+    		<img class="img-fluid" src="@routes.FileController.getStandardImage(interface.uuid, 
+				models.Types.InterfaceType.stringValue)" alt="@interface.name">
+		} else {
+			<i class="fa fa-camera-retro fa-5x"></i>
 		}
-		<div class="m-t-1">
-		@onlyInput() {
-			@changeImageButton(interface.uuid, models.Types.InterfaceType)
-		}
-		</div>
-	</div>	
+	}
+	
+	@verticalSpace()
+	
+	@onlyInput() {
+		@changeImageButton(interface.uuid, models.Types.InterfaceType)
+	}
+	
+	@inputDivider()	
     
-	<div class="m-t-1">
-		@labelInput() {
-			<label>@Messages("instructions")</label>
-		}{
-			<ul class="list-group m-b-1">
-				@for(instruction <- instructionListData.list) {
-				<li class="list-group-item">
-					<a href="@controllers.routes.InstructionController.instruction(instruction.uuid, 1)">
-						@instruction.name
-					</a>
-				</li>
-				}
-			</ul>		
-			@button(routes.InstructionController.create(interface.uuid),
-				Messages("newInstruction"), "btn-primary", Some("fa fa-paperclip fa-fw"))
-		}
-	</div>		
+	@labelInput() {
+		<label>@Messages("instructions")</label>
+	}{
+		<ul class="list-group">
+			@for(instruction <- instructionListData.list) {
+			<li class="list-group-item">
+				<a href="@controllers.routes.InstructionController.instruction(instruction.uuid, 1)">
+					@instruction.name
+				</a>
+			</li>
+			}
+		</ul>		
+		@button(routes.InstructionController.create(interface.uuid),
+			Messages("newInstruction"), "btn-primary", Some("fa fa-paperclip fa-fw"))
+	}		
 	
 	@*
-	<div class="m-t-1">
-		@labelInput() {
-			<label>@Messages("issues")</label>
-		}{
-			@button(
-				routes.IssueController.create(interface.uuid),
-				Messages("newIssue"), "btn-primary", Some("fa fa-ticket fa-fw"))
-		}
-	</div>
+	@labelInput() {
+		<label>@Messages("issues")</label>
+	}{
+		@button(
+			routes.IssueController.create(interface.uuid),
+			Messages("newIssue"), "btn-primary", Some("fa fa-ticket fa-fw"))
+	}
 	*@
 }(NavigationData(List(
 	NavLinkData(controllers.routes.DomainController.domain(userStatus.activeDomain.get.uuid, 1), 

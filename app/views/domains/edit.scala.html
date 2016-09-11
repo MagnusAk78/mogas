@@ -20,70 +20,71 @@
     	@helper.inputText(domainForm("name"), 'class-> "form-control", 'placeholder -> Messages("name"))
     	@submitButton(Messages("update"))	
 	}
-		
-	<div class="m-t-1">
-		@helper.form(action = routes.FileController.submitAmlFile(domainData.domain.uuid), 'enctype -> "multipart/form-data") {
-    		@helper.CSRF.formField
-    		@helper.inputFile(models.formdata.FileUploadForm.form(models.formdata.AmlFileKeyString), 
-    			'class-> "form-control", '_label -> Messages("amlFiles"))
-    		@submitButton(text = Messages("uploadAmlFile"), icon = Some("fa fa-upload fa-fw"))
-		}		
-	</div>
+	
+	@inputDivider()
 
-	@if(!domainData.amlFiles.isEmpty) {
-		<div class="m-t-1">
-			@onlyInput() {
-				<ul class="list-group m-b-1">
-				@for(file <- domainData.amlFiles) {
-					<li class="list-group-item">
-						@file.filename.getOrElse("")
-					<a class="pull-xs-right" href="@controllers.routes.FileController.removeAmlFile(domainData.domain.uuid, file.id.as[String])">
-						@Messages("delete")<i class="fa fa-fw fa-times" aria-hidden="true"></i>
-					</a>
-					</li>
-				}
-				</ul>
-				@button(controllers.routes.DomainController.parseAmlFiles(domainData.domain.uuid), Messages("parseAmlFiles"))
-			}
-		</div>
+	@helper.form(action = routes.FileController.submitAmlFile(domainData.domain.uuid), 'enctype -> "multipart/form-data") {
+    	@helper.CSRF.formField
+    	@helper.inputFile(models.formdata.FileUploadForm.form(models.formdata.AmlFileKeyString), 
+    		'class-> "form-control", '_label -> Messages("amlFiles"))
+    	@submitButton(text = Messages("uploadAmlFile"), icon = Some("fa fa-upload fa-fw"))
 	}
 		
-	<div class="m-t-1">
-		@labelInput() {
-			<label>@Messages("image")</label>
-		}{
-			@if(domainData.imageExists) {
-    			<img class="img-fluid" src="@routes.FileController.getStandardImage(domainData.domain.uuid, 
-					models.Types.DomainType.stringValue)" alt="@domainData.domain.name">
-			} else {
-				<i class="fa fa-camera-retro fa-5x"></i>
-			}
-		}
-		<div class="m-t-1">
+	@verticalSpace()
+
+	@if(!domainData.amlFiles.isEmpty) {
 		@onlyInput() {
-			@changeImageButton(domainData.domain.uuid, models.Types.DomainType)
+			<ul class="list-group">
+			@for(file <- domainData.amlFiles) {
+				<li class="list-group-item">
+					@file.filename.getOrElse("")
+				<a class="pull-xs-right" href="@controllers.routes.FileController.removeAmlFile(domainData.domain.uuid, file.id.as[String])">
+					@Messages("delete")<i class="fa fa-fw fa-times" aria-hidden="true"></i>
+				</a>
+				</li>
+			}
+			</ul>
+			@verticalSpace()
+			@button(controllers.routes.DomainController.parseAmlFiles(domainData.domain.uuid), Messages("parseAmlFiles"))
 		}
-		</div>
-	</div>
+	}
 	
-	<div class="m-t-1">
-		@labelInput() {
-			<label>@Messages("users")</label>
-		}{
-			@button(
-				controllers.routes.DomainController.editAllowedUsers(domainData.domain.uuid, 1),
-				Messages("manageUsers"), "btn-primary", Some("fa fa-pencil fa-fw"))
-		}
-	</div>
+	@inputDivider()	
 	
-	<div class="m-t-1">
-		@labelInput() {
-			<label>@Messages("delete")</label>
-		}{
-			@deleteButton(controllers.routes.DomainController.delete(domainData.domain.uuid))
+	@labelInput() {
+		<label>@Messages("image")</label>
+	}{
+		@if(domainData.imageExists) {
+    		<img class="img-fluid" src="@routes.FileController.getStandardImage(domainData.domain.uuid, 
+				models.Types.DomainType.stringValue)" alt="@domainData.domain.name">
+		} else {
+			<i class="fa fa-camera-retro fa-5x"></i>
 		}
-	</div>
+	}
 		
+	@verticalSpace()
+		
+	@onlyInput() {
+		@changeImageButton(domainData.domain.uuid, models.Types.DomainType)
+	}
+		
+	@inputDivider()
+	
+	@labelInput() {
+		<label>@Messages("users")</label>
+	}{
+		@button(
+			controllers.routes.DomainController.editAllowedUsers(domainData.domain.uuid, 1),
+			Messages("manageUsers"), "btn-primary", Some("fa fa-pencil fa-fw"))
+	}
+		
+	@inputDivider()
+
+	@labelInput() {
+		<label>@Messages("delete")</label>
+	}{
+		@deleteButton(controllers.routes.DomainController.delete(domainData.domain.uuid))
+	}
 }(NavigationData(List(
 	NavLinkData(controllers.routes.DomainController.list(1), Messages("list"), false),
 	NavLinkData(controllers.routes.DomainController.editActiveDomain(1), Messages("chooseActiveDomain"), false),
