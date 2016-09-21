@@ -212,7 +212,7 @@ class FileController @Inject() (
 
                   val dataImage = JSONFileToSave(
                     filename = file.filename,
-                    contentType = Some("image/jpg"),
+                    contentType = Some("image/jpeg"),
                     uploadDate = Some(DateTime.now().getMillis),
                     metadata = Images.getImageMetadata(uuid, Images.Standard))
 
@@ -233,7 +233,7 @@ class FileController @Inject() (
 
                   val dataThumbnail = JSONFileToSave(
                     filename = file.filename,
-                    contentType = Some("image/jpg"),
+                    contentType = Some("image/jpeg"),
                     uploadDate = Some(DateTime.now().getMillis),
                     metadata = Images.getImageMetadata(uuid, Images.Thumbnail))
 
