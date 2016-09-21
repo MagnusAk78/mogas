@@ -1,4 +1,4 @@
-name := """automation-webservice"""
+name := """mogas"""
 
 version := "0.9-SNAPSHOT"
 
@@ -49,5 +49,8 @@ EclipseKeys.preTasks := Seq(compile in Compile)
 EclipseKeys.withSource := true
 
 EclipseKeys.withJavadoc := true
+
+fork in run := true
+
 
 fork in run := true
