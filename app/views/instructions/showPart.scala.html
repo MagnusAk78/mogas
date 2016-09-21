@@ -85,11 +85,21 @@
 			<label>@Messages("video")</label>
 		}{
 			@if(mediaData.hasMedia) {
-    		<div class="embed-responsive embed-responsive-16by9">
-				<video controls>
-  					<source src="@routes.FileController.getVideo(instructionPart.uuid, models.Types.InstructionPartType.stringValue)">
-  						Your browser does not support the video tag.
-				</video>    		
+    		<div class="embed-responsive embed-responsive-16by9">				
+				<video controls="controls" preload="none">
+    				<!-- MP4 for Safari, IE9, iPhone, iPad, Android, and Windows Phone 7 -->
+    				<source type="video/mp4" src="@routes.FileController.getVideo(instructionPart.uuid, models.Types.InstructionPartType.stringValue)" /> 
+    				<!-- Flash fallback for non-HTML5 browsers without JavaScript -->
+    					<object type="application/x-shockwave-flash" data="flashmediaelement.swf">
+        				<param name="movie" value="flashmediaelement.swf" />
+        				<param name="flashvars" value="controls=true&file=@routes.FileController.getVideo(instructionPart.uuid, models.Types.InstructionPartType.stringValue)" />
+    				</object>
+				</video>
+				
+				<!-- startup -->
+				<script>
+					$('video').mediaelementplayer();
+				</script>
     		</div>
 			} else {
 				<i class="fa fa-video-camera fa-5x"></i>
