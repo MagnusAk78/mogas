@@ -35,6 +35,7 @@ libraryDependencies ++= Seq(
   //Webjars that allows dependecy management of things like jquery and other web tools
   "org.webjars" %% "webjars-play" % "2.5.0-2",
   "org.webjars.bower" % "mediaelement" % "2.19.0",
+  "org.webjars.bower" % "tether" % "1.3.3",
   //Extra stuff from silhuette example, don´t know exactly
   "net.codingwell" %% "scala-guice" % "4.0.1",
   "com.iheart" %% "ficus" % "1.2.6",
