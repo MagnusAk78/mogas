@@ -1,137 +1,56 @@
-command.new = Ny
-command.add = Lägg till
-command.update = Uppdatera
-command.delete = Ta bort
-command.edit = Editera
-command.back = Tillbaka
-command.previous = Föregående
-command.next = Nästa
-command.go.back = Gå tillbaka
-command.go.further = Gå vidare
+signIn = Logga in
+signUp = Registrera dig
 
-navigation.organisations = Org.
-navigation.users = Anv.
-navigation.factories = Bläddra
-navigation.instructions = Instr.
-navigation.issues = Avvikelser
+welcome = Välkommen {0}
+welcomeLeadMessage = Det här är en webb applikation som kan hjälpa er att administrera ett automationssystem.
+welcomeInfoMessage = Börja med att skapa en domän (organisation/system/fabrik). Navigera dig fram i navigationsrutan till höger eller högst upp under bläddra.
+diveIn = Börja
 
-home = Välkommen
-home.welcome = Välkommen {0} {1}
+firstName = Förnamn
+lastName = Efternman
+name = Namn
+email = Epost
+password = Lösenord
+rememberMe = Kom ihåg mig
+shortText = Kort text
+text = Text
 
-language = Språk
+activeDomain = Aktiv domän: {0}
+noActiveDomain = Ingen aktiv domän
 
-link.video = Se film
-
-function.list = Lista
-function.create = Skapa ny
-function.edit = Ändra
-function.details = Detaljer
-
-organisations = Organisationer
-organisation.name = Organisationsnamn
-organisation.allowedUsers = Godkända användare
-organisation.changeAllowedUsers = Editera godkända användare
-organisation.minimum.one.user = Det måste finnas minst en godkänd användare
-organisations.select.active = Välj aktiv organisation
-organisations.active.organisation = Aktiv organisation
-organisation.remove.self.not.allowed = Det är inte tillåtet att ta bort inloggad användare
-
+navigation = Navigera
+list = Lista
+create = Skapa ny
+domains = Domäner
 users = Användare
-user.details = Info om användare
-user.username = Användarnamn
-user.password = Lösenord
-user.confirmPassword = Bekräfta lösenord
-user.firstName = Förnamn
-user.lastName = Efternamn
-user.email = epost
-user.active.organisation = Aktiv organisation
-user.editAccount = Editera användaruppgifter
-user.signOut = Logga ut
-user.signIn = Logga in
-user.signUp = Registrera konto
-user.question.notMember = Ej registrerad?
-user.question.alreadyMember = Redan registrerad?
-user.allowed.organisations = Tillåtna organisationer
-
-factories = Fabriker
-factory.view.hierarchy = Se fabriksträd
-factory.hierarchy = Fabriksträd {0}
-factory.hierarchies = Fabriksträd
-factory.element = Fabrikselement: {0}
-factory.element.ie = Fabrikselement
-factory.element.ei = Extern koppling/interface
-factory.add.amlfile = Lägg till AML-fil
-factory.add.image = Lägg till bildfil
-
+browse = Bläddra
 instructions = Instruktioner
-instruction = Instruktion
-instruction.create = Skapa instruktion
-instruction.title = Titel
-instruction.textDescription = Beskrivning
-instruction.refers.to = Avser: {0}
-instruction.show.created.by = Skapad av {0}
-instruction.orderNumber = nummer
-instruction.show.orderNumber = nr: {0}
-instruction.show.created.by = Skapad av {0}
-instructions.show = Instruktioner
-
-instructions.move.down = Flytta ner
-instructions.move.up = Flytta upp
-
 issues = Avvikelser
-issue = Avvikelse
-issue.create = Skapa avvikelse
-issue.title = Titel
-issue.textDescription = Beskrivning
-issue.assignedTo = Tilldelad användare
-issue.priority = Prioritet
-issues.list.all = Alla avvikelser
-issues.list.all.open = Öppna avvikelser
-issues.list.all.my.open = Mina öppna avvikelser
-issue.close = Stäng denna avvikelse
-issue.reopen = Återöppna
-issue.refers.to = Avser: {0}
 
-issue.show.priority = Prioritet: {0}
-issue.show.not.assigned = Inte tilldelad någon användare
-issue.show.assigned.to = Tilldelad {0}
-issue.show.open = Öppen
-issue.show.closed = Stängd
-issue.show.created.by = Skapad av {0}
-issue.show.history = Historik
+createDomain = Skapa ny domän
+amlFiles = AML filer
+parseAmlFiles = Generera databas
+uploadAmlFile = Ladda upp AML fil
+image = Bild
+video = Video
+changeImage = Byt bild
+manageUsers = Hantera användare
+chooseActiveDomain = Välj aktiv domän
+rearrange = Omarrangera
 
-issue.create.new = Rapportera avvikelse
+details = Detaljer
+newInstruction = Ny instruktion
+newIssue = Ny avvikelse
+addMore = Lägg till fler
+addTo = Addera till {0}
 
-AmlHierarchy.name = {0} (Hierarkinamn)
-ExternalInterface = EI {0}
-InternalElement = IE {0}
+editAllowedUsers = Tillåtna användare för {0}
+thereMustBeAtLeastOneAllowedUser = Det måste finnas minst en användare
 
-image.file = Bild
+edit = Editera: {0}
+delete = Ta bort
 
-validation.duplicate = Dubblett
+fileRemoved = Fil bortplockad
 
-db.success.save = {0} skapad
-db.success.remove = {0} borttagen
-db.success.update = {0} uppdaterad
-
-db.error.write = Problem att spara till databas
-db.error.read = Problem att läsa från databas
-db.error.find = Hittade inte {0}:{1} i databas
-db.error.dependencies = Det finns beroenden (minst till {0})
-db.error.read.file = Fel vid läsning av fil: {0}
-db.error.missing = {0} verkar inte finnas
-
-upload.error.notAllowedContentType = Filen är inte av tillåten typ (mime/content-type)
-
-signupVerification.passwords.doNotMatch = Lösenorden matchar inte
-signupVerification.email.taken = Det finns redan en användare med detta epostaddress
-signupVerification.username.taken = Det finns redan en användare med detta användarnamn
-
-invalid.credentials = Fel användarnamn eller lösenord
-access.denied = Icke behörig
-not.set = Inte valt
-select.active.organisation = Välj aktiv organisation
-upload.image = Ladda upp bild
-change.upload.image = Byt/ladda up bild
-no.assigned.user = [Inte tilldedad]
-none = ingen
+chooseImageFile = Välj bild fil
+imageUpload = Ladda upp bild
