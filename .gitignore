@@ -23,3 +23,4 @@ project/.sbtserver
 project/.sbtserver.lock
 
 *.cache-tests
+.DS_Store
