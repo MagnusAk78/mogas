@@ -2,7 +2,7 @@ name := """mogas"""
 
 version := "0.9-SNAPSHOT"
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
+lazy val root = (project in file(".")).enablePlugins(PlayScala, LauncherJarPlugin)
 
 scalaVersion := "2.11.8"
 
@@ -51,10 +51,5 @@ EclipseKeys.preTasks := Seq(compile in Compile)
 EclipseKeys.withSource := true
 
 EclipseKeys.withJavadoc := true
-
-fork in run := true
-
-
-fork in run := true
 
 fork in run := true

@@ -1,6 +1,8 @@
 signIn = Logga in
 signUp = Registrera dig
+signOut = Logga ut
 
+language = Språk
 welcome = Välkommen {0}
 welcomeLeadMessage = Det här är en webb applikation som kan hjälpa er att administrera ett automationssystem.
 welcomeInfoMessage = Börja med att skapa en domän (organisation/system/fabrik). Navigera dig fram i navigationsrutan till höger eller högst upp under bläddra.

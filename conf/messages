@@ -1,6 +1,8 @@
 signIn = Sign In
 signUp = Sign Up
+signOut = Sign Out
 
+language = Language
 welcome = Welcome {0}
 welcomeLeadMessage = This is a web service/app that will help you manage your automation system.
 welcomeInfoMessage = If this is your first time here, start by creating a new domain. You can also navigate using the navigation area.
