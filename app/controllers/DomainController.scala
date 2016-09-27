@@ -43,7 +43,9 @@ import viewdata._
 import models.services.FileService
 import models.services.IssueService
 import models.services.InstructionService
+import models.User
 import models.Instruction
+import utils.DefaultValues
 
 @Singleton
 class DomainController @Inject() (
@@ -276,7 +278,7 @@ class DomainController @Inject() (
   def editAllowedUsers(uuid: String, page: Int) =
     (generalActions.MySecuredAction andThen generalActions.DomainAction(uuid)).async { implicit domainRequest =>
       val responses = for {
-        userListData <- userService.getUserList(page, domainRequest.myDomain.allowedUsers)
+        userListData <- userService.findMany(User.queryAll, page, DefaultValues.DefaultPageLength)
       } yield Ok(views.html.domains.editAllowedUsers(domainRequest.myDomain, userListData, UserStatus(Some(domainRequest.identity),
         domainRequest.activeDomain)))
 
