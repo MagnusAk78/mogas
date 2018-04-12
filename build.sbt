@@ -15,6 +15,9 @@ resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repos
 //Silhouette
 resolvers += Resolver.jcenterRepo
 
+//bugfix: https://github.com/jkutner/activator-sbt-bug
+resolvers += Resolver.url("Typesafe Ivy releases", url("https://repo.typesafe.com/typesafe/ivy-releases"))(Resolver.ivyStylePatterns)
+
 libraryDependencies ++= Seq(
   jdbc,
   cache,
