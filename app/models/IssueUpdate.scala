@@ -1,7 +1,7 @@
 package models
 
 import java.util.UUID
-import play.api.libs.json._
+import play.api.libs.json.Json
 
 case class IssueUpdate(
   override val uuid: String,
@@ -12,23 +12,12 @@ case class IssueUpdate(
   override val text: String,
   val created: Long,
   val priority: Int,
-  val closed: Boolean) extends DbModel with JsonImpl with HasModelType with OrderedModel with HasParent with HasCreatedBy
-    with HasText {
-
-  override def asJsObject: JsObject = {
-    IssueUpdate.hasModelTypeJsObject(this) ++
-    IssueUpdate.orderedModelJsObject(this) ++
-      IssueUpdate.childOfJsObject(this) ++
-      IssueUpdate.createdByJsObject(this) ++
-      IssueUpdate.hasTextJsObject(this) ++
-      Json.obj(IssueUpdate.KeyCreated -> JsNumber(created)) ++
-      Json.obj(IssueUpdate.KeyPriority -> JsNumber(priority)) ++
-      Json.obj(IssueUpdate.KeyClosed -> JsBoolean(closed))
-  }
-}
+  val closed: Boolean) extends DbModel with HasModelType with OrderedModel with HasParent with HasCreatedBy
+    with HasText
 
 object IssueUpdate extends DbModelComp[IssueUpdate] with HasModelTypeComp with HasParentComp[Issue] with HasCreatedByComp
     with HasTextComp with OrderedModelComp {
+
   implicit val issueUpdateFormat = Json.format[IssueUpdate]
 
   private val KeyCreated = "created"

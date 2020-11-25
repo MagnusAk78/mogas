@@ -6,9 +6,18 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala, LauncherJarPlugi
 
 scalaVersion := "2.12.11"
 
-//scalacOptions ++= Seq(
-//  "-Ydebug"
-//)
+scalacOptions ++= Seq(
+  "-target:jvm-1.8",
+  "-encoding", "UTF-8",
+  "-unchecked",
+  "-deprecation",
+  "-Xfuture",
+  "-Yno-adapted-args",
+  "-Ywarn-dead-code",
+  "-Ywarn-numeric-widen",
+  "-Ywarn-value-discard",
+  "-Ywarn-unused"
+)
 
 
 //Scala play test

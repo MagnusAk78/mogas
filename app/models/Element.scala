@@ -1,7 +1,7 @@
 package models
 
 import java.util.UUID
-import play.api.libs.json._
+import play.api.libs.json.Json
 
 case class Element(
   override val uuid: String,
@@ -13,19 +13,8 @@ case class Element(
   override val name: String,
   override val elements: Set[String],
   parentIsHierarchy: Boolean,
-  interfaces: Set[String]) extends DbModel with JsonImpl with HasModelType with HasConnectionTo with HasAmlId
+  interfaces: Set[String]) extends DbModel with HasModelType with HasConnectionTo with HasAmlId
     with HasParent with OrderedModel with HasName with HasElements {
-
-  override def asJsObject: JsObject =
-    Element.hasModelTypeJsObject(this) ++
-    Element.amlObjectJsObject(this) ++
-    Element.namedModelJsObject(this) ++
-      Element.connectionToJsObject(this) ++
-      Element.orderedModelJsObject(this) ++
-      Element.childOfJsObject(this) ++
-      Element.hasElementsJsObject(this) ++
-      Json.obj(Element.KeyParentIsHierarchy -> JsBoolean(parentIsHierarchy),
-        Element.KeyInterfaces -> Json.toJson(interfaces))
 }
 
 object Element extends DbModelComp[Element] with HasModelTypeComp with HasConnectionToComp[Domain] 

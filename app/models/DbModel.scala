@@ -1,6 +1,6 @@
 package models
 
-import play.api.libs.json.{JsObject, JsString, Json}
+import play.api.libs.json.{JsObject, JsString, JsValue, Json}
 
 /**
  * A DbModel is a model that is represented in the database.
@@ -9,11 +9,7 @@ trait DbModel {
   val uuid: String
 }
 
-trait JsonImpl {
-  def asJsObject: JsObject
-}
-
-trait DbModelComp[M <: DbModel with JsonImpl] {
+trait DbModelComp[M <: DbModel] {
 
   private val KeyUUID = "uuid"
 
@@ -23,5 +19,5 @@ trait DbModelComp[M <: DbModel with JsonImpl] {
 
   def queryBySetOfUuids(uuids: Set[String]): JsObject = Json.obj(KeyUUID -> Json.obj("$in" -> Json.toJson(uuids)))
 
-  def getUpdateObject(model: M): JsObject = Json.obj("$set" -> model.asJsObject)
+  def getUpdateObject(newDocument: JsValue): JsObject = Json.obj("$set" -> newDocument)
 }

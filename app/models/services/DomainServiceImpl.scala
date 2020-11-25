@@ -99,7 +99,7 @@ class DomainServiceImpl @Inject() (
       fileList <- fileService.findByQuery(AmlFiles.getQueryAllAmlFiles(domain.uuid)).flatMap(_.collect[List](-1,
         Cursor.FailOnError[List[JSONReadFile]]()))
       updateResult <- {
-        var hierarchies = List.empty[String]
+        var domainHierachies = List.empty[String]
 
         fileList.foreach { file =>
           fileService.withSyncGfs { gfs =>
@@ -117,11 +117,11 @@ class DomainServiceImpl @Inject() (
                 }
             }
 
-            hierarchies = hierarchies ::: Await.result(futureAmlHandledResult, Duration("20s"))
+            domainHierachies = domainHierachies ::: Await.result(futureAmlHandledResult, Duration("20s"))
           }
         }
 
-        updateDomain(domain.copy(hierachies = hierarchies.toSet))
+        updateDomain(domain.copy(domainHierachies = domainHierachies.toSet))
       }
     } yield updateResult
   }
@@ -144,10 +144,10 @@ class DomainServiceImpl @Inject() (
       il <- Future.sequence(theList.map(h => fileService.imageExists(h.uuid)))
       vl <- Future.sequence(theList.map(h => fileService.videoExists(h.uuid)))
     } yield new ModelListData[Hierarchy] {
-      override val list = theList
-      override val imageList = il
-      override val videoList = vl
-      override val paginateData = PaginateData(page, count)
+      override val list: List[Hierarchy] = theList
+      override val imageList: List[Boolean] = il
+      override val videoList: List[Boolean] = vl
+      override val paginateData: PaginateData = PaginateData(page, count)
     }
   }
 

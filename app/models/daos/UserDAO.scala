@@ -5,6 +5,4 @@ import models.User
 
 import scala.concurrent.Future
 
-trait UserDAO extends BaseModelDAO[User] {
-  override val companionObject = User
-}
+trait UserDAO extends BaseModelDAO[User]

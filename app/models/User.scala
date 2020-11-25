@@ -1,10 +1,9 @@
 package models
 
-import com.mohiva.play.silhouette.api.{ Identity, LoginInfo }
-import play.api.Logger
+import com.mohiva.play.silhouette.api.{Identity, LoginInfo}
 import java.util.UUID
 
-import reactivemongo.play.json.JSONSerializationPack.
+import play.api.libs.json.{JsObject, JsString, Json}
 
 case class User(
     override val uuid: String,
@@ -15,22 +14,9 @@ case class User(
     val lastName: String,
     val email: String,
     val avatarURL: Option[String],
-    val activeDomain: String) extends DbModel with JsonImpl with HasModelType with Identity with HasName {
-
-  override def asJsObject: JsObject =
-    User.hasModelTypeJsObject(this) ++
-    User.namedModelJsObject(this) ++
-    JsObject(Seq.empty ++
-      Seq(User.KeyLoginInfo -> Json.toJson(loginInfo)) ++
-      Seq(User.KeyFirstName -> JsString(firstName)) ++
-      Seq(User.KeyLastName -> JsString(lastName)) ++
-      Seq(User.KeyEmail -> JsString(email)) ++
-      avatarURL.map(User.KeyAvatarURL -> JsString(_)) ++
-      Seq(User.KeyActiveDomain -> JsString(activeDomain)))
-}
+    val activeDomain: String) extends DbModel with HasModelType with Identity with HasName
 
 object User extends DbModelComp[User] with HasModelTypeComp with HasNameComp {
-  import play.api.libs.json.Json
 
   implicit val userFormat = Json.format[User]
 

@@ -1,7 +1,7 @@
 package models
 
 import java.util.UUID
-import play.api.libs.json._
+import play.api.libs.json.Json
 
 case class InstructionPart(
   override val uuid: String,
@@ -10,22 +10,13 @@ case class InstructionPart(
   override val parent: String,
   override val createdBy: String,
   override val text: String,
-  override val shortText: String) extends DbModel with JsonImpl with HasModelType with OrderedModel with HasParent with HasCreatedBy
+  override val shortText: String) extends DbModel with HasModelType with OrderedModel with HasParent with HasCreatedBy
     with HasText with HasShortText {
-
-  override def asJsObject: JsObject = {
-    InstructionPart.hasModelTypeJsObject(this) ++
-    InstructionPart.hasShortTextJsObject(this) ++
-    InstructionPart.orderedModelJsObject(this) ++
-      InstructionPart.childOfJsObject(this) ++
-      InstructionPart.createdByJsObject(this) ++
-      InstructionPart.hasTextJsObject(this) ++
-      InstructionPart.hasShortTextJsObject(this)
-  }
 }
 
 object InstructionPart extends DbModelComp[InstructionPart] with HasModelTypeComp with HasParentComp[Instruction] 
   with HasCreatedByComp with HasTextComp with OrderedModelComp with HasShortTextComp {
+
   implicit val instructionPartFormat = Json.format[InstructionPart]
 
   private val KeyShortText = "shortText"
