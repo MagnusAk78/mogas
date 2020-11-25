@@ -3,7 +3,6 @@ package models.services
 import javax.inject.Inject
 import models.daos.FileDAO
 import models.daos.FileDAO.JSONReadFile
-import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.JsObject
 import play.modules.reactivemongo.JSONFileToSave
 import reactivemongo.api.Cursor
@@ -26,7 +25,8 @@ class FileServiceImpl @Inject() (override val dao: FileDAO)(implicit val ec: Exe
 
   override def find(uuid: String): Future[Cursor[JSONReadFile]] = dao.find(uuid)
 
-  override def save(enumerator: Enumerator[Array[Byte]], fileToSave: JSONFileToSave): Future[JSONReadFile] = dao.save(enumerator, fileToSave)
+  override def save(inputStream: java.io.InputStream, fileToSave: JSONFileToSave): Future[JSONReadFile] =
+    dao.save(inputStream, fileToSave)
 
   override def updateMetadata(fileUuid: String, metadata: JsObject): Future[Boolean] = dao.updateMetadata(fileUuid, metadata)
 

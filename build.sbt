@@ -39,7 +39,7 @@ libraryDependencies ++= Seq(
   // Play json is now in it's own module
   "com.typesafe.play" %% "play-json" % "2.6.7",
   // play iteratees is now in it's own module
-  "com.typesafe.play" %% "play-iteratees" % "2.6.1",
+  // "com.typesafe.play" %% "play-iteratees" % "2.6.1", (I have removed it I hope)
   // play openId is now in it's own module
   openId,
   jdbc,

@@ -2,7 +2,6 @@ package models.services
 
 import models.daos.FileDAO
 import models.daos.FileDAO.JSONReadFile
-import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.JsObject
 import play.modules.reactivemongo.JSONFileToSave
 import reactivemongo.api.Cursor
@@ -22,7 +21,7 @@ trait FileService {
 
   def findByQuery(query: JsObject): Future[Cursor[JSONReadFile]]
 
-  def save(enumerator: Enumerator[Array[Byte]], fileToSave: JSONFileToSave): Future[JSONReadFile]
+  def save(inputStream: java.io.InputStream, fileToSave: JSONFileToSave): Future[JSONReadFile]
 
   def updateMetadata(fileUuid: String, metadata: JsObject): Future[Boolean]
 

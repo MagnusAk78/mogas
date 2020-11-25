@@ -3,7 +3,6 @@ package models.daos
 import javax.inject.Inject
 import models.AmlFiles
 import models.daos.FileDAO.JSONReadFile
-import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json.toJsFieldJsValueWrapper
 import play.api.libs.json.{JsObject, JsString, JsValue, Json}
 import play.modules.reactivemongo.MongoController.readFileReads
@@ -23,7 +22,7 @@ trait FileDAO {
 
   def find(uuid: String): Future[Cursor[JSONReadFile]]
 
-  def save(enumerator: Enumerator[Array[Byte]], fileToSave: JSONFileToSave): Future[JSONReadFile]
+  def save(inputStream: java.io.InputStream, fileToSave: JSONFileToSave): Future[JSONReadFile]
 
   def updateMetadata(fileUuid: String, metadata: JsObject): Future[Boolean]
 
@@ -59,8 +58,8 @@ class FileDAOImpl @Inject()(val reactiveMongoApi: ReactiveMongoApi)(implicit exe
       Json.obj("$set" -> Json.obj(AmlFiles.KeyMetadata -> metadata))).map(ur => ur.ok))
 
 
-  override def save(enumerator: Enumerator[Array[Byte]], fileToSave: JSONFileToSave): Future[JSONReadFile] = {
-    asyncGridFS.flatMap(_.save(enumerator, fileToSave))
+  override def save(inputStream: java.io.InputStream, fileToSave: JSONFileToSave): Future[JSONReadFile] = {
+    asyncGridFS.flatMap(_.writeFromInputStream(fileToSave, inputStream))
   }
 
   override def withAsyncGfs[T](func: (GridFS[JSONSerializationPack.type] => Future[T])): Future[T] =
