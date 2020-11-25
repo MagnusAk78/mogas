@@ -3,9 +3,7 @@ package controllers
 import scala.annotation.implicitNotFound
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
-
 import org.joda.time.DateTime
-
 import akka.stream.Materializer
 import models.formdata.DomainForm
 import models.formdata.DomainForm.fromDomainToData
@@ -13,24 +11,14 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import models.services.DomainService
 import models.services.UserService
-import play.api.i18n.I18nSupport
-import play.api.i18n.Messages
-import play.api.i18n.MessagesApi
+import play.api.i18n.{I18nSupport, Lang, Messages, MessagesApi}
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.iteratee.Iteratee
 import play.api.libs.json.Json
-import play.api.mvc.BodyParser
-import play.api.mvc.Controller
-import play.api.mvc.MultipartFormData
+import play.api.mvc.{AbstractController, ActionBuilder, ActionRefiner, ActionTransformer, BaseController, BodyParser, ControllerComponents, Flash, MultipartFormData, Request, WrappedRequest}
 import utils.auth.DefaultEnv
 import models.Images
-import play.api.mvc.WrappedRequest
-import play.api.mvc.Request
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
-import play.api.mvc.ActionRefiner
-import play.api.mvc.ActionTransformer
-import play.api.mvc.ActionBuilder
-import play.api.mvc.Flash
 import controllers.actions._
 import utils.RemoveResult
 import models.formdata.DomainForm
@@ -42,6 +30,7 @@ import models.services.AmlObjectService
 import models.services.FileService
 import models.formdata.InstructionPartForm
 import models.InstructionPart
+
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import models.HasAmlId
@@ -51,15 +40,15 @@ import viewdata._
 
 @Singleton
 class InstructionController @Inject() (
-		val messagesApi: MessagesApi,
-		val generalActions: GeneralActions,
-		val userService: UserService,
-		val amlObjectService: AmlObjectService,
-		val domainService: DomainService,
-		val instructionService: InstructionService,
-		val fileService: FileService,
-		implicit val webJarAssets: WebJarAssets)(implicit exec: ExecutionContext, materialize: Materializer)
-		extends Controller with I18nSupport {
+		generalActions: GeneralActions,
+		userService: UserService,
+		amlObjectService: AmlObjectService,
+		domainService: DomainService,
+		instructionService: InstructionService,
+		fileService: FileService,
+		components: ControllerComponents)(implicit exec: ExecutionContext, materialize: Materializer)
+		extends AbstractController(components) with I18nSupport {
+	implicit val lang: Lang = components.langs.availables.head
 
 	def list(domainUuid: String, page: Int) = (generalActions.MySecuredAction andThen
 			generalActions.RequireActiveDomain).async {

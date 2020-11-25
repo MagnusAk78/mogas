@@ -1,37 +1,33 @@
 package controllers
 
 import javax.inject.Inject
-
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.exceptions.ProviderException
 import com.mohiva.play.silhouette.api.repositories.AuthInfoRepository
 import com.mohiva.play.silhouette.impl.providers._
 import models.services.UserService
-import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
-import play.api.libs.concurrent.Execution.Implicits._
-import play.api.mvc.{ Action, Controller }
+import play.api.i18n.{I18nSupport, Lang, Messages, MessagesApi}
+import play.api.mvc.{AbstractController, BaseController, ControllerComponents}
 import utils.auth.DefaultEnv
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * The social auth controller.
  *
- * @param messagesApi The Play messages API.
  * @param silhouette The Silhouette stack.
  * @param userService The user service implementation.
  * @param authInfoRepository The auth info service implementation.
  * @param socialProviderRegistry The social provider registry.
- * @param webJarAssets The webjar assets implementation.
  */
 class SocialAuthController @Inject() (
-  val messagesApi: MessagesApi,
-  val silhouette: Silhouette[DefaultEnv],
-  val userService: UserService,
-  val authInfoRepository: AuthInfoRepository,
-  val socialProviderRegistry: SocialProviderRegistry,
-  implicit val webJarAssets: WebJarAssets)
-  extends Controller with I18nSupport with Logger {
+  silhouette: Silhouette[DefaultEnv],
+  userService: UserService,
+  authInfoRepository: AuthInfoRepository,
+  socialProviderRegistry: SocialProviderRegistry,
+  components: ControllerComponents)(implicit exec: ExecutionContext)
+  extends AbstractController(components) with I18nSupport with Logger {
+  implicit val lang: Lang = components.langs.availables.head
 
   /**
    * Authenticates a user against a social provider.

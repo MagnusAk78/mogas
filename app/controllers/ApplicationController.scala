@@ -1,11 +1,10 @@
 package controllers
 
 import javax.inject.Inject
-
-import com.mohiva.play.silhouette.api.{ LogoutEvent, Silhouette }
+import com.mohiva.play.silhouette.api.{LogoutEvent, Silhouette}
 import com.mohiva.play.silhouette.impl.providers.SocialProviderRegistry
-import play.api.i18n.{ I18nSupport, MessagesApi }
-import play.api.mvc.Controller
+import play.api.i18n.I18nSupport
+import play.api.mvc.{AbstractController, ControllerComponents}
 import utils.auth.DefaultEnv
 
 import scala.concurrent.Future
@@ -17,6 +16,7 @@ import play.api.i18n.Lang
 import com.mohiva.play.silhouette.api.actions.SecuredAction
 import com.mohiva.play.silhouette.api.actions.UserAwareAction
 import reactivemongo.core.nodeset.Authentication
+
 import scala.concurrent.ExecutionContext
 import models.services.UserService
 import play.api.Logger
@@ -28,20 +28,17 @@ import viewdata._
 /**
  * The basic application controller.
  *
- * @param messagesApi The Play messages API.
  * @param silhouette The Silhouette stack.
  * @param socialProviderRegistry The social provider registry.
- * @param webJarAssets The webjar assets implementation.
  */
-class ApplicationController @Inject() (
-  val messagesApi: MessagesApi,
-  val silhouette: Silhouette[DefaultEnv],
-  val generalActions: GeneralActions,
-  val socialProviderRegistry: SocialProviderRegistry,
-  val userService: UserService,
-  val domainService: DomainService,
-  implicit val webJarAssets: WebJarAssets)(implicit exec: ExecutionContext)
-    extends Controller with I18nSupport {
+class ApplicationController @Inject() (silhouette: Silhouette[DefaultEnv],
+                                        generalActions: GeneralActions,
+                                        socialProviderRegistry: SocialProviderRegistry,
+                                        userService: UserService,
+                                        domainService: DomainService,
+                                        components: ControllerComponents)(implicit exec: ExecutionContext)
+    extends AbstractController(components) with I18nSupport {
+  implicit val lang: Lang = components.langs.availables.head
 
   /**
    * Handles the index action.

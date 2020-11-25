@@ -1,44 +1,23 @@
 package controllers.actions
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-
 import com.mohiva.play.silhouette.api.Silhouette
-
 import controllers.AlwaysAuthorized
-import javax.inject.Inject
-import javax.inject.Singleton
-import models.services.DomainService
-import models.services.DomainService
-import models.services.UserService
-import play.api.mvc.ActionBuilder
-import play.api.mvc.ActionFilter
-import play.api.mvc.ActionFunction
-import play.api.mvc.ActionRefiner
-import play.api.mvc.ActionTransformer
-import play.api.mvc.Result
+import javax.inject.{Inject, Singleton}
+import models._
+import models.services._
 import play.api.mvc.Results.NotFound
+import play.api.mvc._
 import utils.auth.DefaultEnv
-import models.services.InstructionService
-import models.User
-import models.Domain
-import models.Interface
-import models.Hierarchy
-import models.Element
-import models.Instruction
-import models.InstructionPart
-import models.services.AmlObjectService
-import models.services.IssueService
-import models.Issue
-import models.IssueUpdate
+
+import scala.concurrent.{ExecutionContext, Future}
 
 trait GeneralActions {
 
-  def MySecuredAction: ActionBuilder[MySecuredRequest]
+  def MySecuredAction: ActionBuilder[MySecuredRequest, AnyContent]
 
   def RequireActiveDomain: ActionFilter[MySecuredRequest]
 
-  def MyUserAwareAction: ActionBuilder[MyUserAwareRequest]
+  def MyUserAwareAction: ActionBuilder[MyUserAwareRequest, AnyContent]
 
   def UserAction(uuid: String): ActionRefiner[MySecuredRequest, UserRequest]
 
@@ -68,9 +47,10 @@ class GeneralActionsImpl @Inject() (
     val amlObjectService: AmlObjectService,
     val instructionService: InstructionService,
     val issueService: IssueService,
-    val silhouette: Silhouette[DefaultEnv])(implicit ec: ExecutionContext) extends GeneralActions {
+    val silhouette: Silhouette[DefaultEnv])(implicit val ec: ExecutionContext) extends GeneralActions {
 
   def ActiveDomainAction = new ActionTransformer[SilhouetteSecuredRequest, MySecuredRequest] {
+    def executionContext = ec
     override def transform[A](request: SilhouetteSecuredRequest[A]) = {
       domainService.findOneDomain(Domain.queryByUuid(request.identity.activeDomain)).map { optActiveOrg =>
         MySecuredRequest(optActiveOrg, request)
@@ -79,19 +59,23 @@ class GeneralActionsImpl @Inject() (
   }
 
   def MyUserAwareTransformer = new ActionTransformer[SilhouetteUserAwareRequest, MyUserAwareRequest] {
+    def executionContext = ec
     override def transform[A](request: SilhouetteUserAwareRequest[A]) = Future.successful(MyUserAwareRequest(request))
   }
 
-  override def MySecuredAction = silhouette.SecuredAction(AlwaysAuthorized()) andThen ActiveDomainAction
+  override def MySecuredAction =
+    silhouette.SecuredAction(AlwaysAuthorized()) andThen ActiveDomainAction
 
   override def MyUserAwareAction = silhouette.UserAwareAction andThen MyUserAwareTransformer
 
   override def RequireActiveDomain: ActionFilter[MySecuredRequest] = new ActionFilter[MySecuredRequest] {
+    def executionContext = ec
     override def filter[A](mySecuredRequest: MySecuredRequest[A]): Future[Option[Result]] =
       Future.successful(mySecuredRequest.activeDomain.map(activeDomain => None).getOrElse(Some(NotFound)))
   }
 
   override def UserAction(uuid: String) = new ActionRefiner[MySecuredRequest, UserRequest] {
+    def executionContext = ec
     override def refine[A](activeDomainRequest: MySecuredRequest[A]) = {
       userService.findOne(User.queryByUuid(uuid)).map { optUser =>
         optUser.map(
@@ -101,6 +85,7 @@ class GeneralActionsImpl @Inject() (
   }
 
   override def DomainAction(uuid: String) = new ActionRefiner[MySecuredRequest, DomainRequest] {
+    def executionContext = ec
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
         optionDomain <- domainService.findOneDomain(Domain.queryByUuid(uuid))
@@ -109,16 +94,18 @@ class GeneralActionsImpl @Inject() (
   }
 
   override def HierarchyAction(uuid: String) = new ActionRefiner[MySecuredRequest, HierarchyRequest] {
+    def executionContext = ec
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
         optionHierarchy <- domainService.findOneHierarchy(Domain.queryByUuid(uuid))
         optionDomain <- domainService.findOneDomain(Domain.queryByUuid(optionHierarchy.get.parent))
-      } yield optionDomain.map(domain => HierarchyRequest(optionDomain.get, optionHierarchy.get, mySecuredRequest))
+      } yield optionDomain.map(domain => HierarchyRequest(domain, optionHierarchy.get, mySecuredRequest))
         .toRight(NotFound)
     }
   }
 
   override def ElementAction(uuid: String) = new ActionRefiner[MySecuredRequest, ElementRequest] {
+    def executionContext = ec
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
         elements <- amlObjectService.getElementChain(uuid)
@@ -130,6 +117,7 @@ class GeneralActionsImpl @Inject() (
   }
 
   override def InterfaceAction(uuid: String) = new ActionRefiner[MySecuredRequest, InterfaceRequest] {
+    def executionContext = ec
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
         interface <- amlObjectService.findOneInterface(Interface.queryByUuid(uuid))
@@ -142,6 +130,7 @@ class GeneralActionsImpl @Inject() (
   }
 
   override def AmlObjectAction(uuid: String) = new ActionRefiner[MySecuredRequest, AmlObjectRequest] {
+    def executionContext = ec
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
         optInterface <- amlObjectService.findOneInterface(Interface.queryByUuid(uuid))
@@ -164,6 +153,7 @@ class GeneralActionsImpl @Inject() (
   }
 
   override def InstructionAction(uuid: String) = new ActionRefiner[MySecuredRequest, InstructionRequest] {
+    def executionContext = ec
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
         optInstruction <- instructionService.findOneInstruction(Instruction.queryByUuid(uuid))
@@ -188,6 +178,7 @@ class GeneralActionsImpl @Inject() (
   }
 
   override def InstructionPartAction(uuid: String) = new ActionRefiner[MySecuredRequest, InstructionPartRequest] {
+    def executionContext = ec
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
         optInstructionPart <- instructionService.findOneInstructionPart(InstructionPart.queryByUuid(uuid))
@@ -213,6 +204,7 @@ class GeneralActionsImpl @Inject() (
   }
 
   def IssueAction(uuid: String): ActionRefiner[MySecuredRequest, IssueRequest] = new ActionRefiner[MySecuredRequest, IssueRequest] {
+    def executionContext = ec
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
         optionIssue <- issueService.findOneIssue(Issue.queryByUuid(uuid))
@@ -237,6 +229,7 @@ class GeneralActionsImpl @Inject() (
   }
 
   def IssueUpdateAction(uuid: String): ActionRefiner[MySecuredRequest, IssueUpdateRequest] = new ActionRefiner[MySecuredRequest, IssueUpdateRequest] {
+    def executionContext = ec
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
         optionIssueUpdate <- issueService.findOneIssueUpdate(IssueUpdate.queryByUuid(uuid))

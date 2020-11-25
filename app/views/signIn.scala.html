@@ -2,7 +2,7 @@
 
 @(signInForm: Form[SignInForm.Data], 
 	socialProviders: com.mohiva.play.silhouette.impl.providers.SocialProviderRegistry)(implicit request: RequestHeader, 
-	messages: Messages, webJarAssets: WebJarAssets, lang: Lang, flash: Flash)
+	messages: Messages, lang: Lang, flash: Flash)
 
 @import viewdata._
 @implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f(ViewConstants.formLabelColumns, ViewConstants.formInputColumns)) }

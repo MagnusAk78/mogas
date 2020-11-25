@@ -2,9 +2,7 @@ package controllers
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
-
 import com.mohiva.play.silhouette.api.Silhouette
-
 import javax.inject.Inject
 import javax.inject.Singleton
 import models.DbModel
@@ -13,9 +11,8 @@ import models.User
 import models.services.DomainService
 import models.services.UserService
 import play.Logger
-import play.api.i18n.I18nSupport
-import play.api.i18n.MessagesApi
-import play.api.mvc.Controller
+import play.api.i18n.{I18nSupport, Lang, MessagesApi}
+import play.api.mvc.{AbstractController, ControllerComponents}
 import viewdata.PaginateData
 import utils.auth.DefaultEnv
 import controllers.actions.GeneralActions
@@ -25,13 +22,13 @@ import models.services.FileService
 
 @Singleton
 class UserController @Inject() (
-  val messagesApi: MessagesApi,
-  val domainService: DomainService,
-  val userService: UserService,
-  val generalActions: GeneralActions,
-  val fileService: FileService,
-  implicit val webJarAssets: WebJarAssets)(implicit exec: ExecutionContext)
-    extends Controller with I18nSupport {
+  domainService: DomainService,
+  userService: UserService,
+  generalActions: GeneralActions,
+  fileService: FileService,
+  components: ControllerComponents)(implicit exec: ExecutionContext)
+    extends AbstractController(components) with I18nSupport {
+  implicit val lang: Lang = components.langs.availables.head
 
   def list(page: Int) =
     generalActions.MySecuredAction.async { implicit mySecuredRequest =>

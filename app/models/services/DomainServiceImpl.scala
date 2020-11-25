@@ -1,6 +1,7 @@
 package models.services
 
 import java.io.PipedInputStream
+
 import viewdata.ModelListData
 import java.io.PipedOutputStream
 
@@ -8,7 +9,6 @@ import scala.concurrent.Await
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
-
 import javax.inject.Inject
 import models.AmlFiles
 import models.Domain
@@ -23,15 +23,16 @@ import play.api.Logger
 import java.io.ByteArrayOutputStream
 import java.io.BufferedOutputStream
 import java.io.ByteArrayInputStream
+
 import models.HasParent
 import models.HasAmlId
 import models.HasName
-import play.api.libs.streams.Streams
 import akka.stream.scaladsl.Source
 import play.modules.reactivemongo.JSONFileToSave
 import play.api.libs.iteratee.Iteratee
 import models.Images
 import java.io.BufferedInputStream
+
 import play.api.libs.json.JsObject
 import utils.RemoveResult
 import models.services.misc.AmlInterface
@@ -42,6 +43,8 @@ import viewdata.AmlObjectData
 import models.HasModelType
 import models.User
 import models.DbModel
+import models.daos.FileDAO.JSONReadFile
+import reactivemongo.api.Cursor
 
 class DomainServiceImpl @Inject() (
   val domainDao: DomainDAO,
@@ -50,6 +53,8 @@ class DomainServiceImpl @Inject() (
   fileService: FileService,
   amlObjectService: AmlObjectService)(implicit val ec: ExecutionContext)
     extends DomainService {
+
+  val domainServiceLogger = Logger("DomainService")
 
   override def getDomainList(page: Int, allowedUser: User): Future[ModelListData[Domain]] = {
     findManyDomains(Domain.queryByAllowedUser(allowedUser), page, utils.DefaultValues.DefaultPageLength)
@@ -88,10 +93,11 @@ class DomainServiceImpl @Inject() (
 
   override def parseAmlFiles(domain: Domain): Future[Boolean] = {
 
-    Logger.info("parseAmlFiles, domain: " + domain)
+    domainServiceLogger.info("parseAmlFiles, domain: " + domain)
 
     for {
-      fileList <- fileService.findByQuery(AmlFiles.getQueryAllAmlFiles(domain.uuid)).flatMap(_.collect[List](0, true))
+      fileList <- fileService.findByQuery(AmlFiles.getQueryAllAmlFiles(domain.uuid)).flatMap(_.collect[List](-1,
+        Cursor.FailOnError[List[JSONReadFile]]()))
       updateResult <- {
         var hierarchies = List.empty[String]
 
@@ -147,7 +153,7 @@ class DomainServiceImpl @Inject() (
 
   private def updateAmlHierarchies(domain: Domain, amlHierarchies: List[AmlHierarchy]): Future[List[String]] = {
 
-    Logger.info("updateAmlHierarchies, amlHierarchies: " + amlHierarchies.map(_.name))
+    domainServiceLogger.info("updateAmlHierarchies, amlHierarchies: " + amlHierarchies.map(_.name))
 
     Future.sequence(
       amlHierarchies.map(amlHierarchy => updateAmlHierarchy(domain, amlHierarchy)))
@@ -269,7 +275,6 @@ class DomainServiceImpl @Inject() (
   private def genereateAmlObjectData(uuid: String, list: List[DbModel with HasName with HasAmlId with HasModelType with HasParent]): 
   List[DbModel with HasName with HasAmlId with HasModelType with HasParent] = {
     val optElement = Await.result(amlObjectService.findOneElement(Element.queryByUuid(uuid)), Duration("3s"))
-    Logger.info("optElement: " + optElement)
     val optInterface = optElement.map(element => None).
       getOrElse(Await.result(amlObjectService.findOneInterface(Interface.queryByUuid(uuid)),
         Duration("3s")))

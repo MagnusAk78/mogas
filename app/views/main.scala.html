@@ -1,6 +1,6 @@
 @import viewdata._
 
-@(mainViewData: MainViewData)(content: Html)(navigationData: NavigationData)(implicit flash: Flash, messages: Messages, webJarAssets: WebJarAssets, lang: Lang)
+@(mainViewData: MainViewData)(content: Html)(navigationData: NavigationData)(implicit flash: Flash, messages: Messages)
 
 @import templates._
 
@@ -18,12 +18,16 @@
         
         <title>@mainViewData.title</title>
 
-		<link rel="stylesheet" href="@routes.WebJarAssets.at(webJarAssets.locate("tether.min.css"))" />
-        <link rel="stylesheet" href="@routes.WebJarAssets.at(webJarAssets.locate("bootstrap.min.css"))" />
+        <script src=""></script>
+
+
+
+		<link rel="stylesheet" href="@routes.Assets.at("lib/tether/css/tether.min.css")" />
+        <link rel="stylesheet" href="@routes.Assets.at("lib/bootstrap/css/bootstrap.min.css")" />
         <link rel="stylesheet" href="@routes.Assets.at("font-awesome-4.6.3/css/font-awesome.min.css")" />
         <link rel="stylesheet" href="@routes.Assets.at("styles/b4d-styles.css")" />
         <link rel="stylesheet" href="@routes.Assets.at("styles/main.css")" />
-        <link rel="stylesheet" href="@routes.WebJarAssets.at(webJarAssets.locate("mediaelementplayer.min.css"))" />
+        <link rel="stylesheet" href="@routes.Assets.at("lib/mediaelement/css/mediaelementplayer.min.css")" />
             
         <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!--[if lt IE 9]>
@@ -56,12 +60,11 @@
     		@content
         </div>
     </div>
-
 </div><!-- container -->
-<script type="text/javascript" src="@routes.WebJarAssets.at(webJarAssets.locate("jquery.min.js"))"></script>
-<script type="text/javascript" src="@routes.WebJarAssets.at(webJarAssets.locate("tether.min.js"))"></script>
-<script type="text/javascript" src="@routes.WebJarAssets.at(webJarAssets.locate("bootstrap.min.js"))"></script>
-<script type="text/javascript" src="@routes.WebJarAssets.at(webJarAssets.locate("mediaelement-and-player.min.js"))"></script>
+<script type="text/javascript" src="@routes.Assets.at("lib/jquery/js/jquery.min.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("lib/tether/js/tether.min.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("lib/bootstrap/js/bootstrap.min.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("lib/mediaelement/js/mediaelement-and-player.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/video.js")"></script>
 </body>
 </html>

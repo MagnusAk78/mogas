@@ -1,6 +1,7 @@
 package models
 
 import java.util.UUID
+
 import play.api.libs.json._
 
 case class Domain(
@@ -8,7 +9,7 @@ case class Domain(
     override val modelType: String = Types.DomainType.stringValue,
     override val name: String,
     val allowedUsers: Set[String],
-    hierachies: Set[String]) extends DbModel with JsonImpl with HasModelType with HasName {
+    val hierachies: Set[String]) extends DbModel with JsonImpl with HasModelType with HasName {
 
   override def asJsObject: JsObject =
     JsObject(

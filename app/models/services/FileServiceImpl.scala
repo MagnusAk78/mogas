@@ -48,6 +48,7 @@ class FileServiceImpl @Inject() (override val dao: FileDAO)(implicit val ec: Exe
     }
     
   def amlFiles(uuid: String): Future[List[JSONReadFile]] = {
-    dao.findByQuery(models.AmlFiles.getQueryAllAmlFiles(uuid)).flatMap { c => c.toList(100, true) }
+    dao.findByQuery(models.AmlFiles.getQueryAllAmlFiles(uuid)).flatMap { c => c.collect[List](100,
+      Cursor.FailOnError[List[JSONReadFile]]()) }
   }
 }

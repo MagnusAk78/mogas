@@ -25,3 +25,6 @@ project/.sbtserver.lock
 
 *.cache-tests
 .DS_Store
+
+# null filder created by a bug in sbt plugin for Visual Code #
+null

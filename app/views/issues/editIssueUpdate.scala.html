@@ -3,7 +3,7 @@
 
 @(issue: Issue, issueUpdate: IssueUpdate, issueUpdateForm: Form[IssueUpdateForm.Data], 
 	userStatus: UserStatus)(implicit flash: Flash,
-    request: RequestHeader, messages: Messages, lang: Lang, webJarAssets: WebJarAssets)
+    request: RequestHeader, messages: Messages, lang: Lang)
 
 @implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f(ViewConstants.formLabelColumns, ViewConstants.formInputColumns)) }
 @import helper._

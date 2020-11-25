@@ -1,18 +1,14 @@
 package models.daos
 
-import scala.concurrent.Future
-
-import play.api.libs.json.JsString
-import reactivemongo.api.Cursor
-import reactivemongo.api.gridfs.ReadFile
-import reactivemongo.play.json.JSONSerializationPack
-import reactivemongo.api.gridfs.GridFS
-import play.api.mvc.Result
-import play.api.libs.json.JsValue
-import play.modules.reactivemongo.JSONFileToSave
+import models.daos.FileDAO.JSONReadFile
 import play.api.libs.iteratee.Enumerator
-import FileDAO.JSONReadFile
-import play.api.libs.json.JsObject
+import play.api.libs.json.{JsObject, JsValue}
+import play.modules.reactivemongo.JSONFileToSave
+import reactivemongo.api.Cursor
+import reactivemongo.api.gridfs.{GridFS, ReadFile}
+import reactivemongo.play.json.JSONSerializationPack
+
+import scala.concurrent.Future
 
 trait FileDAO {
   

@@ -1,7 +1,6 @@
 package models
 
-import play.api.libs.json.JsObject
-import play.api.libs.json._
+import play.api.libs.json.{JsObject, JsString, Json}
 
 /**
  * A DbModel is a model that is represented in the database.

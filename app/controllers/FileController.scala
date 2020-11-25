@@ -1,16 +1,13 @@
 package controllers
 
 import scala.annotation.implicitNotFound
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
-
 import org.joda.time.DateTime
-
 import com.mohiva.play.silhouette.api.Silhouette
-import com.sksamuel.scrimage.Image
-import com.sksamuel.scrimage.writer
-
+import com.sksamuel.scrimage.ImmutableImage
+import com.sksamuel.scrimage.nio._
+import com.sksamuel.scrimage.color.RGBColor
 import akka.stream.Materializer
 import models.formdata
 import models.formdata.DomainForm
@@ -21,17 +18,14 @@ import models.daos.FileDAO
 import models.services.FileService
 import models.services.UserService
 import play.api.Logger
-import play.api.i18n.I18nSupport
-import play.api.i18n.Messages
-import play.api.i18n.MessagesApi
+import play.api.i18n.{I18nSupport, Lang, Messages, MessagesApi}
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.iteratee.Iteratee
 import play.api.libs.json.Json
-import play.api.mvc.BodyParser
-import play.api.mvc.Controller
-import play.api.mvc.MultipartFormData
+import play.api.mvc.{AbstractController, ActionRefiner, BaseController, BodyParser, ControllerComponents, MultipartFormData, Result, WrappedRequest}
 import play.modules.reactivemongo.JSONFileToSave
 import play.modules.reactivemongo.MongoController
+import play.modules.reactivemongo.MongoController._
 import play.modules.reactivemongo.ReactiveMongoApi
 import play.modules.reactivemongo.ReactiveMongoComponents
 import reactivemongo.play.json.JsFieldBSONElementProducer
@@ -43,36 +37,36 @@ import models.Types
 import models.MediaTypes
 import models.DbModel
 import models.HasModelType
-import play.api.mvc.Result
 import java.io.File
-import play.api.mvc.ActionRefiner
+
 import com.mohiva.play.silhouette.api.actions.SecuredAction
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import reactivemongo.api.Cursor
-import play.api.mvc.WrappedRequest
 import controllers.actions.GeneralActions
 import models.AmlFiles
 import models.Videos
-import com.sun.xml.internal.messaging.saaj.util.ByteInputStream
 import java.io.ByteArrayInputStream
 import java.io.BufferedInputStream
-import com.sksamuel.scrimage.nio.JpegWriter
 import models.services.DomainService
 import models.Domain
-import com.sksamuel.scrimage.Color
 import models.MediaTypes
 import viewdata._
 
 @Singleton
 class FileController @Inject() (
-  val messagesApi: MessagesApi,
-  val generalActions: GeneralActions,
-  val userService: UserService,
-  val fileService: FileService,
-  val domainService: DomainService,
+  generalActions: GeneralActions,
+  userService: UserService,
+  fileService: FileService,
+  domainService: DomainService,
   val reactiveMongoApi: ReactiveMongoApi,
-  implicit val webJarAssets: WebJarAssets)(implicit exec: ExecutionContext, materialize: Materializer)
-    extends Controller with MongoController with ReactiveMongoComponents with I18nSupport {
+  components: ControllerComponents)(implicit exec: ExecutionContext, materialize: Materializer)
+    extends AbstractController(components) with MongoController with ReactiveMongoComponents with I18nSupport {
+
+  implicit val lang: Lang = components.langs.availables.head
+
+  implicit def color2awt(color: com.sksamuel.scrimage.color.Color): java.awt.Color = color.awt()
+
+  val fileControllerLogger: Logger = Logger("FileController")
 
   import models.daos.FileDAO.JSONReadFile
 
@@ -130,7 +124,8 @@ class FileController @Inject() (
           //No image found, we need to send default image depending type
           val modelType = models.Types.fromString(modelTypeString)
 
-          Logger.info("modelType: " + modelType)
+          fileControllerLogger.info("modelType: " + modelType)
+
 
           modelType match {
             case Types.DomainType => Future.successful(Redirect(routes.Assets.at("images/domain-default.png")).as("image/png"))
@@ -167,22 +162,22 @@ class FileController @Inject() (
   def submitImage(uuid: String, modelType: String) = {
 
     //Create the parser using the GridFS collection from FileService
-    val gdfsParser = fileService.withSyncGfs[BodyParser[MultipartFormData[Future[FileDAO.JSONReadFile]]]] { gfs => gridFSBodyParser(gfs) }
+    val gdfsParser = fileService.withSyncGfs[BodyParser[MultipartFormData[FileDAO.JSONReadFile]]] {
+      gfs => gridFSBodyParser(Future(gfs))
+    }
 
     generalActions.MySecuredAction.async(gdfsParser) { implicit request =>
 
-      Logger.info("SignUpController: submitImage")
+      fileControllerLogger.info("SignUpController: submitImage")
 
       //A list of the old images that now has to be removed
       val futureOldImageFileList = fileService.findByQuery(Images.getQueryAllImages(uuid)).
-        flatMap(cursor => cursor.collect[List](0, true))
+        flatMap(cursor => cursor.collect[List](-1, Cursor.FailOnError[List[JSONReadFile]]()))
 
-      val futureOptFileRef = request.body.file(models.formdata.ImageFileKeyString) match {
-        case Some(file) => file.ref.map(Some(_))
-        case None => Future.successful(None)
-      }
+      val optFile: Option[JSONReadFile] = request.body.file(models.formdata.ImageFileKeyString).map(_.ref)
+
       //If the file is not an image or the correct size, just remove it
-      val futureOptFile = futureOptFileRef.flatMap(optFileRef => optFileRef match {
+      optFile match {
         case Some(file) => {
           if (file.contentType.isEmpty ||
             file.contentType.get.startsWith("image") == false ||
@@ -195,7 +190,7 @@ class FileController @Inject() (
             Future.successful(None)
           } else {
 
-            Logger.info("File uploaded correctly")
+            fileControllerLogger.info("File uploaded correctly")
 
             val iteratorUploaded1 = fileService.withAsyncGfs[Array[Byte]] { gfs => gfs.enumerate(file).run(Iteratee.consume[Array[Byte]]()) }
 
@@ -204,11 +199,9 @@ class FileController @Inject() (
             val futureSaveStandardResult = iteratorUploaded1.flatMap {
               bytes =>
                 {
-                  implicit val writer = JpegWriter()
                   // Create standard image
-                  val inputStream = new BufferedInputStream(new ByteArrayInputStream(bytes))
                   val enumeratorStandard: Enumerator[Array[Byte]] = Enumerator.
-                    fromStream(Image.fromStream(inputStream).bound(Images.Standard.xPixels, Images.Standard.yPixels).stream)
+                    fromStream(ImmutableImage.loader().fromBytes(bytes).bound(Images.Standard.xPixels, Images.Standard.yPixels).stream(new JpegWriter()))
 
                   val dataImage = JSONFileToSave(
                     filename = file.filename,
@@ -216,7 +209,7 @@ class FileController @Inject() (
                     uploadDate = Some(DateTime.now().getMillis),
                     metadata = Images.getImageMetadata(uuid, Images.Standard))
 
-                  Logger.info("Saving the new large file")
+                  fileControllerLogger.info("Saving the new large file")
                   fileService.save(enumeratorStandard, dataImage)
                 }
             }
@@ -224,12 +217,10 @@ class FileController @Inject() (
             val futureSaveThumbnailResult = iteratorUploaded2.flatMap {
               bytes =>
                 {
-                  implicit val writer = JpegWriter().withCompression(50)
-                  val inputStream = new BufferedInputStream(new ByteArrayInputStream(bytes))
                   val enumeratorThumbnail: Enumerator[Array[Byte]] = Enumerator.
-                    fromStream(Image.fromStream(inputStream).fit(Images.Thumbnail.xPixels, Images.Thumbnail.yPixels, 
-                        Color.Black).
-                      stream)
+                    fromStream(ImmutableImage.loader().fromBytes(bytes).
+                      fit(Images.Thumbnail.xPixels, Images.Thumbnail.yPixels, new RGBColor(0,0,0)).
+                      stream(new JpegWriter().withCompression(50)))
 
                   val dataThumbnail = JSONFileToSave(
                     filename = file.filename,
@@ -237,7 +228,7 @@ class FileController @Inject() (
                     uploadDate = Some(DateTime.now().getMillis),
                     metadata = Images.getImageMetadata(uuid, Images.Thumbnail))
 
-                  Logger.info("Saving the new thumbnail file")
+                  fileControllerLogger.info("Saving the new thumbnail file")
                   fileService.save(enumeratorThumbnail, dataThumbnail)
                 }
             }
@@ -252,27 +243,27 @@ class FileController @Inject() (
 
             saveResponses recover {
               case e => {
-                Logger.error("recover e.getStackTrace: " + e.getStackTrace)
+                fileControllerLogger.error("recover e.getStackTrace: " + e.getStackTrace)
                 InternalServerError(e.getMessage())
               }
             }
           }
         }
         case None => {
-          Logger.info("optFileRef == None")
+          fileControllerLogger.info("optFileRef == None")
           Future.successful(None)
         }
-      })
+      }
 
       val futureActiveOrg = domainService.findOneDomain(Domain.queryByUuid(request.identity.activeDomain))
 
       val responses = for {
-        optFile <- futureOptFile
+        //optFile <- futureOptFile
         activeDomain <- futureActiveOrg
         oldImageFileList <- futureOldImageFileList
         removeOldImagesRes <- Future.sequence(oldImageFileList.map { file =>
 
-          Logger.info("Removing old image, oldImageUuid: " + file.id.as[String])
+          fileControllerLogger.info("Removing old image, oldImageUuid: " + file.id.as[String])
 
           fileService.remove(file.id.as[String])
         })
@@ -291,7 +282,7 @@ class FileController @Inject() (
 
       responses recover {
         case e => {
-          Logger.error("recover e.getStackTrace: " + e.getStackTrace)
+          fileControllerLogger.error("recover e.getStackTrace: " + e.getStackTrace)
           InternalServerError(e.getMessage())
         }
       }
@@ -301,22 +292,22 @@ class FileController @Inject() (
   def submitVideo(uuid: String, modelType: String) = {
 
     //Create the parser using the GridFS collection from FileService
-    val gdfsParser = fileService.withSyncGfs[BodyParser[MultipartFormData[Future[FileDAO.JSONReadFile]]]] { gfs => gridFSBodyParser(gfs) }
+    val gdfsParser = fileService.withSyncGfs[BodyParser[MultipartFormData[FileDAO.JSONReadFile]]] {
+      gfs => gridFSBodyParser(Future(gfs))
+    }
 
     generalActions.MySecuredAction.async(gdfsParser) { implicit request =>
 
-      Logger.info("SignUpController: submitVideo")
+      fileControllerLogger.info("SignUpController: submitVideo")
 
       //A list of the old videos that now has to be removed
       val futureOldVideoFileList = fileService.findByQuery(Videos.getQueryAllVideos(uuid)).
-        flatMap(cursor => cursor.collect[List](0, true))
+        flatMap(cursor => cursor.collect[List](-1, Cursor.FailOnError[List[JSONReadFile]]()))
 
-      val futureOptFileRef = request.body.file(models.formdata.VideoFileKeyString) match {
-        case Some(file) => file.ref.map(Some(_))
-        case None => Future.successful(None)
-      }
+      val optFile: Option[JSONReadFile] = request.body.file(models.formdata.VideoFileKeyString).map(_.ref)
+
       //If the file is not a video or the correct size, just remove it
-      val futureOptFile = futureOptFileRef.flatMap(optFileRef => optFileRef match {
+      optFile match {
         case Some(file) => {
           if (file.contentType.isEmpty ||
             file.contentType.get.startsWith("video") == false ||
@@ -329,7 +320,7 @@ class FileController @Inject() (
             Future.successful(None)
           } else {
 
-            Logger.info("File uploaded correctly")
+            fileControllerLogger.info("File uploaded correctly")
 
             val iteratorUploaded = fileService.withAsyncGfs[Array[Byte]] { gfs =>
               gfs.enumerate(file).run(Iteratee.consume[Array[Byte]]())
@@ -347,7 +338,7 @@ class FileController @Inject() (
                     uploadDate = Some(DateTime.now().getMillis),
                     metadata = Videos.getVideoMetadata(uuid))
 
-                  Logger.info("Saving the new large file")
+                  fileControllerLogger.info("Saving the new large file")
                   fileService.save(enumeratorStandard, dataVideo)
                 }
             }
@@ -359,27 +350,27 @@ class FileController @Inject() (
 
             saveResponses recover {
               case e => {
-                Logger.error("recover e.getStackTrace: " + e.getStackTrace)
+                fileControllerLogger.error("recover e.getStackTrace: " + e.getStackTrace)
                 InternalServerError(e.getMessage())
               }
             }
           }
         }
         case None => {
-          Logger.info("optFileRef == None")
+          fileControllerLogger.info("optFileRef == None")
           Future.successful(None)
         }
-      })
+      }
 
       val futureActiveOrg = domainService.findOneDomain(Domain.queryByUuid(request.identity.activeDomain))
 
       val responses = for {
-        optFile <- futureOptFile
+        //optFile <- futureOptFile
         activeDomain <- futureActiveOrg
         oldVideoFileList <- futureOldVideoFileList
         removeOldVideosRes <- Future.sequence(oldVideoFileList.map { file =>
 
-          Logger.info("Removing old video, id: " + file.id.as[String])
+          fileControllerLogger.info("Removing old video, id: " + file.id.as[String])
 
           fileService.remove(file.id.as[String])
         })
@@ -398,7 +389,7 @@ class FileController @Inject() (
 
       responses recover {
         case e => {
-          Logger.error("recover e.getStackTrace: " + e.getStackTrace)
+          fileControllerLogger.error("recover e.getStackTrace: " + e.getStackTrace)
           InternalServerError(e.getMessage())
         }
       }
@@ -408,24 +399,22 @@ class FileController @Inject() (
   def submitAmlFile(domainUuid: String) = {
 
     //Create the parser using the GridFS collection from FileService
-    val gdfsParser = fileService.withSyncGfs[BodyParser[MultipartFormData[Future[FileDAO.JSONReadFile]]]] { 
-      gfs => gridFSBodyParser(gfs) }
+    val gdfsParser = fileService.withSyncGfs[BodyParser[MultipartFormData[FileDAO.JSONReadFile]]] {
+      gfs => gridFSBodyParser(Future(gfs))
+    }
 
     (generalActions.MySecuredAction andThen generalActions.DomainAction(domainUuid)).async(gdfsParser) { 
       implicit domainRequest =>
 
         //A list of the existing aml files
         val futureExistingAmlFileList = fileService.findByQuery(AmlFiles.getQueryAllAmlFiles(domainUuid)).
-          flatMap(cursor => cursor.collect[List](0, true))
+          flatMap(cursor => cursor.collect[List](-1, Cursor.FailOnError[List[JSONReadFile]]()))
 
-        val futureOptFileRef = domainRequest.body.file(models.formdata.AmlFileKeyString) match {
-          case Some(file) => file.ref.map(Some(_))
-          case None => Future.successful(None)
-        }
+        val optFile = domainRequest.body.file(models.formdata.AmlFileKeyString).map(_.ref)
 
         val responses = for {
-          optFileRef <- futureOptFileRef
-        } yield optFileRef match {
+          existingAmlFileList <- futureExistingAmlFileList
+        } yield optFile match {
           case Some(file) => {
             if (file.contentType.isEmpty ||
               file.contentType.get != AmlFiles.OctetStreamContentType ||
@@ -439,7 +428,7 @@ class FileController @Inject() (
               Future.successful(Redirect(routes.DomainController.edit(domainUuid)).
                   flashing("error" -> Messages("amlFile.not.ok")))
             } else {
-              Logger.info("Aml file uploaded correctly")
+              fileControllerLogger.info("Aml file uploaded correctly")
 
               fileService.updateMetadata(file.id.as[String], AmlFiles.getAmlFileMetadata(domainUuid)).map { success =>
                 Redirect(routes.DomainController.edit(domainUuid)).flashing("success" -> ("success: " + success))
@@ -456,7 +445,7 @@ class FileController @Inject() (
 
           r recover {
             case e => {
-              Logger.error("recover e.getStackTrace: " + e.getStackTrace)
+              fileControllerLogger.error("recover e.getStackTrace: " + e.getStackTrace)
               InternalServerError(e.getMessage())
             }
           }

@@ -1,31 +1,28 @@
 package controllers
 
 import javax.inject.Inject
-
 import com.mohiva.play.silhouette.api.Authenticator.Implicits._
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.exceptions.ProviderException
 import com.mohiva.play.silhouette.api.repositories.AuthInfoRepository
-import com.mohiva.play.silhouette.api.util.{ Clock, Credentials }
+import com.mohiva.play.silhouette.api.util.{Clock, Credentials}
 import com.mohiva.play.silhouette.impl.exceptions.IdentityNotFoundException
 import com.mohiva.play.silhouette.impl.providers._
 import models.formdata.SignInForm
 import models.services.UserService
 import net.ceedubs.ficus.Ficus._
 import play.api.Configuration
-import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
-import play.api.libs.concurrent.Execution.Implicits._
-import play.api.mvc.Controller
+import play.api.i18n.{I18nSupport, Lang, Messages, MessagesApi}
+import play.api.mvc.{AbstractController, BaseController, ControllerComponents}
 import utils.auth.DefaultEnv
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
 /**
  * The `Sign In` controller.
  *
- * @param messagesApi The Play messages API.
  * @param silhouette The Silhouette stack.
  * @param userService The user service implementation.
  * @param authInfoRepository The auth info repository implementation.
@@ -33,19 +30,18 @@ import scala.language.postfixOps
  * @param socialProviderRegistry The social provider registry.
  * @param configuration The Play configuration.
  * @param clock The clock instance.
- * @param webJarAssets The webjar assets implementation.
  */
 class SignInController @Inject() (
-  val messagesApi: MessagesApi,
-  val silhouette: Silhouette[DefaultEnv],
-  val userService: UserService,
-  val authInfoRepository: AuthInfoRepository,
-  val credentialsProvider: CredentialsProvider,
-  val socialProviderRegistry: SocialProviderRegistry,
-  val configuration: Configuration,
-  val clock: Clock,
-  implicit val webJarAssets: WebJarAssets)
-    extends Controller with I18nSupport {
+  silhouette: Silhouette[DefaultEnv],
+  userService: UserService,
+  authInfoRepository: AuthInfoRepository,
+  credentialsProvider: CredentialsProvider,
+  socialProviderRegistry: SocialProviderRegistry,
+  configuration: Configuration,
+  clock: Clock,
+  components: ControllerComponents)(implicit exec: ExecutionContext)
+    extends AbstractController(components) with I18nSupport {
+  implicit val lang: Lang = components.langs.availables.head
 
   /**
    * Views the `Sign In` page.

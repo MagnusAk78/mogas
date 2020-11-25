@@ -3,7 +3,8 @@ package models
 import com.mohiva.play.silhouette.api.{ Identity, LoginInfo }
 import play.api.Logger
 import java.util.UUID
-import play.api.libs.json._
+
+import reactivemongo.play.json.JSONSerializationPack.
 
 case class User(
     override val uuid: String,
@@ -29,6 +30,8 @@ case class User(
 }
 
 object User extends DbModelComp[User] with HasModelTypeComp with HasNameComp {
+  import play.api.libs.json.Json
+
   implicit val userFormat = Json.format[User]
 
   private val KeyLoginInfo = "loginInfo"

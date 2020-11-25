@@ -2,8 +2,7 @@
 @import models.formdata._
 
 @(user: User, imageExists: Boolean, signUpForm: Form[SignUpForm.Data], 
-	userStatus: UserStatus)(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, 
-	flash: Flash)
+	userStatus: UserStatus)(implicit request: RequestHeader, messages: Messages, flash: Flash)
 
 @import templates._
 @import forms._

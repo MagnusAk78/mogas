@@ -3,33 +3,32 @@ package controllers.filters
 import javax.inject.Inject
 import javax.inject.Singleton
 import akka.stream.Materializer
-import play.api.mvc.{Result, RequestHeader, Filter}
+import play.api.mvc.Result
+import play.api.mvc.RequestHeader
+import play.api.mvc.Filter
 import play.api.Logger
-import play.api.routing.Router.Tags
+import play.api.routing.HandlerDef
+import play.api.routing.Router
 import scala.concurrent.Future
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import scala.concurrent.ExecutionContext
 
 trait LoggingFilter extends Filter
 
 @Singleton
-class LoggingFilterImpl @Inject() (implicit val mat: Materializer) extends LoggingFilter {
-  def apply(nextFilter: RequestHeader => Future[Result])
-           (requestHeader: RequestHeader): Future[Result] = {
+class LoggingFilterImpl @Inject()(implicit val mat: Materializer, ec: ExecutionContext) extends LoggingFilter {
+  def apply(nextFilter: RequestHeader => Future[Result])(requestHeader: RequestHeader): Future[Result] = {
 
     val startTime = System.currentTimeMillis
 
     nextFilter(requestHeader).map { result =>
+      val handlerDef: HandlerDef = requestHeader.attrs(Router.Attrs.HandlerDef)
+      val action                 = handlerDef.controller + "." + handlerDef.method
+      val endTime                = System.currentTimeMillis
+      val requestTime            = endTime - startTime
 
-      val action = try {
-        requestHeader.tags(Tags.RouteController) +
-        "." + requestHeader.tags(Tags.RouteActionMethod)
-      } catch {
-        case _: Throwable => println("< No parsable route >")
-      }
-      val endTime = System.currentTimeMillis
-      val requestTime = endTime - startTime
+      val loggingFilterLogger = Logger("LoggingFilter")
 
-      Logger.info(s"LoggingFilter: ${action} took ${requestTime}ms and returned ${result.header.status}")
+      loggingFilterLogger.info(s"${action} took ${requestTime}ms and returned ${result.header.status}")
 
       result.withHeaders("Request-Time" -> requestTime.toString)
     }

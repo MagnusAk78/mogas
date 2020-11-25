@@ -3,9 +3,7 @@ package controllers
 import scala.annotation.implicitNotFound
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
-
 import org.joda.time.DateTime
-
 import akka.stream.Materializer
 import models.formdata.DomainForm
 import models.formdata.DomainForm.fromDomainToData
@@ -13,31 +11,20 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import models.services.DomainService
 import models.services.UserService
-import play.api.i18n.I18nSupport
-import play.api.i18n.Messages
-import play.api.i18n.MessagesApi
+import play.api.i18n.{I18nSupport, Lang, Messages}
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.iteratee.Iteratee
 import play.api.libs.json.Json
-import play.api.mvc.BodyParser
-import play.api.mvc.Controller
-import play.api.mvc.MultipartFormData
+import play.api.mvc.{AbstractController, ActionBuilder, ActionRefiner, ActionTransformer, BaseController, BodyParser, ControllerComponents, Flash, MultipartFormData, Request, WrappedRequest}
 import viewdata.PaginateData
 import utils.auth.DefaultEnv
 import models.Images
-import play.api.mvc.WrappedRequest
-import play.api.mvc.Request
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
-import play.api.mvc.ActionRefiner
-import play.api.mvc.ActionTransformer
-import play.api.mvc.ActionBuilder
-import play.api.mvc.Flash
 import controllers.actions._
 import utils.RemoveResult
 import models.formdata.DomainForm
 import models.Domain
 import models.services.AmlObjectService
-import play.api.Logger
 import viewdata.HierarchyData
 import viewdata._
 import models.services.FileService
@@ -49,16 +36,16 @@ import utils.DefaultValues
 
 @Singleton
 class DomainController @Inject() (
-  val messagesApi: MessagesApi,
-  val generalActions: GeneralActions,
-  val userService: UserService,
-  val domainService: DomainService,
-  val fileService: FileService,
-  val amlObjectService: AmlObjectService,
-  val instructionService: InstructionService,
-  val issueService: IssueService,
-  implicit val webJarAssets: WebJarAssets)(implicit exec: ExecutionContext, materialize: Materializer)
-    extends Controller with I18nSupport {
+  generalActions: GeneralActions,
+  userService: UserService,
+  domainService: DomainService,
+  fileService: FileService,
+  amlObjectService: AmlObjectService,
+  instructionService: InstructionService,
+  issueService: IssueService,
+  components: ControllerComponents)(implicit exec: ExecutionContext, materialize: Materializer)
+    extends AbstractController(components) with I18nSupport {
+  implicit val lang: Lang = components.langs.availables.head
 
   def list(page: Int) =
     (generalActions.MySecuredAction).async { implicit mySecuredRequest =>
@@ -155,7 +142,6 @@ class DomainController @Inject() (
           mySecuredRequest.activeDomain))))
       },
       formData => {
-        Logger.info("submitCreate: " + formData.toString)
         val responses = for {
           optSavedDomain <- domainService.insertDomain(Domain.create(name = formData.name,
             allowedUsers = Set(mySecuredRequest.identity.uuid)))
@@ -299,7 +285,7 @@ class DomainController @Inject() (
         //This is not ok, some user must be allowed to see/change it
         Future.successful(Redirect(routes.DomainController.editAllowedUsers(uuid, page)).
           flashing("error" -> Messages("thereMustBeAtLeastOneAllowedUser")))
-      } else if (newDomain.allowedUsers.contains(domainRequest.identity.uuid) == false) {
+      } else if (!newDomain.allowedUsers.contains(domainRequest.identity.uuid)) {
         //This is not ok, the logged in user must be part of the domain.
         Future.successful(Redirect(routes.DomainController.editAllowedUsers(uuid, page)).
           flashing("error" -> Messages("accessDenied")))

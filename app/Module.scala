@@ -1,39 +1,8 @@
 import com.google.inject.AbstractModule
-
-import models.daos.FileDAO
-import models.daos.FileDAOImpl
-import models.services.FileServiceImpl
-import models.services.FileService
-import controllers.actions.GeneralActionsImpl
-import controllers.actions.GeneralActions
-import controllers.filters.LoggingFilterImpl
-import controllers.filters.LoggingFilter
-import models.daos.UserDAO
-import models.daos.UserDAOImpl
-import models.daos.ElementDAO
-import models.daos.DomainDAOImpl
-import models.daos.DomainDAO
-import models.daos.InterfaceDAOImpl
-import models.daos.InterfaceDAO
-import models.daos.HierarchyDAOImpl
-import models.daos.ElementDAOImpl
-import models.daos.HierarchyDAO
-import models.services.DomainService
-import models.services.DomainServiceImpl
-import models.daos.InstructionDAO
-import models.daos.InstructionDAOImpl
-import models.daos.InstructionPartDAOImpl
-import models.daos.InstructionPartDAO
-import models.services.InstructionServiceImpl
-import models.services.InstructionService
-import models.services.AmlObjectServiceImpl
-import models.services.AmlObjectService
-import models.services.IssueService
-import models.services.IssueServiceImpl
-import models.daos.IssueUpdateDAOImpl
-import models.daos.IssueDAOImpl
-import models.daos.IssueDAO
-import models.daos.IssueUpdateDAO
+import controllers.actions.{GeneralActions, GeneralActionsImpl}
+import controllers.filters.{LoggingFilter, LoggingFilterImpl}
+import models.daos._
+import models.services._
 
 /**
  * This class is a Guice module that tells Guice how to bind several
@@ -55,8 +24,7 @@ class Module extends AbstractModule {
     //Actions
     bind(classOf[GeneralActions]).to(classOf[GeneralActionsImpl]).asEagerSingleton()
 
-    //DAOs
-    bind(classOf[UserDAO]).to(classOf[UserDAOImpl]).asEagerSingleton()
+    //DAOs, User DAO is in Silhouette module
     bind(classOf[FileDAO]).to(classOf[FileDAOImpl]).asEagerSingleton()
     bind(classOf[DomainDAO]).to(classOf[DomainDAOImpl]).asEagerSingleton()
     bind(classOf[HierarchyDAO]).to(classOf[HierarchyDAOImpl]).asEagerSingleton()

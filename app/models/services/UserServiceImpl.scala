@@ -10,7 +10,6 @@ import viewdata.ModelListData
 import javax.inject.Inject
 import models.User
 import models.daos.UserDAO
-import play.api.Logger
 import play.api.libs.json.JsObject
 import play.api.libs.json.OWrites
 import play.api.libs.json.Reads
@@ -97,8 +96,6 @@ class UserServiceImpl @Inject() (val dao: UserDAO, val fileService: FileService)
    * @return The user for whom the profile was saved.
    */
   override def save(profile: CommonSocialProfile): Future[Option[User]] = {
-
-    Logger.info("UserServiceImpl save (profile): " + profile)
 
     retrieve(profile.loginInfo).flatMap { optionUser =>
       optionUser match {

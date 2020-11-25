@@ -1,16 +1,10 @@
 package models.daos
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-
 import javax.inject.Inject
-import models.InstructionPart
-import play.api.Logger
-import play.api.libs.json.JsObject
 import play.modules.reactivemongo.ReactiveMongoApi
-import reactivemongo.play.json._
 import reactivemongo.play.json.collection._
-import reactivemongo.api.QueryOpts
+
+import scala.concurrent.{ExecutionContext, Future}
 
 class InstructionPartDAOImpl @Inject() (val reactiveMongoApi: ReactiveMongoApi)(implicit exec: ExecutionContext)
     extends InstructionPartDAO {

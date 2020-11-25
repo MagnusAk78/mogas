@@ -1,30 +1,19 @@
 package models.daos
 
-import scala.annotation.implicitNotFound
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import scala.concurrent.duration.Duration
-
-import FileDAO.JSONReadFile
 import javax.inject.Inject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsString
-import play.api.libs.json.Json
+import models.AmlFiles
+import models.daos.FileDAO.JSONReadFile
+import play.api.libs.iteratee.Enumerator
+import play.api.libs.json.{JsObject, JsString, Json}
 import play.api.libs.json.Json.toJsFieldJsValueWrapper
 import play.modules.reactivemongo.MongoController.readFileReads
-import play.modules.reactivemongo.ReactiveMongoApi
-import play.modules.reactivemongo.ReactiveMongoComponents
+import play.modules.reactivemongo.{JSONFileToSave, ReactiveMongoApi, ReactiveMongoComponents}
 import reactivemongo.api.Cursor
 import reactivemongo.api.gridfs.GridFS
 import reactivemongo.play.json._
-import play.api.libs.iteratee.Enumerator
-import play.modules.reactivemongo.JSONFileToSave
-import reactivemongo.api.gridfs.ReadFile
-import play.api.Logger
-import reactivemongo.api.commands.WriteResult
-import models.AmlFiles
-import reactivemongo.play.json.collection.JSONCollection
+
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.duration.Duration
 
 
 class FileDAOImpl @Inject() (val reactiveMongoApi: ReactiveMongoApi)(implicit exec: ExecutionContext) 
@@ -52,7 +41,8 @@ class FileDAOImpl @Inject() (val reactiveMongoApi: ReactiveMongoApi)(implicit ex
     asyncGridFS.flatMap(_.save(enumerator, fileToSave))
   }
     
-  override def withAsyncGfs[T](func: (GridFS[JSONSerializationPack.type] => Future[T])): Future[T] = asyncGridFS.flatMap(func(_))
+  override def withAsyncGfs[T](func: (GridFS[JSONSerializationPack.type] => Future[T])): Future[T] =
+    asyncGridFS.flatMap(func(_))
   
   override def withSyncGfs[T](func: (GridFS[JSONSerializationPack.type] => T)): T = func(syncGridFS)
 }

@@ -1,6 +1,6 @@
 @import models.formdata._
 
-@(signUpForm: Form[SignUpForm.Data])(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, flash: Flash)
+@(signUpForm: Form[SignUpForm.Data])(implicit request: RequestHeader, messages: Messages, flash: Flash)
 
 @import viewdata._
 @implicitField = @{ FieldConstructor(forms.horizontalFieldConstructor.f(ViewConstants.formLabelColumns, ViewConstants.formInputColumns)) }

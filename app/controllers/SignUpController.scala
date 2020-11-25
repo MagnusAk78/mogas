@@ -1,15 +1,12 @@
 package controllers
 
-import scala.concurrent.Future
-
+import scala.concurrent.{ExecutionContext, Future}
 import org.joda.time.DateTime
-
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.repositories.AuthInfoRepository
 import com.mohiva.play.silhouette.api.services.AvatarService
 import com.mohiva.play.silhouette.api.util.PasswordHasher
 import com.mohiva.play.silhouette.impl.providers._
-
 import models.formdata.SignUpForm
 import javax.inject.Inject
 import models.Domain
@@ -20,19 +17,10 @@ import models.services.FileService
 import models.services.DomainService
 import models.services.UserService
 import play.api.Logger
-import play.api.Logger
-import play.api.i18n.I18nSupport
-import play.api.i18n.Messages
-import play.api.i18n.MessagesApi
-import play.api.libs.concurrent.Execution.Implicits._
+import play.api.i18n.{I18nSupport, Lang, Messages, MessagesApi}
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.JsObject
-import play.api.mvc.Action
-import play.api.mvc.BodyParser
-import play.api.mvc.Controller
-import play.api.mvc.Controller
-import play.api.mvc.MultipartFormData
-import play.api.mvc.Request
+import play.api.mvc.{AbstractController, Action, BaseController, BodyParser, ControllerComponents, MultipartFormData, Request}
 import play.modules.reactivemongo.JSONFileToSave
 import play.modules.reactivemongo.MongoController
 import play.modules.reactivemongo.ReactiveMongoApi
@@ -49,27 +37,28 @@ import viewdata._
 /**
  * The `Sign Up` controller.
  *
- * @param messagesApi The Play messages API.
  * @param silhouette The Silhouette stack.
  * @param userService The user service implementation.
  * @param authInfoRepository The auth info repository implementation.
  * @param avatarService The avatar service implementation.
  * @param passwordHasher The password hasher implementation.
- * @param webJarAssets The webjar assets implementation.
  */
 class SignUpController @Inject() (
-  val messagesApi: MessagesApi,
-  val silhouette: Silhouette[DefaultEnv],
-  val generalActions: GeneralActions,
-  val userService: UserService,
-  val domainService: DomainService,
-  val authInfoRepository: AuthInfoRepository,
-  val avatarService: AvatarService,
-  val passwordHasher: PasswordHasher,
+  silhouette: Silhouette[DefaultEnv],
+  generalActions: GeneralActions,
+  userService: UserService,
+  domainService: DomainService,
+  authInfoRepository: AuthInfoRepository,
+  avatarService: AvatarService,
+  passwordHasher: PasswordHasher,
   val reactiveMongoApi: ReactiveMongoApi,
-  val fileService: FileService,
-  implicit val webJarAssets: WebJarAssets)(implicit materialize: Materializer)
-    extends Controller with MongoController with ReactiveMongoComponents with I18nSupport {
+  fileService: FileService,
+  components: ControllerComponents)(implicit exec: ExecutionContext, materialize: Materializer)
+    extends AbstractController(components) with MongoController with ReactiveMongoComponents with I18nSupport {
+
+  implicit val lang: Lang = components.langs.availables.head
+
+  val signUpControllerLogger: Logger = Logger("SignUpController")
 
   /**
    * Views the `Sign Up` page.
@@ -81,7 +70,7 @@ class SignUpController @Inject() (
   }
 
   def edit(uuid: String) = silhouette.SecuredAction(AlwaysAuthorized()).async { implicit request =>
-    Logger.info("SignUpController.edit")
+    signUpControllerLogger.info("SignUpController.edit")
 
     val responses = for {
       userOpt <- userService.findOne(User.queryByUuid(uuid))
