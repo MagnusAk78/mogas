@@ -1,26 +1,21 @@
 package models.services
 
-import scala.annotation.implicitNotFound
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.impl.providers.CommonSocialProfile
-import viewdata.ModelListData
 import javax.inject.Inject
-import models.User
 import models.daos.UserDAO
-import play.api.libs.json.JsObject
-import play.api.libs.json.OWrites
-import play.api.libs.json.Reads
-import viewdata.PaginateData
+import models.{DbModel, User}
+import play.api.libs.json.{JsObject, OWrites, Reads}
+import viewdata.{ModelListData, PaginateData}
+
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * Handles actions to users.
  *
  * @param userDAO The user DAO implementation.
  */
-class UserServiceImpl @Inject() (val dao: UserDAO, val fileService: FileService)(implicit val ec: ExecutionContext)
+class UserServiceImpl @Inject() (val userDAO: UserDAO, val fileService: FileService)(implicit val ec: ExecutionContext)
     extends UserService {
 
   implicit val joWrites: OWrites[User] = User.userFormat
@@ -28,7 +23,7 @@ class UserServiceImpl @Inject() (val dao: UserDAO, val fileService: FileService)
   implicit val joReads: Reads[User] = User.userFormat
 
   override def getUserList(page: Int, uuidSet: Set[String]): Future[ModelListData[User]] = {
-    findMany(User.queryBySetOfUuids(uuidSet), page, utils.DefaultValues.DefaultPageLength)
+    findMany(DbModel.queryBySetOfUuids(uuidSet), page, utils.DefaultValues.DefaultPageLength)
   }
 
   /**
@@ -109,7 +104,7 @@ class UserServiceImpl @Inject() (val dao: UserDAO, val fileService: FileService)
             avatarURL = Some(profile.avatarURL.getOrElse(user.avatarURL.getOrElse(""))))
           update(updatedUser) flatMap {
             _ match {
-              case true => findOne(User.queryByUuid(user.uuid))
+              case true => findOne(DbModel.queryByUuid(user.uuid))
               case false => Future.successful(None)
             }
           }
@@ -128,24 +123,24 @@ class UserServiceImpl @Inject() (val dao: UserDAO, val fileService: FileService)
     }
   }
 
-  override def insert(user: User): Future[Option[User]] = dao.insert(user).map(wr => if (wr.ok) Some(user) else None)
+  override def insert(user: User): Future[Option[User]] = userDAO.insert(user).map(wr => if (wr.ok) Some(user) else None)
 
-  override def update(user: User): Future[Boolean] = dao.update(user).map(wr => wr.ok)
+  override def update(user: User): Future[Boolean] = userDAO.update(user).map(wr => wr.ok)
 
-  override def findOne(query: JsObject): Future[Option[User]] = dao.find(query, 1, 1).map(_.headOption)
+  override def findOne(query: JsObject): Future[Option[User]] = userDAO.find(query, 1, 1).map(_.headOption)
 
   override def findMany(query: JsObject, page: Int = 1,
     pageSize: Int = utils.DefaultValues.DefaultPageLength): Future[ModelListData[User]] = {
     for {
-      theList <- dao.find(query, page, utils.DefaultValues.DefaultPageLength)
-      count <- dao.count(query)
+      theList <- userDAO.find(query, page, utils.DefaultValues.DefaultPageLength)
+      count <- userDAO.count(query)
       il <- Future.sequence(theList.map(i => fileService.imageExists(i.uuid)))
       vl <- Future.sequence(theList.map(i => fileService.videoExists(i.uuid)))
     } yield new ModelListData[User] {
-      override val list = theList
-      override val imageList = il
-      override val videoList = vl
-      override val paginateData = PaginateData(page, count)
+      override val list: List[User] = theList
+      override val imageList: List[Boolean] = il
+      override val videoList: List[Boolean] = vl
+      override val paginateData: PaginateData = PaginateData(page, count)
     }
   }
 }

@@ -27,7 +27,6 @@ import models.services.{UserService, UserServiceImpl}
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import net.ceedubs.ficus.readers.ValueReader
-import net.codingwell.scalaguice.ScalaModule
 import play.api.Configuration
 import play.api.libs.json.Json
 import play.api.libs.openid.OpenIdClient
@@ -41,7 +40,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 /**
  * The Guice module which wires all Silhouette dependencies.
  */
-class SilhouetteModule extends AbstractModule with ScalaModule {
+class SilhouetteModule extends AbstractModule {
 
   /**
    * A very nested optional reader, to support these cases:
@@ -66,19 +65,20 @@ class SilhouetteModule extends AbstractModule with ScalaModule {
    * Configures the module.
    */
   override def configure() {
-    // User DAO and Service
-    bind[UserDAO].to[UserDAOImpl]
-    bind[UserService].to[UserServiceImpl]
 
-    bind[Silhouette[DefaultEnv]].to[SilhouetteProvider[DefaultEnv]]
-    bind[UnsecuredErrorHandler].to[CustomUnsecuredErrorHandler]
-    bind[SecuredErrorHandler].to[CustomSecuredErrorHandler]
-    bind[CacheLayer].to[PlayCacheLayer]
-    bind[IDGenerator].toInstance(new SecureRandomIDGenerator())
-    bind[PasswordHasher].toInstance(new BCryptPasswordHasher())
-    bind[FingerprintGenerator].toInstance(new DefaultFingerprintGenerator(false))
-    bind[EventBus].toInstance(EventBus())
-    bind[Clock].toInstance(Clock())
+    // User DAO and Service
+    bind(classOf[UserDAO]).to(classOf[UserDAOImpl]).asEagerSingleton()
+    bind(classOf[UserService]).to(classOf[UserServiceImpl]).asEagerSingleton()
+
+    bind(classOf[Silhouette[DefaultEnv]]).to(classOf[SilhouetteProvider[DefaultEnv]]).asEagerSingleton()
+    bind(classOf[UnsecuredErrorHandler]).to(classOf[CustomUnsecuredErrorHandler]).asEagerSingleton()
+    bind(classOf[SecuredErrorHandler]).to(classOf[CustomSecuredErrorHandler]).asEagerSingleton()
+    bind(classOf[CacheLayer]).to(classOf[PlayCacheLayer]).asEagerSingleton()
+    bind(classOf[IDGenerator]).toInstance(new SecureRandomIDGenerator())
+    bind(classOf[PasswordHasher]).toInstance(new BCryptPasswordHasher())
+    bind(classOf[FingerprintGenerator]).toInstance(new DefaultFingerprintGenerator(false))
+    bind(classOf[EventBus]).toInstance(EventBus())
+    bind(classOf[Clock]).toInstance(Clock())
   }
 
   /**

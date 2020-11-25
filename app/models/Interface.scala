@@ -15,8 +15,7 @@ case class Interface(
       with HasParent {
 }
 
-object Interface extends DbModelComp[Interface] with HasModelTypeComp with HasAmlIdComp 
-  with HasParentComp[Element] with OrderedModelComp with HasNameComp with HasConnectionToComp[Domain] {
+object Interface {
 
   implicit val interfaceFormat = Json.format[Interface]
 

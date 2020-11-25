@@ -13,8 +13,7 @@ case class Hierarchy(
     HasParent with HasElements with HasName with OrderedModel {
 }
 
-object Hierarchy extends DbModelComp[Hierarchy] with HasModelTypeComp with HasParentComp[Domain] with HasElementsComp
-    with HasNameComp with OrderedModelComp {
+object Hierarchy {
 
   implicit val hierarchyFormat = Json.format[Hierarchy]
 

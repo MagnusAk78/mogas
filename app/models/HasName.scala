@@ -8,10 +8,8 @@ trait HasName {
   val name: String
 }
 
-trait HasNameComp {
+object HasName {
   private val KeyName = "name"
 
   def queryByName(name: String): JsObject = Json.obj(KeyName -> JsString(name))
-
-  def namedModelJsObject(namedModel: HasName): JsObject = Json.obj(KeyName -> JsString(namedModel.name))
 }

@@ -1,38 +1,24 @@
 package controllers
 
-import scala.concurrent.{ExecutionContext, Future}
-import org.joda.time.DateTime
+import akka.stream.Materializer
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.repositories.AuthInfoRepository
 import com.mohiva.play.silhouette.api.services.AvatarService
 import com.mohiva.play.silhouette.api.util.PasswordHasher
 import com.mohiva.play.silhouette.impl.providers._
-import models.formdata.SignUpForm
-import javax.inject.Inject
-import models.Domain
-import models.Images
-import models.User
-import models.daos.FileDAO
-import models.services.FileService
-import models.services.DomainService
-import models.services.UserService
-import play.api.Logger
-import play.api.i18n.{I18nSupport, Lang, Messages, MessagesApi}
-import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.JsObject
-import play.api.mvc.{AbstractController, Action, BaseController, BodyParser, ControllerComponents, MultipartFormData, Request}
-import play.modules.reactivemongo.JSONFileToSave
-import play.modules.reactivemongo.MongoController
-import play.modules.reactivemongo.ReactiveMongoApi
-import play.modules.reactivemongo.ReactiveMongoComponents
-import reactivemongo.play.json.JsFieldBSONElementProducer
-import reactivemongo.api.gridfs.GridFS
-import reactivemongo.api.gridfs.ReadFile
-import utils.auth.DefaultEnv
-import akka.stream.Materializer
-import play.api.libs.iteratee.Iteratee
 import controllers.actions.GeneralActions
+import javax.inject.Inject
+import models.formdata.SignUpForm
+import models.services.{DomainService, FileService, UserService}
+import models.{DbModel, User}
+import play.api.Logger
+import play.api.i18n.{I18nSupport, Lang, Messages}
+import play.api.mvc.{AbstractController, ControllerComponents}
+import play.modules.reactivemongo.{MongoController, ReactiveMongoApi, ReactiveMongoComponents}
+import utils.auth.DefaultEnv
 import viewdata._
+
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * The `Sign Up` controller.
@@ -73,8 +59,8 @@ class SignUpController @Inject() (
     signUpControllerLogger.info("SignUpController.edit")
 
     val responses = for {
-      userOpt <- userService.findOne(User.queryByUuid(uuid))
-      activeDomainOpt <- domainService.findOneDomain(Domain.queryByUuid(request.identity.activeDomain))
+      userOpt <- userService.findOne(DbModel.queryByUuid(uuid))
+      activeDomainOpt <- domainService.findOneDomain(DbModel.queryByUuid(request.identity.activeDomain))
       imageExists <- fileService.imageExists(uuid)
     } yield userOpt match {
       case Some(user) => {

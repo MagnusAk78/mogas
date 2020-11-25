@@ -1,56 +1,28 @@
 package controllers
 
-import scala.annotation.implicitNotFound
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import org.joda.time.DateTime
-import com.mohiva.play.silhouette.api.Silhouette
-import com.sksamuel.scrimage.ImmutableImage
-import com.sksamuel.scrimage.nio._
-import com.sksamuel.scrimage.color.RGBColor
-import akka.stream.Materializer
-import models.formdata
-import models.formdata.DomainForm
-import models.formdata.DomainForm.fromDomainToData
-import javax.inject.Inject
-import javax.inject.Singleton
-import models.daos.FileDAO
-import models.services.FileService
-import models.services.UserService
-import play.api.Logger
-import play.api.i18n.{I18nSupport, Lang, Messages, MessagesApi}
-import play.api.libs.iteratee.Enumerator
-import play.api.libs.iteratee.Iteratee
-import play.api.libs.json.Json
-import play.api.mvc.{AbstractController, ActionRefiner, BaseController, BodyParser, ControllerComponents, MultipartFormData, Result, WrappedRequest}
-import play.modules.reactivemongo.JSONFileToSave
-import play.modules.reactivemongo.MongoController
-import play.modules.reactivemongo.MongoController._
-import play.modules.reactivemongo.ReactiveMongoApi
-import play.modules.reactivemongo.ReactiveMongoComponents
-import reactivemongo.play.json.JsFieldBSONElementProducer
-import viewdata.PaginateData
-import utils.auth.DefaultEnv
-import play.api.libs.json.JsValue
-import models.Images
-import models.Types
-import models.MediaTypes
-import models.DbModel
-import models.HasModelType
-import java.io.File
+import java.io.{BufferedInputStream, ByteArrayInputStream}
 
-import com.mohiva.play.silhouette.api.actions.SecuredAction
-import com.mohiva.play.silhouette.api.actions.SecuredRequest
-import reactivemongo.api.Cursor
+import akka.stream.Materializer
+import com.sksamuel.scrimage.ImmutableImage
+import com.sksamuel.scrimage.color.RGBColor
+import com.sksamuel.scrimage.nio._
 import controllers.actions.GeneralActions
-import models.AmlFiles
-import models.Videos
-import java.io.ByteArrayInputStream
-import java.io.BufferedInputStream
-import models.services.DomainService
-import models.Domain
-import models.MediaTypes
+import javax.inject.{Inject, Singleton}
+import models._
+import models.daos.FileDAO
+import models.services.{DomainService, FileService, UserService}
+import org.joda.time.DateTime
+import play.api.Logger
+import play.api.i18n.{I18nSupport, Lang, Messages}
+import play.api.libs.iteratee.{Enumerator, Iteratee}
+import play.api.libs.json.JsValue
+import play.api.mvc._
+import play.modules.reactivemongo.{JSONFileToSave, MongoController, ReactiveMongoApi, ReactiveMongoComponents}
+import reactivemongo.api.Cursor
+import reactivemongo.play.json.JsFieldBSONElementProducer
 import viewdata._
+
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class FileController @Inject() (
@@ -68,9 +40,8 @@ class FileController @Inject() (
 
   val fileControllerLogger: Logger = Logger("FileController")
 
-  import models.daos.FileDAO.JSONReadFile
-
   import MongoController.readFileReads
+  import models.daos.FileDAO.JSONReadFile
 
   def getStandardImage(uuid: String, modelTypeString: String) = generalActions.MySecuredAction async {
     implicit request =>
@@ -255,7 +226,7 @@ class FileController @Inject() (
         }
       }
 
-      val futureActiveOrg = domainService.findOneDomain(Domain.queryByUuid(request.identity.activeDomain))
+      val futureActiveOrg = domainService.findOneDomain(DbModel.queryByUuid(request.identity.activeDomain))
 
       val responses = for {
         //optFile <- futureOptFile
@@ -362,7 +333,7 @@ class FileController @Inject() (
         }
       }
 
-      val futureActiveOrg = domainService.findOneDomain(Domain.queryByUuid(request.identity.activeDomain))
+      val futureActiveOrg = domainService.findOneDomain(DbModel.queryByUuid(request.identity.activeDomain))
 
       val responses = for {
         //optFile <- futureOptFile
@@ -407,7 +378,7 @@ class FileController @Inject() (
       implicit domainRequest =>
 
         //A list of the existing aml files
-        val futureExistingAmlFileList = fileService.findByQuery(AmlFiles.getQueryAllAmlFiles(domainUuid)).
+        val futureExistingAmlFileList = fileService.findByQuery(AmlFiles.queryAllAmlFiles(domainUuid)).
           flatMap(cursor => cursor.collect[List](-1, Cursor.FailOnError[List[JSONReadFile]]()))
 
         val optFile = domainRequest.body.file(models.formdata.AmlFileKeyString).map(_.ref)
@@ -430,7 +401,7 @@ class FileController @Inject() (
             } else {
               fileControllerLogger.info("Aml file uploaded correctly")
 
-              fileService.updateMetadata(file.id.as[String], AmlFiles.getAmlFileMetadata(domainUuid)).map { success =>
+              fileService.updateMetadata(file.id.as[String], AmlFiles.amlFileMetadata(domainUuid)).map { success =>
                 Redirect(routes.DomainController.edit(domainUuid)).flashing("success" -> ("success: " + success))
               }
             }

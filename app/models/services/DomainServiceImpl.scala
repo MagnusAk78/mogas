@@ -1,50 +1,22 @@
 package models.services
 
-import java.io.PipedInputStream
+import java.io.{BufferedInputStream, ByteArrayInputStream}
 
-import viewdata.ModelListData
-import java.io.PipedOutputStream
-
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import scala.concurrent.duration.Duration
 import javax.inject.Inject
-import models.AmlFiles
-import models.Domain
-import models.Interface
-import models.Hierarchy
-import models.Element
-import models.daos.DomainDAO
-import models.daos.HierarchyDAO
-import reactivemongo.play.json.JsFieldBSONElementProducer
-import viewdata.PaginateData
-import play.api.Logger
-import java.io.ByteArrayOutputStream
-import java.io.BufferedOutputStream
-import java.io.ByteArrayInputStream
-
-import models.HasParent
-import models.HasAmlId
-import models.HasName
-import akka.stream.scaladsl.Source
-import play.modules.reactivemongo.JSONFileToSave
-import play.api.libs.iteratee.Iteratee
-import models.Images
-import java.io.BufferedInputStream
-
-import play.api.libs.json.JsObject
-import utils.RemoveResult
-import models.services.misc.AmlInterface
-import models.services.misc.AmlHierarchy
-import models.services.misc.AmlHelper
-import models.services.misc.AmlElement
-import viewdata.AmlObjectData
-import models.HasModelType
-import models.User
-import models.DbModel
+import models._
 import models.daos.FileDAO.JSONReadFile
+import models.daos.{DomainDAO, HierarchyDAO}
+import models.services.misc.{AmlElement, AmlHelper, AmlHierarchy, AmlInterface}
+import play.api.Logger
+import play.api.libs.iteratee.Iteratee
+import play.api.libs.json.JsObject
 import reactivemongo.api.Cursor
+import reactivemongo.play.json.JsFieldBSONElementProducer
+import utils.RemoveResult
+import viewdata.{AmlObjectData, ModelListData, PaginateData}
+
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 class DomainServiceImpl @Inject() (
   val domainDao: DomainDAO,
@@ -84,10 +56,10 @@ class DomainServiceImpl @Inject() (
       il <- Future.sequence(theList.map(d => fileService.imageExists(d.uuid)))
       vl <- Future.sequence(theList.map(d => fileService.videoExists(d.uuid)))
     } yield new ModelListData[Domain] {
-      override val list = theList
-      override val imageList = il
-      override val videoList = vl
-      override val paginateData = PaginateData(page, count)
+      override val list: List[Domain] = theList
+      override val imageList: List[Boolean] = il
+      override val videoList: List[Boolean] = vl
+      override val paginateData: PaginateData = PaginateData(page, count)
     }
   }
 
@@ -96,7 +68,7 @@ class DomainServiceImpl @Inject() (
     domainServiceLogger.info("parseAmlFiles, domain: " + domain)
 
     for {
-      fileList <- fileService.findByQuery(AmlFiles.getQueryAllAmlFiles(domain.uuid)).flatMap(_.collect[List](-1,
+      fileList <- fileService.findByQuery(AmlFiles.queryAllAmlFiles(domain.uuid)).flatMap(_.collect[List](-1,
         Cursor.FailOnError[List[JSONReadFile]]()))
       updateResult <- {
         var domainHierachies = List.empty[String]
@@ -127,7 +99,7 @@ class DomainServiceImpl @Inject() (
   }
 
   override def getHierarchyList(page: Int, domain: Domain): Future[ModelListData[Hierarchy]] = {
-    findManyHierarchies(Hierarchy.queryByParent(domain), page, utils.DefaultValues.DefaultPageLength)
+    findManyHierarchies(HasParent.queryByParent(domain.uuid), page, utils.DefaultValues.DefaultPageLength)
   }
 
   override def insertHierarchy(model: Hierarchy): Future[Option[Hierarchy]] = hierarchyDao.insert(model).map(wr => if (wr.ok) Some(model) else None)
@@ -161,8 +133,8 @@ class DomainServiceImpl @Inject() (
 
   private def updateAmlHierarchy(domain: Domain, amlHierarchy: AmlHierarchy): Future[String] = {
     for {
-      optionalOldHierarchy <- findOneHierarchy(Hierarchy.queryByParent(domain) ++
-        Hierarchy.queryByName(amlHierarchy.name))
+      optionalOldHierarchy <- findOneHierarchy(HasParent.queryByParent(domain.uuid) ++
+        HasName.queryByName(amlHierarchy.name))
       existingHierarchy <- optionalOldHierarchy match {
         case Some(h) => Future.successful(h)
         case None => insertHierarchy(Hierarchy.
@@ -192,7 +164,7 @@ class DomainServiceImpl @Inject() (
 
     for {
       optionalOldIE <- {
-        val query = Element.queryByAmlId(amlElement.amlId) ++ Element.queryByHasConnectionTo(domain)
+        val query = HasAmlId.queryByAmlId(amlElement.amlId) ++ HasConnectionTo.queryByHasConnectionTo(domain.uuid)
         amlObjectService.findOneElement(query)
       }
 
@@ -236,7 +208,7 @@ class DomainServiceImpl @Inject() (
     amlInterface: AmlInterface): Future[String] = {
     for {
       existingInterface <- {
-        val query = Interface.queryByAmlId(amlInterface.amlId) ++ Interface.queryByHasConnectionTo(domain)
+        val query = HasAmlId.queryByAmlId(amlInterface.amlId) ++ HasConnectionTo.queryByHasConnectionTo(domain.uuid)
         amlObjectService.findOneInterface(query)
       }
       updatedOrNewUuid <- existingInterface match {
@@ -265,18 +237,18 @@ class DomainServiceImpl @Inject() (
 
   private def getAmlObjectData(uuid: String): AmlObjectData = {
     val chain = genereateAmlObjectData(uuid, List())
-    val hierarchy = Await.result(findOneHierarchy(Hierarchy.queryByUuid(chain.head.parent)),
+    val hierarchy = Await.result(findOneHierarchy(DbModel.queryByUuid(chain.head.parent)),
       Duration("3s")).get
-    val domain = Await.result(findOneDomain(Domain.queryByUuid(hierarchy.parent)), Duration("3s")).get
+    val domain = Await.result(findOneDomain(DbModel.queryByUuid(hierarchy.parent)), Duration("3s")).get
 
     AmlObjectData(domain, hierarchy, chain)
   }
 
   private def genereateAmlObjectData(uuid: String, list: List[DbModel with HasName with HasAmlId with HasModelType with HasParent]): 
   List[DbModel with HasName with HasAmlId with HasModelType with HasParent] = {
-    val optElement = Await.result(amlObjectService.findOneElement(Element.queryByUuid(uuid)), Duration("3s"))
+    val optElement = Await.result(amlObjectService.findOneElement(DbModel.queryByUuid(uuid)), Duration("3s"))
     val optInterface = optElement.map(element => None).
-      getOrElse(Await.result(amlObjectService.findOneInterface(Interface.queryByUuid(uuid)),
+      getOrElse(Await.result(amlObjectService.findOneInterface(DbModel.queryByUuid(uuid)),
         Duration("3s")))
 
     optElement match {

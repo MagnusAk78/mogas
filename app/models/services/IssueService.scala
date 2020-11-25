@@ -1,13 +1,10 @@
 package models.services
 
-import scala.concurrent.Future
-import models.Issue
-import viewdata.PaginateData
-import models.Domain
-import models.IssueUpdate
+import models.{Domain, Issue, IssueUpdate}
 import play.api.libs.json.JsObject
-import utils.RemoveResult
 import viewdata.ModelListData
+
+import scala.concurrent.Future
 
 trait IssueService {
 

@@ -8,11 +8,8 @@ trait HasParent {
   val parent: String
 }
 
-trait HasParentComp[M <: DbModel] {
-
+object HasParent {
   private val KeyParent = "parent"
 
-  def queryByParent(parentModel: M): JsObject = Json.obj(KeyParent -> JsString(parentModel.uuid))
-
-  def childOfJsObject(child: HasParent): JsObject = Json.obj(KeyParent -> JsString(child.parent))
+  def queryByParent(uuid: String): JsObject = Json.obj(KeyParent -> JsString(uuid))
 }

@@ -1,42 +1,16 @@
 package controllers
 
-import scala.annotation.implicitNotFound
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import org.joda.time.DateTime
 import akka.stream.Materializer
-import models.formdata.DomainForm
-import models.formdata.DomainForm.fromDomainToData
-import javax.inject.Inject
-import javax.inject.Singleton
-import models.services.DomainService
-import models.services.UserService
-import play.api.i18n.{I18nSupport, Lang, Messages, MessagesApi}
-import play.api.libs.iteratee.Enumerator
-import play.api.libs.iteratee.Iteratee
-import play.api.libs.json.Json
-import play.api.mvc.{AbstractController, ActionBuilder, ActionRefiner, ActionTransformer, BaseController, BodyParser, ControllerComponents, Flash, MultipartFormData, Request, WrappedRequest}
-import utils.auth.DefaultEnv
-import models.Images
-import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import controllers.actions._
-import utils.RemoveResult
-import models.formdata.DomainForm
-import models.Domain
-import models.services.InstructionService
-import models.formdata.InstructionForm
-import models.Instruction
-import models.services.AmlObjectService
-import models.services.FileService
-import models.formdata.InstructionPartForm
-import models.InstructionPart
+import javax.inject.{Inject, Singleton}
+import models.formdata.{InstructionForm, InstructionPartForm}
+import models.services._
+import models.{DbModel, Instruction, InstructionPart, MediaTypes}
+import play.api.i18n.{I18nSupport, Lang, Messages}
+import play.api.mvc.{AbstractController, ControllerComponents}
+import viewdata.{MediaData, _}
 
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
-import models.HasAmlId
-import models.MediaTypes
-import viewdata.MediaData
-import viewdata._
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class InstructionController @Inject() (
@@ -59,7 +33,7 @@ class InstructionController @Inject() (
 				if (domainUuid.isEmpty()) {
 					Future.successful(None)
 				} else {
-					domainService.findOneDomain(Domain.queryByUuid(domainUuid))
+					domainService.findOneDomain(DbModel.queryByUuid(domainUuid))
 				}
 			}
 			instructionListData <- instructionService.getInstructionList(page)
@@ -187,7 +161,7 @@ class InstructionController @Inject() (
 
 		val responses = for {
 			instructionOpt <- instructionService.
-			  findOneInstruction(Instruction.queryByUuid(instructionPartRequest.instructionPart.parent))
+			  findOneInstruction(DbModel.queryByUuid(instructionPartRequest.instructionPart.parent))
 			mediaExists <- MediaTypes.fromString(mediaType) match {
 			case MediaTypes.MediaImage => fileService.imageExists(uuid)
 			case MediaTypes.MediaVideo => fileService.videoExists(uuid)
@@ -260,7 +234,7 @@ class InstructionController @Inject() (
 				formWithErrors => {
 
 					val responses = for {
-						instructionOpt <- instructionService.findOneInstruction(Instruction.queryByUuid(instructionPartRequest.instructionPart.parent))
+						instructionOpt <- instructionService.findOneInstruction(DbModel.queryByUuid(instructionPartRequest.instructionPart.parent))
 						instructionPartsListData <- instructionService.getInstructionPartList(instructionPartRequest.instruction, page)
 						mediaExists <- MediaTypes.fromString(mediaType) match {
 			        case MediaTypes.MediaImage => fileService.imageExists(uuid)
@@ -306,7 +280,7 @@ class InstructionController @Inject() (
 		implicit instructionPartRequest =>
 
 		val responses = for {
-			instructionOpt <- instructionService.findOneInstruction(Instruction.queryByUuid(instructionPartRequest.instructionPart.parent))
+			instructionOpt <- instructionService.findOneInstruction(DbModel.queryByUuid(instructionPartRequest.instructionPart.parent))
 			instructionPartsListData <- instructionService.getInstructionPartList(instructionPartRequest.instruction, page)
 			mediaExists <- MediaTypes.fromString(mediaType) match {
         case MediaTypes.MediaImage => fileService.imageExists(uuid)

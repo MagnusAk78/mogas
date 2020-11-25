@@ -1,38 +1,18 @@
 package controllers
 
-import scala.annotation.implicitNotFound
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import org.joda.time.DateTime
 import akka.stream.Materializer
+import controllers.actions._
+import javax.inject.{Inject, Singleton}
 import models.formdata.DomainForm
 import models.formdata.DomainForm.fromDomainToData
-import javax.inject.Inject
-import javax.inject.Singleton
-import models.services.DomainService
-import models.services.UserService
+import models.services._
+import models.{DbModel, Domain, HasParent}
 import play.api.i18n.{I18nSupport, Lang, Messages}
-import play.api.libs.iteratee.Enumerator
-import play.api.libs.iteratee.Iteratee
-import play.api.libs.json.Json
-import play.api.mvc.{AbstractController, ActionBuilder, ActionRefiner, ActionTransformer, BaseController, BodyParser, ControllerComponents, Flash, MultipartFormData, Request, WrappedRequest}
-import viewdata.PaginateData
-import utils.auth.DefaultEnv
-import models.Images
-import com.mohiva.play.silhouette.api.actions.SecuredRequest
-import controllers.actions._
-import utils.RemoveResult
-import models.formdata.DomainForm
-import models.Domain
-import models.services.AmlObjectService
-import viewdata.HierarchyData
-import viewdata._
-import models.services.FileService
-import models.services.IssueService
-import models.services.InstructionService
-import models.User
-import models.Instruction
+import play.api.mvc.{AbstractController, ControllerComponents}
 import utils.DefaultValues
+import viewdata.{HierarchyData, _}
+
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class DomainController @Inject() (
@@ -94,7 +74,7 @@ class DomainController @Inject() (
           elementListData <- amlObjectService.getElementList(elementPage, elementRequest.elementChain.last)
           interfaceListData <- amlObjectService.getInterfaceList(interfacePage, elementRequest.elementChain.last)
           imageExists <- fileService.imageExists(uuid)
-          instructionListData <- instructionService.findManyInstructions(Instruction.queryByParent(elementRequest.elementChain.last))
+          instructionListData <- instructionService.findManyInstructions(HasParent.queryByParent(elementRequest.elementChain.last.uuid))
         } yield Ok(views.html.browse.element(ElementData(elementRequest.myDomain, elementRequest.hierarchy,
           elementRequest.elementChain), imageExists, elementListData, interfaceListData, instructionListData, 
           UserStatus(Some(elementRequest.identity), elementRequest.activeDomain)))
@@ -110,7 +90,7 @@ class DomainController @Inject() (
         
         val responses = for {
           imageExists <- fileService.imageExists(uuid)
-          instructionListData <- instructionService.findManyInstructions(Instruction.queryByParent(interfaceRequest.interface))
+          instructionListData <- instructionService.findManyInstructions(HasParent.queryByParent(interfaceRequest.interface.uuid))
         } yield Ok(views.html.browse.interface(interfaceRequest.interface, imageExists, 
             ElementData(interfaceRequest.myDomain, interfaceRequest.hierarchy, interfaceRequest.elementChain), 
             instructionListData, UserStatus(Some(interfaceRequest.identity), interfaceRequest.activeDomain)))
@@ -248,7 +228,7 @@ class DomainController @Inject() (
             mySecuredRequest.identity.copy(activeDomain = uuid)
           }
           userService.update(updateUser).flatMap(b => b match {
-            case true => domainService.findOneDomain(Domain.queryByUuid(updateUser.activeDomain))
+            case true => domainService.findOneDomain(DbModel.queryByUuid(updateUser.activeDomain))
             case false => Future.successful(None)
           })
         }
@@ -264,7 +244,7 @@ class DomainController @Inject() (
   def editAllowedUsers(uuid: String, page: Int) =
     (generalActions.MySecuredAction andThen generalActions.DomainAction(uuid)).async { implicit domainRequest =>
       val responses = for {
-        userListData <- userService.findMany(User.queryAll, page, DefaultValues.DefaultPageLength)
+        userListData <- userService.findMany(DbModel.queryAll, page, DefaultValues.DefaultPageLength)
       } yield Ok(views.html.domains.editAllowedUsers(domainRequest.myDomain, userListData, UserStatus(Some(domainRequest.identity),
         domainRequest.activeDomain)))
 

@@ -1,13 +1,12 @@
 package models.services
 
-import scala.concurrent.Future
-
 import com.mohiva.play.silhouette.api.services.IdentityService
 import com.mohiva.play.silhouette.impl.providers.CommonSocialProfile
-import viewdata.ModelListData
-
 import models.User
 import play.api.libs.json.JsObject
+import viewdata.ModelListData
+
+import scala.concurrent.Future
 
 /**
  * Handles actions to users.

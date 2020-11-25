@@ -1,24 +1,13 @@
 package controllers
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import com.mohiva.play.silhouette.api.Silhouette
-import javax.inject.Inject
-import javax.inject.Singleton
-import models.DbModel
-import models.Domain
-import models.User
-import models.services.DomainService
-import models.services.UserService
-import play.Logger
-import play.api.i18n.{I18nSupport, Lang, MessagesApi}
-import play.api.mvc.{AbstractController, ControllerComponents}
-import viewdata.PaginateData
-import utils.auth.DefaultEnv
 import controllers.actions.GeneralActions
-import controllers.actions.MySecuredRequest
+import javax.inject.{Inject, Singleton}
+import models.services.{DomainService, FileService, UserService}
+import play.api.i18n.{I18nSupport, Lang}
+import play.api.mvc.{AbstractController, ControllerComponents}
 import viewdata._
-import models.services.FileService
+
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class UserController @Inject() (

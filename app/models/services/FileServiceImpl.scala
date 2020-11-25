@@ -1,18 +1,17 @@
 package models.services
 
+import javax.inject.Inject
 import models.daos.FileDAO
 import models.daos.FileDAO.JSONReadFile
-import javax.inject.Inject
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext
+import play.api.libs.iteratee.Enumerator
+import play.api.libs.json.JsObject
+import play.modules.reactivemongo.JSONFileToSave
 import reactivemongo.api.Cursor
 import reactivemongo.api.gridfs.GridFS
-import play.api.mvc.Result
 import reactivemongo.play.json.JSONSerializationPack
-import play.modules.reactivemongo.JSONFileToSave
-import play.api.libs.json.JsObject
 import utils.RemoveResult
-import play.api.libs.iteratee._
+
+import scala.concurrent.{ExecutionContext, Future}
 
 class FileServiceImpl @Inject() (override val dao: FileDAO)(implicit val ec: ExecutionContext) extends FileService {
 
@@ -48,7 +47,7 @@ class FileServiceImpl @Inject() (override val dao: FileDAO)(implicit val ec: Exe
     }
     
   def amlFiles(uuid: String): Future[List[JSONReadFile]] = {
-    dao.findByQuery(models.AmlFiles.getQueryAllAmlFiles(uuid)).flatMap { c => c.collect[List](100,
+    dao.findByQuery(models.AmlFiles.queryAllAmlFiles(uuid)).flatMap { c => c.collect[List](100,
       Cursor.FailOnError[List[JSONReadFile]]()) }
   }
 }

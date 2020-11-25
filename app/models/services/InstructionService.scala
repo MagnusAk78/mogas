@@ -1,13 +1,11 @@
 package models.services
 
-import scala.concurrent.Future
-import models.Instruction
-import viewdata.PaginateData
-import models.Domain
-import models.InstructionPart
+import models.{Domain, Instruction, InstructionPart}
 import play.api.libs.json.JsObject
 import utils.RemoveResult
 import viewdata.ModelListData
+
+import scala.concurrent.Future
 
 trait InstructionService {
 

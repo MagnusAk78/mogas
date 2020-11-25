@@ -17,9 +17,7 @@ case class Element(
     with HasParent with OrderedModel with HasName with HasElements {
 }
 
-object Element extends DbModelComp[Element] with HasModelTypeComp with HasConnectionToComp[Domain] 
-  with HasAmlIdComp with HasParentComp[DbModel with HasElements] with OrderedModelComp with HasNameComp 
-  with HasElementsComp {
+object Element {
 
   implicit val elementFormat = Json.format[Element]
 

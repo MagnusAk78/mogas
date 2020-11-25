@@ -1,14 +1,10 @@
 package models.services
 
+import models.{DbModel, Element, HasElements, Interface}
 import play.api.libs.json.JsObject
-import scala.concurrent.Future
-import models.HasAmlId
-import models.Instruction
-import models.Interface
-import models.Element
-import models.HasElements
 import viewdata.ModelListData
-import models.DbModel
+
+import scala.concurrent.Future
 
 trait AmlObjectService {
 

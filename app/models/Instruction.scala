@@ -15,13 +15,9 @@ case class Instruction(
     with HasCreatedBy {
 }
 
-object Instruction extends DbModelComp[Instruction] with HasModelTypeComp with 
-  HasParentComp[DbModel with HasAmlId] 
-  with HasConnectionToComp[Domain] with HasCreatedByComp with HasNameComp {
+object Instruction {
 
   implicit val instructionFormat = Json.format[Instruction]
-
-  private val KeyCreatedByUser = "createdByUser"
 
   def create(name: String, connectionToToDomain: String, parentAmlObject: String, createdBy: String) =
     Instruction(uuid = UUID.randomUUID.toString, modelType=Types.InstructionType.stringValue,

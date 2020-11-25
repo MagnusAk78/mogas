@@ -12,10 +12,8 @@ object AmlFiles {
 
   val KeyMetadata = "metadata"
 
-  def getQueryAllAmlFiles(belongToUuid: String): JsObject =
+  def queryAllAmlFiles(belongToUuid: String): JsObject =
     Json.obj((KeyMetadata + "." + KeyBelongToDomain) -> JsString(belongToUuid))
 
-  def getAmlFileMetadata(domainUuid: String) =
-    Json.obj(
-      KeyBelongToDomain -> JsString(domainUuid))
+  def amlFileMetadata(domainUuid: String) = Json.obj(KeyBelongToDomain -> JsString(domainUuid))
 }

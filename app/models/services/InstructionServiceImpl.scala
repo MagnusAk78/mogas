@@ -1,19 +1,13 @@
 package models.services
 
-import viewdata.PaginateData
-import models.Instruction
-import models.daos.InstructionDAO
-import models.daos.InstructionPartDAO
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import play.api.libs.json.Json
-import models.Domain
-import models.InstructionPart
-import models.HasAmlId
+import models.daos.{InstructionDAO, InstructionPartDAO}
+import models._
 import play.api.libs.json.JsObject
 import utils.RemoveResult
-import viewdata.ModelListData
+import viewdata.{ModelListData, PaginateData}
+
+import scala.concurrent.{ExecutionContext, Future}
 
 class InstructionServiceImpl @Inject() (val instructionDao: InstructionDAO,
   val instructionPartDao: InstructionPartDAO,
@@ -22,7 +16,7 @@ class InstructionServiceImpl @Inject() (val instructionDao: InstructionDAO,
     extends InstructionService {
 
   override def getInstructionList(page: Int, domain: Option[Domain] = None): Future[ModelListData[Instruction]] = {
-    val selector = domain.map(f => Instruction.queryByHasConnectionTo(f)).getOrElse(Instruction.queryAll)
+    val selector = domain.map(f => HasConnectionTo.queryByHasConnectionTo(f.uuid)).getOrElse(DbModel.queryAll)
     findManyInstructions(selector, page, utils.DefaultValues.DefaultPageLength)
   }
 
@@ -65,12 +59,12 @@ class InstructionServiceImpl @Inject() (val instructionDao: InstructionDAO,
   }
 
   override def getInstructionPartList(instruction: Instruction, page: Int): Future[ModelListData[InstructionPart]] = {
-    findManySortedInstructionParts(InstructionPart.queryByParent(instruction), InstructionPart.sortByOrderNumber,
+    findManySortedInstructionParts(HasParent.queryByParent(instruction.uuid), OrderedModel.sortByOrderNumber,
       page, utils.DefaultValues.DefaultPageLength)
   }
 
   def getNextOrderNumber(instruction: Instruction): Future[Int] = {
-    instructionPartDao.count(InstructionPart.queryByParent(instruction)).map { count => count + 1 }
+    instructionPartDao.count(HasParent.queryByParent(instruction.uuid)).map { count => count + 1 }
   }
 
   override def movePartUp(instructionPart: InstructionPart): Future[Boolean] = movePart(instructionPart, -1)
@@ -79,9 +73,9 @@ class InstructionServiceImpl @Inject() (val instructionDao: InstructionDAO,
 
   private def movePart(instructionPart: InstructionPart, direction: Int): Future[Boolean] = {
     val result = for {
-      instructionOpt <- findOneInstruction(Instruction.queryByUuid(instructionPart.parent))
-      optOther <- findOneInstructionPart(InstructionPart.queryByParent(instructionOpt.get) ++
-        InstructionPart.queryByOrderNumber(instructionPart.orderNumber + direction))
+      instructionOpt <- findOneInstruction(DbModel.queryByUuid(instructionPart.parent))
+      optOther <- findOneInstructionPart(HasParent.queryByParent(instructionOpt.get.uuid) ++
+        OrderedModel.queryByOrderNumber(instructionPart.orderNumber + direction))
       updateOther <- updateInstructionPart(optOther.get.copy(orderNumber = optOther.get.orderNumber - direction))
       updateThis <- updateInstructionPart(instructionPart.copy(orderNumber = instructionPart.orderNumber + direction))
     } yield updateThis

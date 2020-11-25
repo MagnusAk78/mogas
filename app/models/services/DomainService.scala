@@ -1,17 +1,11 @@
 package models.services
 
-import scala.concurrent.Future
-import models.Domain
-import models.Hierarchy
-import viewdata.PaginateData
+import models._
 import play.api.libs.json.JsObject
 import utils.RemoveResult
-import viewdata.ModelListData
-import viewdata.AmlObjectData
-import models.HasParent
-import models.DbModel
-import models.HasAmlId
-import models.User
+import viewdata.{AmlObjectData, ModelListData}
+
+import scala.concurrent.Future
 
 trait DomainService {
 

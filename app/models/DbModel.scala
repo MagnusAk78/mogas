@@ -9,8 +9,7 @@ trait DbModel {
   val uuid: String
 }
 
-trait DbModelComp[M <: DbModel] {
-
+object DbModel {
   private val KeyUUID = "uuid"
 
   final val queryAll: JsObject = Json.obj()

@@ -15,8 +15,7 @@ case class IssueUpdate(
   val closed: Boolean) extends DbModel with HasModelType with OrderedModel with HasParent with HasCreatedBy
     with HasText
 
-object IssueUpdate extends DbModelComp[IssueUpdate] with HasModelTypeComp with HasParentComp[Issue] with HasCreatedByComp
-    with HasTextComp with OrderedModelComp {
+object IssueUpdate {
 
   implicit val issueUpdateFormat = Json.format[IssueUpdate]
 

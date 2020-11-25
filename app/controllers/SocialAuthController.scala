@@ -1,13 +1,13 @@
 package controllers
 
-import javax.inject.Inject
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.exceptions.ProviderException
 import com.mohiva.play.silhouette.api.repositories.AuthInfoRepository
 import com.mohiva.play.silhouette.impl.providers._
+import javax.inject.Inject
 import models.services.UserService
-import play.api.i18n.{I18nSupport, Lang, Messages, MessagesApi}
-import play.api.mvc.{AbstractController, BaseController, ControllerComponents}
+import play.api.i18n.{I18nSupport, Lang, Messages}
+import play.api.mvc.{AbstractController, ControllerComponents}
 import utils.auth.DefaultEnv
 
 import scala.concurrent.{ExecutionContext, Future}

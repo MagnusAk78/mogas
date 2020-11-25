@@ -1,19 +1,12 @@
 package models.services
 
-import viewdata.PaginateData
-import models.Issue
-import models.daos.IssueDAO
-import models.daos.IssueUpdateDAO
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import play.api.libs.json.Json
-import models.Domain
-import models.IssueUpdate
-import models.HasAmlId
+import models.daos.{IssueDAO, IssueUpdateDAO}
+import models._
 import play.api.libs.json.JsObject
-import utils.RemoveResult
-import viewdata.ModelListData
+import viewdata.{ModelListData, PaginateData}
+
+import scala.concurrent.{ExecutionContext, Future}
 
 class IssueServiceImpl @Inject() (val issueDao: IssueDAO,
   val issueUpdateDao: IssueUpdateDAO,
@@ -22,7 +15,7 @@ class IssueServiceImpl @Inject() (val issueDao: IssueDAO,
     extends IssueService {
 
   override def getIssueList(page: Int, domain: Option[Domain] = None): Future[ModelListData[Issue]] = {
-    val selector = domain.map(f => Issue.queryByHasConnectionTo(f)).getOrElse(Issue.queryAll)
+    val selector = domain.map(f => HasConnectionTo.queryByHasConnectionTo(f.uuid)).getOrElse(DbModel.queryAll)
     findManyIssues(selector, page, utils.DefaultValues.DefaultPageLength)
   }
 
@@ -48,12 +41,12 @@ class IssueServiceImpl @Inject() (val issueDao: IssueDAO,
   }
 
   override def getIssueUpdateList(issue: Issue, page: Int): Future[ModelListData[IssueUpdate]] = {
-    findManySortedIssueUpdates(IssueUpdate.queryByParent(issue), IssueUpdate.sortByOrderNumber,
+    findManySortedIssueUpdates(HasParent.queryByParent(issue.uuid), OrderedModel.sortByOrderNumber,
       page, utils.DefaultValues.DefaultPageLength)
   }
 
   def getNextOrderNumber(issue: Issue): Future[Int] = {
-    issueUpdateDao.count(IssueUpdate.queryByParent(issue)).map { count => count + 1 }
+    issueUpdateDao.count(HasParent.queryByParent(issue.uuid)).map { count => count + 1 }
   }
 
   override def insertIssueUpdate(model: IssueUpdate): Future[Option[IssueUpdate]] = 

@@ -52,7 +52,7 @@ class GeneralActionsImpl @Inject() (
   def ActiveDomainAction = new ActionTransformer[SilhouetteSecuredRequest, MySecuredRequest] {
     def executionContext = ec
     override def transform[A](request: SilhouetteSecuredRequest[A]) = {
-      domainService.findOneDomain(Domain.queryByUuid(request.identity.activeDomain)).map { optActiveOrg =>
+      domainService.findOneDomain(DbModel.queryByUuid(request.identity.activeDomain)).map { optActiveOrg =>
         MySecuredRequest(optActiveOrg, request)
       }
     }
@@ -77,7 +77,7 @@ class GeneralActionsImpl @Inject() (
   override def UserAction(uuid: String) = new ActionRefiner[MySecuredRequest, UserRequest] {
     def executionContext = ec
     override def refine[A](activeDomainRequest: MySecuredRequest[A]) = {
-      userService.findOne(User.queryByUuid(uuid)).map { optUser =>
+      userService.findOne(DbModel.queryByUuid(uuid)).map { optUser =>
         optUser.map(
           UserRequest(_, activeDomainRequest)).toRight(NotFound)
       }
@@ -88,7 +88,7 @@ class GeneralActionsImpl @Inject() (
     def executionContext = ec
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
-        optionDomain <- domainService.findOneDomain(Domain.queryByUuid(uuid))
+        optionDomain <- domainService.findOneDomain(DbModel.queryByUuid(uuid))
       } yield optionDomain.map(domain => DomainRequest(domain, mySecuredRequest)).toRight(NotFound)
     }
   }
@@ -97,8 +97,8 @@ class GeneralActionsImpl @Inject() (
     def executionContext = ec
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
-        optionHierarchy <- domainService.findOneHierarchy(Domain.queryByUuid(uuid))
-        optionDomain <- domainService.findOneDomain(Domain.queryByUuid(optionHierarchy.get.parent))
+        optionHierarchy <- domainService.findOneHierarchy(DbModel.queryByUuid(uuid))
+        optionDomain <- domainService.findOneDomain(DbModel.queryByUuid(optionHierarchy.get.parent))
       } yield optionDomain.map(domain => HierarchyRequest(domain, optionHierarchy.get, mySecuredRequest))
         .toRight(NotFound)
     }
@@ -109,8 +109,8 @@ class GeneralActionsImpl @Inject() (
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
         elements <- amlObjectService.getElementChain(uuid)
-        optionHierarchy <- domainService.findOneHierarchy(Hierarchy.queryByUuid(elements.head.parent))
-        optionDomain <- domainService.findOneDomain(Domain.queryByUuid(optionHierarchy.get.parent))
+        optionHierarchy <- domainService.findOneHierarchy(DbModel.queryByUuid(elements.head.parent))
+        optionDomain <- domainService.findOneDomain(DbModel.queryByUuid(optionHierarchy.get.parent))
       } yield optionDomain.map(domain => ElementRequest(optionDomain.get, optionHierarchy.get, elements,
         mySecuredRequest)).toRight(NotFound)
     }
@@ -120,10 +120,10 @@ class GeneralActionsImpl @Inject() (
     def executionContext = ec
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
-        interface <- amlObjectService.findOneInterface(Interface.queryByUuid(uuid))
+        interface <- amlObjectService.findOneInterface(DbModel.queryByUuid(uuid))
         elements <- amlObjectService.getElementChain(interface.get.parent)
-        optionHierarchy <- domainService.findOneHierarchy(Hierarchy.queryByUuid(elements.head.parent))
-        optionDomain <- domainService.findOneDomain(Domain.queryByUuid(optionHierarchy.get.parent))
+        optionHierarchy <- domainService.findOneHierarchy(DbModel.queryByUuid(elements.head.parent))
+        optionDomain <- domainService.findOneDomain(DbModel.queryByUuid(optionHierarchy.get.parent))
       } yield optionDomain.map(domain => InterfaceRequest(optionDomain.get, optionHierarchy.get, elements,
         interface.get, mySecuredRequest)).toRight(NotFound)
     }
@@ -133,17 +133,17 @@ class GeneralActionsImpl @Inject() (
     def executionContext = ec
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
-        optInterface <- amlObjectService.findOneInterface(Interface.queryByUuid(uuid))
+        optInterface <- amlObjectService.findOneInterface(DbModel.queryByUuid(uuid))
         optElement <- optInterface match {
           case Some(i) => Future.successful(None)
-          case None => amlObjectService.findOneElement(Element.queryByUuid(uuid))
+          case None => amlObjectService.findOneElement(DbModel.queryByUuid(uuid))
         }
         elements <- optInterface match {
           case Some(interface) => amlObjectService.getElementChain(interface.parent)
           case None => amlObjectService.getElementChain(optElement.get.uuid)
         }
-        optHierarchy <- domainService.findOneHierarchy(Hierarchy.queryByUuid(elements.head.parent))
-        optDomain <- domainService.findOneDomain(Domain.queryByUuid(optHierarchy.get.parent))
+        optHierarchy <- domainService.findOneHierarchy(DbModel.queryByUuid(elements.head.parent))
+        optDomain <- domainService.findOneDomain(DbModel.queryByUuid(optHierarchy.get.parent))
       } yield if (optHierarchy.isDefined && optDomain.isDefined) {
         Right(AmlObjectRequest(optDomain.get, optHierarchy.get, elements, optInterface, mySecuredRequest))
       } else {
@@ -156,18 +156,18 @@ class GeneralActionsImpl @Inject() (
     def executionContext = ec
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
-        optInstruction <- instructionService.findOneInstruction(Instruction.queryByUuid(uuid))
-        optInterface <- amlObjectService.findOneInterface(Interface.queryByUuid(optInstruction.get.parent))
+        optInstruction <- instructionService.findOneInstruction(DbModel.queryByUuid(uuid))
+        optInterface <- amlObjectService.findOneInterface(DbModel.queryByUuid(optInstruction.get.parent))
         optElement <- optInterface match {
           case Some(i) => Future.successful(None)
-          case None => amlObjectService.findOneElement(Element.queryByUuid(optInstruction.get.parent))
+          case None => amlObjectService.findOneElement(DbModel.queryByUuid(optInstruction.get.parent))
         }
         elements <- optInterface match {
           case Some(interface) => amlObjectService.getElementChain(interface.parent)
           case None => amlObjectService.getElementChain(optElement.get.uuid)
         }
-        optHierarchy <- domainService.findOneHierarchy(Hierarchy.queryByUuid(elements.head.parent))
-        optDomain <- domainService.findOneDomain(Domain.queryByUuid(optHierarchy.get.parent))
+        optHierarchy <- domainService.findOneHierarchy(DbModel.queryByUuid(elements.head.parent))
+        optDomain <- domainService.findOneDomain(DbModel.queryByUuid(optHierarchy.get.parent))
       } yield if (optInstruction.isDefined && optHierarchy.isDefined && optDomain.isDefined) {
         Right(InstructionRequest(optInstruction.get, optDomain.get, optHierarchy.get, elements, optInterface,
           mySecuredRequest))
@@ -181,19 +181,19 @@ class GeneralActionsImpl @Inject() (
     def executionContext = ec
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
-        optInstructionPart <- instructionService.findOneInstructionPart(InstructionPart.queryByUuid(uuid))
-        optInstruction <- instructionService.findOneInstruction(Instruction.queryByUuid(optInstructionPart.get.parent))
-        optInterface <- amlObjectService.findOneInterface(Interface.queryByUuid(optInstruction.get.parent))
+        optInstructionPart <- instructionService.findOneInstructionPart(DbModel.queryByUuid(uuid))
+        optInstruction <- instructionService.findOneInstruction(DbModel.queryByUuid(optInstructionPart.get.parent))
+        optInterface <- amlObjectService.findOneInterface(DbModel.queryByUuid(optInstruction.get.parent))
         optElement <- optInterface match {
           case Some(i) => Future.successful(None)
-          case None => amlObjectService.findOneElement(Element.queryByUuid(optInstruction.get.parent))
+          case None => amlObjectService.findOneElement(DbModel.queryByUuid(optInstruction.get.parent))
         }
         elements <- optInterface match {
           case Some(interface) => amlObjectService.getElementChain(interface.parent)
           case None => amlObjectService.getElementChain(optElement.get.uuid)
         }
-        optHierarchy <- domainService.findOneHierarchy(Hierarchy.queryByUuid(elements.head.parent))
-        optDomain <- domainService.findOneDomain(Domain.queryByUuid(optHierarchy.get.parent))
+        optHierarchy <- domainService.findOneHierarchy(DbModel.queryByUuid(elements.head.parent))
+        optDomain <- domainService.findOneDomain(DbModel.queryByUuid(optHierarchy.get.parent))
       } yield if (optInstructionPart.isDefined && optInstruction.isDefined && optHierarchy.isDefined && optDomain.isDefined) {
         Right(InstructionPartRequest(optInstructionPart.get, optInstruction.get, optDomain.get, optHierarchy.get, elements, 
             optInterface, mySecuredRequest))
@@ -207,18 +207,18 @@ class GeneralActionsImpl @Inject() (
     def executionContext = ec
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
-        optionIssue <- issueService.findOneIssue(Issue.queryByUuid(uuid))
-        optInterface <- amlObjectService.findOneInterface(Interface.queryByUuid(optionIssue.get.parent))
+        optionIssue <- issueService.findOneIssue(DbModel.queryByUuid(uuid))
+        optInterface <- amlObjectService.findOneInterface(DbModel.queryByUuid(optionIssue.get.parent))
         optElement <- optInterface match {
           case Some(i) => Future.successful(None)
-          case None => amlObjectService.findOneElement(Element.queryByUuid(optionIssue.get.parent))
+          case None => amlObjectService.findOneElement(DbModel.queryByUuid(optionIssue.get.parent))
         }
         elements <- optInterface match {
           case Some(interface) => amlObjectService.getElementChain(interface.parent)
           case None => amlObjectService.getElementChain(optElement.get.uuid)
         }
-        optHierarchy <- domainService.findOneHierarchy(Hierarchy.queryByUuid(elements.head.parent))
-        optDomain <- domainService.findOneDomain(Domain.queryByUuid(optHierarchy.get.parent))
+        optHierarchy <- domainService.findOneHierarchy(DbModel.queryByUuid(elements.head.parent))
+        optDomain <- domainService.findOneDomain(DbModel.queryByUuid(optHierarchy.get.parent))
       } yield if (optionIssue.isDefined && optHierarchy.isDefined && optDomain.isDefined) {
         Right(IssueRequest(optionIssue.get, optDomain.get, optHierarchy.get, elements, optInterface,
           mySecuredRequest))
@@ -232,8 +232,8 @@ class GeneralActionsImpl @Inject() (
     def executionContext = ec
     override def refine[A](mySecuredRequest: MySecuredRequest[A]) = {
       for {
-        optionIssueUpdate <- issueService.findOneIssueUpdate(IssueUpdate.queryByUuid(uuid))
-        optionIssue <- issueService.findOneIssue(Issue.queryByUuid(optionIssueUpdate.get.parent))
+        optionIssueUpdate <- issueService.findOneIssueUpdate(DbModel.queryByUuid(uuid))
+        optionIssue <- issueService.findOneIssue(DbModel.queryByUuid(optionIssueUpdate.get.parent))
       } yield (optionIssueUpdate, optionIssue) match {
         case (Some(issueUpdate), Some(issue)) => Right(IssueUpdateRequest(issueUpdate, issue, mySecuredRequest))
         case _ => Left(NotFound)

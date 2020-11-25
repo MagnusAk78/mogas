@@ -40,7 +40,6 @@ class Module extends AbstractModule {
     bind(classOf[AmlObjectService]).to(classOf[AmlObjectServiceImpl]).asEagerSingleton()
     bind(classOf[InstructionService]).to(classOf[InstructionServiceImpl]).asEagerSingleton()
     bind(classOf[IssueService]).to(classOf[IssueServiceImpl]).asEagerSingleton()
-    bind(classOf[FileService]).to(classOf[FileServiceImpl])
+    bind(classOf[FileService]).to(classOf[FileServiceImpl]).asEagerSingleton()
   }
-
 }

@@ -1,18 +1,16 @@
 package models.services
 
-import play.api.libs.json.JsString
-import reactivemongo.api.Cursor
-import reactivemongo.api.gridfs.ReadFile
-import reactivemongo.play.json.JSONSerializationPack
-import scala.concurrent.Future
 import models.daos.FileDAO
 import models.daos.FileDAO.JSONReadFile
-import reactivemongo.api.gridfs.GridFS
-import play.api.mvc.Result
-import play.modules.reactivemongo.JSONFileToSave
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.JsObject
+import play.modules.reactivemongo.JSONFileToSave
+import reactivemongo.api.Cursor
+import reactivemongo.api.gridfs.GridFS
+import reactivemongo.play.json.JSONSerializationPack
 import utils.RemoveResult
+
+import scala.concurrent.Future
 
 trait FileService {
 

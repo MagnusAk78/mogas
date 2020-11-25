@@ -14,12 +14,9 @@ case class InstructionPart(
     with HasText with HasShortText {
 }
 
-object InstructionPart extends DbModelComp[InstructionPart] with HasModelTypeComp with HasParentComp[Instruction] 
-  with HasCreatedByComp with HasTextComp with OrderedModelComp with HasShortTextComp {
+object InstructionPart {
 
   implicit val instructionPartFormat = Json.format[InstructionPart]
-
-  private val KeyShortText = "shortText"
 
   def create(orderNumber: Int, parentInstruction: String, text: String, createdBy: String, shortText: String) =
     InstructionPart(uuid = UUID.randomUUID.toString, modelType=Types.InstructionPartType.stringValue, 

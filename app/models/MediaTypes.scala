@@ -1,8 +1,5 @@
 package models
 
-import viewdata.NavTypes._
-import utils._
-
 object MediaTypes {
   sealed trait MediaType {
     val stringValue: String

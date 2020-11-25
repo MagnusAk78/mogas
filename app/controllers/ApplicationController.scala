@@ -1,29 +1,17 @@
 package controllers
 
-import javax.inject.Inject
 import com.mohiva.play.silhouette.api.{LogoutEvent, Silhouette}
 import com.mohiva.play.silhouette.impl.providers.SocialProviderRegistry
-import play.api.i18n.I18nSupport
+import controllers.actions.GeneralActions
+import javax.inject.Inject
+import models.DbModel
+import models.services.{DomainService, UserService}
+import play.api.i18n.{I18nSupport, Lang}
 import play.api.mvc.{AbstractController, ControllerComponents}
 import utils.auth.DefaultEnv
-
-import scala.concurrent.Future
-import reactivemongo.core.nodeset.Authentication
-import com.mohiva.play.silhouette.api.actions.SecuredAction
-import com.mohiva.play.silhouette.api.actions.UserAwareAction
-import models.User
-import play.api.i18n.Lang
-import com.mohiva.play.silhouette.api.actions.SecuredAction
-import com.mohiva.play.silhouette.api.actions.UserAwareAction
-import reactivemongo.core.nodeset.Authentication
-
-import scala.concurrent.ExecutionContext
-import models.services.UserService
-import play.api.Logger
-import controllers.actions.GeneralActions
-import models.Domain
-import models.services.DomainService
 import viewdata._
+
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * The basic application controller.
@@ -53,7 +41,7 @@ class ApplicationController @Inject() (silhouette: Silhouette[DefaultEnv],
         case None => Future.successful(None)
       }
       activeDomain <- userOpt match {
-        case Some(user) => domainService.findOneDomain(Domain.queryByUuid(user.activeDomain))
+        case Some(user) => domainService.findOneDomain(DbModel.queryByUuid(user.activeDomain))
         case None => Future.successful(None)
       }
     } yield userOpt match {

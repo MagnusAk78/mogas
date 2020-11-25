@@ -49,8 +49,9 @@ libraryDependencies ++= Seq(
   //Reactive mongo
   //"org.reactivemongo" %% "play2-reactivemongo" % "0.12.4-play26",
   "org.reactivemongo" %% "play2-reactivemongo" % "0.20.13-play26",
+  //"org.reactivemongo" %% "play2-reactivemongo" % "1.0.1-play26",
   // Same as play-silhouette-persistence-reactivemongo (Problematic, uses depricated executioncontext)
-  //"org.reactivemongo" %% "play2-reactivemongo" % "0.16.0-play26",   
+  //"org.reactivemongo" %% "play2-reactivemongo" % "0.16.0-play26",
 
   //Silhouette for authentication
   "com.mohiva" %% "play-silhouette" % "5.0.6",
@@ -61,7 +62,7 @@ libraryDependencies ++= Seq(
   "com.mohiva" %% "play-silhouette-persistence-reactivemongo" % "5.0.6",
 
   //Injection for silhouette module
-  "net.codingwell" %% "scala-guice" % "4.1.0",
+  //"net.codingwell" %% "scala-guice" % "4.1.0", (Tried removing, already included by Play)
   //Ficus is a lightweight companion to Typesafe config that makes it more Scala-friendly.
   "com.iheart" %% "ficus" % "1.4.1",
   

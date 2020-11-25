@@ -16,7 +16,7 @@ case class User(
     val avatarURL: Option[String],
     val activeDomain: String) extends DbModel with HasModelType with Identity with HasName
 
-object User extends DbModelComp[User] with HasModelTypeComp with HasNameComp {
+object User {
 
   implicit val userFormat = Json.format[User]
 
@@ -40,6 +40,5 @@ object User extends DbModelComp[User] with HasModelTypeComp with HasNameComp {
 
   def queryByLoginInfo(loginInfo: LoginInfo): JsObject = Json.obj(KeyLoginInfo -> Json.toJson(loginInfo))
 
-  def queryByActiveDomain(domain: Domain): JsObject =
-    Json.obj(KeyActiveDomain -> JsString(domain.uuid))
+  def queryByActiveDomain(domain: Domain): JsObject = Json.obj(KeyActiveDomain -> JsString(domain.uuid))
 }

@@ -1,36 +1,16 @@
 package controllers
 
-import scala.annotation.implicitNotFound
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import org.joda.time.DateTime
 import akka.stream.Materializer
-import models.formdata.DomainForm
-import models.formdata.DomainForm.fromDomainToData
-import javax.inject.Inject
-import javax.inject.Singleton
-import models.services.DomainService
-import models.services.UserService
-import play.api.i18n.{I18nSupport, Lang, Messages, MessagesApi}
-import play.api.libs.iteratee.Enumerator
-import play.api.libs.iteratee.Iteratee
-import play.api.libs.json.Json
-import play.api.mvc.{AbstractController, ActionBuilder, ActionRefiner, ActionTransformer, BaseController, BodyParser, ControllerComponents, Flash, MultipartFormData, Request, WrappedRequest}
-import utils.auth.DefaultEnv
-import models.Images
-import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import controllers.actions._
-import utils.RemoveResult
-import models.formdata.DomainForm
+import javax.inject.{Inject, Singleton}
 import models._
-import models.services.IssueService
-import models.formdata.IssueForm
-import models.services.AmlObjectService
-import models.formdata.IssueUpdateForm
-
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
+import models.formdata.{IssueForm, IssueUpdateForm}
+import models.services.{AmlObjectService, DomainService, IssueService, UserService}
+import play.api.i18n.{I18nSupport, Lang, Messages}
+import play.api.mvc.{AbstractController, ControllerComponents}
 import viewdata._
+
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class IssueController @Inject() (
@@ -52,7 +32,7 @@ class IssueController @Inject() (
             if (domainUuid.isEmpty()) {
               Future.successful(None)
             } else {
-              domainService.findOneDomain(Domain.queryByUuid(domainUuid))
+              domainService.findOneDomain(DbModel.queryByUuid(domainUuid))
             }
           }
           issueListData <- issueService.getIssueList(page)
@@ -128,7 +108,7 @@ class IssueController @Inject() (
       implicit issueUpdateRequest =>
 
         val responses = for {
-          issueOpt <- issueService.findOneIssue(Issue.queryByUuid(issueUpdateRequest.issueUpdate.parent))
+          issueOpt <- issueService.findOneIssue(DbModel.queryByUuid(issueUpdateRequest.issueUpdate.parent))
         } yield issueOpt.map(issue => Ok(views.html.issues.inspectIssueUpdate(
           issueUpdateRequest.issueUpdate, issue, page,
           UserStatus(Some(issueUpdateRequest.identity), issueUpdateRequest.activeDomain)))).getOrElse(NotFound)
@@ -189,7 +169,7 @@ class IssueController @Inject() (
           formWithErrors => {
 
             val responses = for {
-              issueOpt <- issueService.findOneIssue(Issue.queryByUuid(issueUpdateRequest.issueUpdate.parent))
+              issueOpt <- issueService.findOneIssue(DbModel.queryByUuid(issueUpdateRequest.issueUpdate.parent))
             } yield issueOpt.map(issue => Ok(views.html.issues.editIssueUpdate(issue,
               issueUpdateRequest.issueUpdate,
               formWithErrors, UserStatus(Some(issueUpdateRequest.identity),
@@ -226,7 +206,7 @@ class IssueController @Inject() (
       implicit issueUpdateRequest =>
 
         val responses = for {
-          issueOpt <- issueService.findOneIssue(Issue.queryByUuid(issueUpdateRequest.issueUpdate.parent))
+          issueOpt <- issueService.findOneIssue(DbModel.queryByUuid(issueUpdateRequest.issueUpdate.parent))
         } yield issueOpt.map(issue => Ok(views.html.issues.editIssueUpdate(issue,
           issueUpdateRequest.issueUpdate,
           IssueUpdateForm.form.fill(issueUpdateRequest.issueUpdate), UserStatus(Some(issueUpdateRequest.identity),

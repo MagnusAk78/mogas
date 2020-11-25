@@ -1,29 +1,13 @@
 package models.services
 
-import scala.Left
-import scala.Right
-import scala.annotation.implicitNotFound
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import scala.concurrent.duration.Duration
-
 import javax.inject.Inject
-import models.Element
-import models.Domain
-import models.Hierarchy
-import models.Instruction
-import models.Interface
-import models.daos.InterfaceDAO
-import play.api.Logger
+import models.daos.{ElementDAO, InterfaceDAO}
+import models._
 import play.api.libs.json.JsObject
-import views.html.instructions.instruction
-import models.daos.ElementDAO
-import viewdata.PaginateData
-import viewdata.ModelListData
-import models.HasElements
-import models.HasAmlId
-import models.DbModel
+import viewdata.{ModelListData, PaginateData}
+
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.duration.Duration
 
 class AmlObjectServiceImpl @Inject() (
     val elementDao: ElementDAO,
@@ -32,11 +16,11 @@ class AmlObjectServiceImpl @Inject() (
 
 
   override def getElementList(page: Int, parent: DbModel with HasElements): Future[ModelListData[Element]] =
-    findManyElements(Element.queryByParent(parent), page, utils.DefaultValues.DefaultPageLength)
+    findManyElements(HasParent.queryByParent(parent.uuid), page, utils.DefaultValues.DefaultPageLength)
 
   override def getElementChain(uuid: String): Future[List[Element]] = {
     for {
-      optionElement <- findOneElement(Element.queryByUuid(uuid))
+      optionElement <- findOneElement(DbModel.queryByUuid(uuid))
     } yield optionElement match {
       case Some(element) => {
         if (element.parentIsHierarchy) {
@@ -73,7 +57,7 @@ class AmlObjectServiceImpl @Inject() (
   }
 
   override def getInterfaceList(page: Int, parent: Element): Future[ModelListData[Interface]] = {
-    findManyInterfaces(Interface.queryByParent(parent), page, utils.DefaultValues.DefaultPageLength)
+    findManyInterfaces(HasParent.queryByParent(parent.uuid), page, utils.DefaultValues.DefaultPageLength)
   }
 
   override def insertInterface(model: Interface): Future[Option[Interface]] =

@@ -8,12 +8,8 @@ trait HasConnectionTo {
   val connectionTo: String
 }
 
-trait HasConnectionToComp[M <: DbModel] {
-
+object HasConnectionTo {
   private val KeyConnectionTo = "connectionTo"
 
-  def queryByHasConnectionTo(model: M): JsObject = Json.obj(KeyConnectionTo -> JsString(model.uuid))
-
-  def connectionToJsObject(connectionTo: HasConnectionTo): JsObject =
-    Json.obj(KeyConnectionTo -> JsString(connectionTo.connectionTo))
+  def queryByHasConnectionTo(uuid: String): JsObject = Json.obj(KeyConnectionTo -> JsString(uuid))
 }
